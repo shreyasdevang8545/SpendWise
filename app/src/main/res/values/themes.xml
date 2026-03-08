@@ -1,8 +1,20 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="Base.Theme.SpendWise" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <item name="colorPrimary">@color/primary_green</item>
+        <item name="android:windowBackground">@color/background_light</item>
+        <item name="android:textColorPrimary">@color/text_primary</item>
+        <item name="android:textColorSecondary">@color/text_secondary</item>
+        <!-- Material 3 Overrides -->
+        <item name="materialButtonStyle">@style/Widget.SpendWise.Button</item>
+    </style>
+
+    <style name="Widget.SpendWise.Button" parent="Widget.Material3.Button">
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearance.SpendWise.Button</item>
+    </style>
+
+    <style name="ShapeAppearance.SpendWise.Button" parent="">
+        <item name="cornerSize">24dp</item>
     </style>
 
     <style name="Theme.SpendWise" parent="Base.Theme.SpendWise" />

@@ -6,6 +6,8 @@ import android.content.Intent
 import android.os.Build
 import android.telephony.SmsMessage
 import android.util.Log
+import androidx.appcompat.app.AppCompatActivity
+import kotlinx.coroutines.runBlocking
 
 /**
  * BroadcastReceiver that intercepts incoming SMS messages and delegates
@@ -114,10 +116,10 @@ class SmsReceiver : BroadcastReceiver() {
         Log.d(TAG, "Received SMS from $senderAddress: $fullBody")
 
         // Filter: only process if it's a bank transaction
-        if (!TransactionExtractor.isBankTransaction(fullBody, senderAddress)) {
-            Log.i(TAG, "Ignoring non-bank or promotional SMS from $senderAddress")
-            return
-        }
+//        if (!TransactionExtractor.isBankTransaction(fullBody, senderAddress)) {
+//            Log.i(TAG, "Ignoring non-bank or promotional SMS from $senderAddress")
+//            return
+//        }
 
         Log.i(TAG, "Processing bank transaction SMS...")
 
@@ -125,10 +127,77 @@ class SmsReceiver : BroadcastReceiver() {
             val json = TransactionExtractor.parseSms(fullBody)
             Log.i(TAG, "Parsed transaction JSON: $json")
 
-            android.widget.Toast.makeText(context, "SpendWise: Processed Bank Transaction!", android.widget.Toast.LENGTH_SHORT).show()
+            // Send notification or broadcast to UI
+            persistAndAlert(context, json)
 
         } catch (e: Exception) {
             Log.e(TAG, "Error parsing SMS: ${e.message}", e)
         }
+    }
+
+    private fun persistAndAlert(context: Context, json: String) {
+        // Persist the transaction immediately using DataStore
+        val repo = PreferenceRepository(context)
+        runBlocking {
+            repo.addTransaction(json)
+        }
+
+        val intent = Intent(MainActivity.NEW_TRANSACTION_ACTION).apply {
+            putExtra("transaction_json", json)
+            `package` = context.packageName
+        }
+
+        // Send ordered broadcast. If MainActivity is in foreground, it will handle it.
+        context.sendOrderedBroadcast(intent, null, object : BroadcastReceiver() {
+            override fun onReceive(ctx: Context?, intent: Intent?) {
+                if (resultCode != AppCompatActivity.RESULT_OK) {
+                    // Not handled by activity -> App is in background
+                    Log.i(TAG, "Broadcast not handled by activity. Showing notification.")
+                    showNotification(ctx ?: context, json)
+                } else {
+                    Log.i(TAG, "Broadcast handled by activity. Skipping notification.")
+                }
+            }
+        }, null, 0, null, null)
+    }
+
+    private fun showNotification(context: Context, jsonString: String) {
+        // Simple manual JSON parsing for notification text
+        val pattern = Regex(""""(\w+)"\s*:\s*(?:"((?:[^"\\]|\\.)*)"|([^,}\s]+))""")
+        val data = mutableMapOf<String, String>()
+        for (match in pattern.findAll(jsonString)) {
+            val key = match.groupValues[1]
+            val value = if (match.groupValues[2].isNotEmpty()) match.groupValues[2] else match.groupValues[3]
+            data[key] = value
+        }
+
+        val amount = data["amount"] ?: "0.0"
+        val currency = data["currency"] ?: "INR"
+        val type = data["type"] ?: "UNKNOWN"
+
+        val typePrefix = if (type != "UNKNOWN") "$type " else ""
+        val contentText = "${typePrefix}transaction found for $currency $amount. Tap to add more details."
+
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+        
+        val contentIntent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            putExtra("transaction_json", jsonString)
+        }
+        val pendingIntent = android.app.PendingIntent.getActivity(
+            context, 0, contentIntent, 
+            android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val notification = androidx.core.app.NotificationCompat.Builder(context, MainActivity.TRANSACTION_CHANNEL_ID)
+            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setContentTitle("New Transaction Detected")
+            .setContentText(contentText)
+            .setPriority(androidx.core.app.NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
+            .setContentIntent(pendingIntent)
+            .build()
+
+        notificationManager.notify(System.currentTimeMillis().toInt(), notification)
     }
 }

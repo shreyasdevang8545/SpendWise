@@ -23,6 +23,11 @@ object TransactionExtractor {
         """(?i)\b(INR|AED|Rs\.?)\b"""
     )
 
+    /** Matches: Avl Bal: Rs. 17987.32 | Bal: INR 100.00 | available balance is INR 500 */
+    private val BALANCE_PATTERN: Pattern = Pattern.compile(
+        """(?i)(?:Avl\s*Bal|Bal|Balance|Available\s+Balance)(?:\s+is)?[:\s\-]*+(?:INR|AED|Rs\.?)?[\s]*+([\d,]+(?:\.\d+)?)"""
+    )
+
     // ── Transaction Type ─────────────────────────────────────────────────────
 
     private val CREDIT_PATTERN: Pattern = Pattern.compile(
@@ -107,6 +112,7 @@ object TransactionExtractor {
                 "type"      to extractType(message),
                 "entity"    to extractEntity(message),
                 "date_time" to extractDateTime(message),
+                "balance"   to extractBalance(message),
                 "raw_sms"   to message
             )
         } catch (e: Exception) {
@@ -181,6 +187,16 @@ object TransactionExtractor {
                 ?.replace(",", "")   // remove thousand-separators
                 ?.toDoubleOrNull() ?: 0.0
         } else 0.0
+    }
+
+    /** Returns the numeric balance as a Double, or null if not found. */
+    private fun extractBalance(msg: String): Double? {
+        val matcher = BALANCE_PATTERN.matcher(msg)
+        return if (matcher.find()) {
+            matcher.group(1)
+                ?.replace(",", "")
+                ?.toDoubleOrNull()
+        } else null
     }
 
     /**

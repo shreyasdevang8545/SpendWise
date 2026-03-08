@@ -17,17 +17,71 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import androidx.appcompat.app.AlertDialog
+import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.TextView
+import android.widget.Toast
+import android.view.View
+import android.widget.ArrayAdapter
+import android.widget.AutoCompleteTextView
+import android.text.Editable
+import android.text.TextWatcher
+import com.google.android.material.chip.Chip
+import com.google.android.material.chip.ChipGroup
+import com.google.android.material.textfield.TextInputLayout
+
+import androidx.activity.viewModels
+import androidx.navigation.findNavController
+import androidx.navigation.fragment.NavHostFragment
+import com.google.android.material.snackbar.Snackbar
+import androidx.navigation.NavDeepLinkRequest
+import android.net.Uri
 
 class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "MainActivity"
+        const val TRANSACTION_CHANNEL_ID = "transaction_alerts"
+        const val NEW_TRANSACTION_ACTION = "com.tech.spendwise.NEW_TRANSACTION"
+        
         init {
             Log.e("MainActivity", "CLASS LOADED IN MEMORY - STATIC BLOCK")
         }
     }
 
     private val smsReceiver = SmsReceiver()
+    private val viewModel: TransactionViewModel by viewModels()
+    
+    /**
+     * Receiver for transaction data sent from SmsReceiver when app is in foreground.
+     */
+    private val transactionBroadcastReceiverFilter = IntentFilter(NEW_TRANSACTION_ACTION)
+    private val transactionBroadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            val json = intent?.getStringExtra("transaction_json")
+            if (json != null) {
+                Log.i(TAG, "Foreground transaction broadcast received!")
+                
+                // Update ViewModel state
+                viewModel.addTransaction(json)
+                
+                // Show Snackbar
+                val rootView = findViewById<View>(android.R.id.content)
+                Snackbar.make(rootView, "New Transaction Found", Snackbar.LENGTH_LONG)
+                    .setAction("Review") {
+                        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+                        navHostFragment.navController.navigate(R.id.reviewTransactionFragment)
+                    }
+                    .show()
+
+                // Mark broadcast as handled so SmsReceiver knows app is in foreground
+                resultCode = AppCompatActivity.RESULT_OK
+            }
+        }
+    }
 
     /**
      * Request launcher for SMS permissions (Android 6.0+).
@@ -49,26 +103,111 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.e(TAG, "ONCREATE STARTED - DEBUGGING")
-        android.widget.Toast.makeText(this, "SpendWise: App Started!", android.widget.Toast.LENGTH_SHORT).show()
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.nav_host_fragment)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
 
-        // Request SMS permissions if running on Android 6.0+
         requestSmsPermissions()
-
-        // Dynamically register SmReceiver as an extra layer (Android 8.0+ sometimes needs this)
+        requestNotificationPermission()
         registerSmsReceiver()
+        createNotificationChannel()
+
+        // Handle intent if app was opened via notification
+        handleIntent(intent)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleIntent(intent)
+    }
+
+    private fun handleIntent(intent: Intent?) {
+        val data = intent?.data
+
+        // ── Deep link: spendwise://voice ────────────────────────────────────
+        // Triggered by Google Assistant shortcut or adb:
+        //   adb shell am start -a android.intent.action.VIEW -d "spendwise://voice" com.tech.spendwise
+        if (data?.scheme == "spendwise" && data.host == "voice") {
+            Log.i(TAG, "Deep link received: $data — opening voice entry")
+            findViewById<View>(android.R.id.content).post {
+                try {
+                    val navHostFragment = supportFragmentManager
+                        .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+                    // Navigate using the deep link URI so NavController resolves it via nav-graph
+                    val request = NavDeepLinkRequest.Builder
+                        .fromUri(Uri.parse("spendwise://voice"))
+                        .build()
+                    navHostFragment.navController.navigate(request)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to navigate to voice: ${e.message}")
+                }
+            }
+            return
+        }
+
+        // ── SMS transaction from notification ───────────────────────────────
+        val json = intent?.getStringExtra("transaction_json")
+        if (json != null) {
+            Log.i(TAG, "Transaction data found in intent!")
+            viewModel.addTransaction(json)
+
+            // Navigate to Review screen if app was opened via notification
+            // We use post to ensure NavController is ready
+            findViewById<View>(android.R.id.content).post {
+                val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+                navHostFragment.navController.navigate(R.id.reviewTransactionFragment)
+            }
+        }
+    }
+
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val name = "Transaction Alerts"
+            val descriptionText = "Notifications for detected bank transactions"
+            val importance = NotificationManager.IMPORTANCE_HIGH
+            val channel = NotificationChannel(TRANSACTION_CHANNEL_ID, name, importance).apply {
+                description = descriptionText
+            }
+            val notificationManager: NotificationManager =
+                getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(channel)
+        }
+    }
+
+    private fun requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                registerForActivityResult(ActivityResultContracts.RequestPermission()) {}.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val filter = IntentFilter(NEW_TRANSACTION_ACTION)
+        filter.priority = 100
+        
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ContextCompat.registerReceiver(this, transactionBroadcastReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(transactionBroadcastReceiver, filter)
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        try {
+            unregisterReceiver(transactionBroadcastReceiver)
+        } catch (e: Exception) {}
     }
 
     private val foregroundSmsReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             Log.e("MainActivity", "FOREGROUND SMS RECEIVED: ${intent?.action}")
-            android.widget.Toast.makeText(context, "SpendWise: Foreground SMS Intercepted!", android.widget.Toast.LENGTH_LONG).show()
         }
     }
 
@@ -80,7 +219,6 @@ class MainActivity : AppCompatActivity() {
                 addAction("com.tech.spendwise.TEST_ACTION")
             }
             
-            // Register both the class-based receiver and the foreground diagnostic one
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 ContextCompat.registerReceiver(this, smsReceiver, filter, ContextCompat.RECEIVER_EXPORTED)
                 ContextCompat.registerReceiver(this, foregroundSmsReceiver, filter, ContextCompat.RECEIVER_EXPORTED)
@@ -99,33 +237,17 @@ class MainActivity : AppCompatActivity() {
         try {
             unregisterReceiver(smsReceiver)
             unregisterReceiver(foregroundSmsReceiver)
-        } catch (e: Exception) {
-            // Might not be registered
-        }
+        } catch (e: Exception) {}
     }
 
-    /**
-     * Requests SMS permissions required for SmsReceiver to work.
-     * Only called on Android 6.0+ (API 23+).
-     */
     private fun requestSmsPermissions() {
         val permissionsToRequest = mutableListOf<String>()
 
-        // Check RECEIVE_SMS
-        if (ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.RECEIVE_SMS
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECEIVE_SMS) != PackageManager.PERMISSION_GRANTED) {
             permissionsToRequest.add(Manifest.permission.RECEIVE_SMS)
         }
 
-        // Check READ_SMS
-        if (ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.READ_SMS
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED) {
             permissionsToRequest.add(Manifest.permission.READ_SMS)
         }
 

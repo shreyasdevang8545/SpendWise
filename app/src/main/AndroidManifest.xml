@@ -3,11 +3,16 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <!-- ── SMS Permissions ───────────────────────────────────────────────── -->
-    <!-- Required to receive incoming SMS messages in SmsReceiver.           -->
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
-
-    <!-- Required to read SMS message content from the PDU bundle.           -->
     <uses-permission android:name="android.permission.READ_SMS" />
+
+    <!-- ── Notification ──────────────────────────────────────────────────── -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- ── Voice Input ───────────────────────────────────────────────────── -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
     <application
         android:allowBackup="true"
@@ -18,22 +23,36 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.SpendWise">
+
         <activity
             android:name=".MainActivity"
-            android:exported="true">
+            android:exported="true"
+            android:launchMode="singleTop">
+
+            <!-- ── Launcher ──────────────────────────────────────────────── -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <!-- ── Deep Link: spendwise://voice ──────────────────────────── -->
+            <!-- Handles "Hey Google, add expense in SpendWise" shortcuts.    -->
+            <!-- Test via: adb shell am start -a android.intent.action.VIEW  -->
+            <!--            -d "spendwise://voice" com.tech.spendwise         -->
+            <intent-filter android:autoVerify="false">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="spendwise"
+                    android:host="voice" />
+            </intent-filter>
+
+            <!-- Let NavController resolve the deep link URI automatically -->
+            <nav-graph android:value="@navigation/nav_graph" />
         </activity>
 
         <!-- ── SmsReceiver ─────────────────────────────────────────────────── -->
-        <!--
-            android:exported="true"     : must be true for system to deliver SMS.
-            android:permission           : restricts callers to the system SMS broadcaster.
-            android:priority="999"       : processed before other SMS receivers.
-        -->
         <receiver
             android:name=".SmsReceiver"
             android:exported="true">
@@ -41,6 +60,18 @@
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" />
                 <action android:name="com.tech.spendwise.TEST_ACTION" />
             </intent-filter>
+        </receiver>
+
+        <!-- ── QuickAddWidget ──────────────────────────────────────────────── -->
+        <receiver
+            android:name=".widget.QuickAddWidgetReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/quick_add_widget_info" />
         </receiver>
 
     </application>

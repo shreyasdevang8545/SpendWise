@@ -69,6 +69,7 @@ class TransactionExtractorTest {
         assertEquals(800.0,   map["amount"]?.toDoubleOrNull(),    "amount mismatch")
         assertEquals("INR",   map["currency"],                    "currency mismatch")
         assertEquals("CREDIT", map["type"],                       "type mismatch")
+        assertEquals(17987.32, map["balance"]?.toDoubleOrNull(),   "balance mismatch")
 
         val dateTime = map["date_time"] ?: ""
         assertTrue(dateTime.contains("09-11-2025"),
@@ -177,5 +178,26 @@ class TransactionExtractorTest {
         // 7. Special case: Loan EMI (contains 'loan' and 'debited')
         val loanEmi = "Your Loan EMI of Rs. 15,000 is debited from your account."
         assertTrue(extractor.isBankTransaction(loanEmi, "AD-BANK"), "Should accept Loan EMI debit")
+    }
+
+    @Test
+    fun `Balance is extracted correctly from various formats`() {
+        val extractor = TransactionExtractor
+        
+        // 1. AvlBal suffix
+        val sms1 = "Account XX123 credited for INR 100. AvlBal: Rs.17987.32"
+        assertEquals(17987.32, parseToMap(sms1)["balance"]?.toDoubleOrNull())
+
+        // 2. Bal: format
+        val sms2 = "Your account XX567 is debited for Rs. 500. Bal: INR 100.00"
+        assertEquals(100.0, parseToMap(sms2)["balance"]?.toDoubleOrNull())
+
+        // 3. Available Balance text
+        val sms3 = "Dear Customer, available balance is INR 500.25 after transaction."
+        assertEquals(500.25, parseToMap(sms3)["balance"]?.toDoubleOrNull())
+        
+        // 4. No balance in message
+        val sms4 = "OTP for your transaction is 123456."
+        assertEquals("null", parseToMap(sms4)["balance"])
     }
 }
