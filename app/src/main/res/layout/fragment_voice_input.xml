@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background_light">
+
+    <!-- Back button -->
+    <ImageButton
+        android:id="@+id/btnBack"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_margin="16dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Back"
+        android:src="@android:drawable/ic_menu_close_clear_cancel"
+        app:tint="@color/text_primary"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Title -->
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Voice Entry"
+        android:textColor="@color/text_primary"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/btnBack"
+        app:layout_constraintBottom_toBottomOf="@id/btnBack" />
+
+    <!-- Mic pulse ring (decorative) -->
+    <View
+        android:id="@+id/micRingOuter"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:alpha="0.2"
+        android:background="@drawable/mic_ring"
+        app:layout_constraintBottom_toTopOf="@id/tvTranscript"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btnBack"
+        app:layout_constraintVertical_chainStyle="packed"
+        app:layout_constraintVertical_bias="0.4" />
+
+    <View
+        android:id="@+id/micRingInner"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:alpha="0.35"
+        android:background="@drawable/mic_ring"
+        app:layout_constraintBottom_toBottomOf="@id/micRingOuter"
+        app:layout_constraintEnd_toEndOf="@id/micRingOuter"
+        app:layout_constraintStart_toStartOf="@id/micRingOuter"
+        app:layout_constraintTop_toTopOf="@id/micRingOuter" />
+
+    <!-- Microphone FAB -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/btnMic"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="Start voice recording"
+        android:src="@android:drawable/ic_btn_speak_now"
+        app:backgroundTint="@color/primary_green"
+        app:tint="@color/white"
+        app:layout_constraintBottom_toBottomOf="@id/micRingOuter"
+        app:layout_constraintEnd_toEndOf="@id/micRingOuter"
+        app:layout_constraintStart_toStartOf="@id/micRingOuter"
+        app:layout_constraintTop_toTopOf="@id/micRingOuter" />
+
+    <!-- Status label -->
+    <TextView
+        android:id="@+id/tvStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="Tap the mic to start"
+        android:textColor="@color/text_secondary"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/micRingOuter" />
+
+    <!-- Live transcript box -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/tvTranscript"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="24dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="2dp"
+        app:strokeColor="@color/chip_background"
+        app:strokeWidth="1dp"
+        app:layout_constraintBottom_toTopOf="@id/btnCancel"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvStatus"
+        app:layout_constraintVertical_bias="0.1">
+
+        <TextView
+            android:id="@+id/tvTranscriptText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="80dp"
+            android:gravity="center"
+            android:padding="16dp"
+            android:text=""
+            android:textColor="@color/text_primary"
+            android:textSize="18sp"
+            android:fontFamily="sans-serif-medium"
+            tools:text='"spent 250 on lunch"' />
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Cancel button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnCancel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="32dp"
+        android:text="Cancel"
+        app:strokeColor="@color/text_secondary"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
