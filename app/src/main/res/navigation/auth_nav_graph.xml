@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/auth_nav_graph"
+    app:startDestination="@id/phoneInputFragment">
+
+    <fragment
+        android:id="@+id/phoneInputFragment"
+        android:name="com.tech.spendwise.PhoneInputFragment"
+        android:label="Sign In"
+        tools:layout="@layout/fragment_phone_input">
+        <action
+            android:id="@+id/action_phoneInput_to_otp"
+            app:destination="@id/otpFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/otpFragment"
+        android:name="com.tech.spendwise.OtpFragment"
+        android:label="Verify OTP"
+        tools:layout="@layout/fragment_otp">
+        <argument
+            android:name="phoneNumber"
+            app:argType="string"
+            android:defaultValue="" />
+    </fragment>
+
+</navigation>

@@ -13,6 +13,8 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.chip.Chip
+import com.google.firebase.auth.FirebaseAuth
+import com.tech.spendwise.utils.UIUtils
 import com.tech.spendwise.databinding.FragmentReviewTransactionBinding
 
 /**
@@ -47,20 +49,25 @@ class ReviewTransactionFragment : Fragment() {
         viewModel.pendingTransactions.observe(viewLifecycleOwner) { list ->
             val count = list.size
             if (count > 1) {
-                binding.saveButton.text = "Save & Next (${count - 1} left)"
+                binding.btnSave.text = "Save & Next (${count - 1} left)"
             } else {
-                binding.saveButton.text = "Save & Finish"
+                binding.btnSave.text = "Save & Finish"
             }
         }
 
-        binding.discardButton.setOnClickListener {
+        binding.btnDiscard.setOnClickListener {
+            viewModel.popTransaction()
+        }
+
+        binding.btnBack.setOnClickListener {
+            // Act like discard/close for now to handle it gracefully
             viewModel.popTransaction()
         }
     }
 
     private fun setupUI(jsonString: String) {
         // Reset previous selections and errors
-        binding.categoryInput.setText("", false)
+        binding.actvCategory.setText("", false)
         binding.paymentGroup.clearCheck()
         binding.otherModeLayout.visibility = View.GONE
         binding.typeContainer.visibility = View.GONE
@@ -79,17 +86,17 @@ class ReviewTransactionFragment : Fragment() {
         val type = data["type"] ?: "UNKNOWN"
         val currency = data["currency"] ?: "INR"
 
-        binding.amountInput.setText(amount)
+        binding.etAmount.setText(amount)
         binding.amountLayout.hint = "Amount ($currency)"
-        binding.merchantInput.setText(if (merchant == "UNKNOWN" || merchant.isBlank()) "" else merchant)
+        binding.etMerchant.setText(if (merchant == "UNKNOWN" || merchant.isBlank()) "" else merchant)
 
         // Categories
         val categories = arrayOf("Food", "Entertainment", "Shopping", "Transport", "Bills", "Health", "Investment", "Others")
         val categoryAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, categories)
-        binding.categoryInput.setAdapter(categoryAdapter)
+        binding.actvCategory.setAdapter(categoryAdapter)
 
         // Payment Modes
-        val modes = listOf("UPI", "Credit Card", "Debit Card", "By Cash", "Other")
+        val modes = listOf("UPI", "Credit Card", "Debit Card", "Cash", "Other")
         binding.paymentGroup.removeAllViews()
         modes.forEach { mode ->
             val chip = Chip(requireContext()).apply {
@@ -143,19 +150,18 @@ class ReviewTransactionFragment : Fragment() {
             binding.typeBadge.background = drawable
         }
 
-        binding.categoryInput.addTextChangedListener(object : TextWatcher {
+        binding.switchLend.setOnCheckedChangeListener { _, isChecked ->
+            binding.lendDetailContainer.visibility = if (isChecked) View.VISIBLE else View.GONE
+            validate()
+        }
+
+        binding.etLendName.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) = validate()
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
         })
 
-        binding.otherModeInput.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) = validate()
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-        })
-
-        binding.saveButton.setOnClickListener {
+        binding.btnSave.setOnClickListener {
             saveTransaction(type)
         }
 
@@ -164,37 +170,100 @@ class ReviewTransactionFragment : Fragment() {
 
     private fun validate() {
         val categories = listOf("Food", "Entertainment", "Shopping", "Transport", "Bills", "Health", "Investment", "Others")
-        val isCategorySelected = binding.categoryInput.text.isNotEmpty() && categories.contains(binding.categoryInput.text.toString())
+        val isCategorySelected = binding.actvCategory.text.isNotEmpty() && categories.contains(binding.actvCategory.text.toString())
         val isPaymentSelected = binding.paymentGroup.checkedChipId != View.NO_ID
         val isOtherValid = if (binding.paymentGroup.checkedChipId != View.NO_ID) {
             val selectedChip = binding.paymentGroup.findViewById<Chip>(binding.paymentGroup.checkedChipId)
-            if (selectedChip.text == "Other") binding.otherModeInput.text?.isNotEmpty() == true else true
+            if (selectedChip.text == "Other") binding.etOtherMode.text?.isNotEmpty() == true else true
         } else false
         
         val isTypeSelected = if (binding.typeContainer.visibility == View.VISIBLE) {
             binding.typeGroup.checkedChipId != View.NO_ID
         } else true
 
-        binding.saveButton.isEnabled = isCategorySelected && isPaymentSelected && isOtherValid && isTypeSelected
+        val isLendValid = if (binding.switchLend.isChecked) {
+            binding.etLendName.text?.isNotEmpty() == true
+        } else true
+
+        binding.btnSave.isEnabled = isCategorySelected && isPaymentSelected && isOtherValid && isTypeSelected && isLendValid
     }
 
     private fun saveTransaction(initialType: String) {
-        val finalAmount = binding.amountInput.text.toString()
-        val finalMerchant = binding.merchantInput.text.toString()
-        val finalCategory = binding.categoryInput.text.toString()
-        
+        val finalAmount = binding.etAmount.text.toString()
+        val finalMerchant = binding.etMerchant.text.toString()
+        val finalCategory = binding.actvCategory.text.toString()
+
         val selectedModeId = binding.paymentGroup.checkedChipId
         val selectedMode = binding.paymentGroup.findViewById<Chip>(selectedModeId).text.toString()
-        val finalPaymentMode = if (selectedMode == "Other") binding.otherModeInput.text.toString() else selectedMode
-        
+        val finalPaymentMode = if (selectedMode == "Other") binding.etOtherMode.text.toString() else selectedMode
+
         val finalType = if (initialType == "UNKNOWN") {
             val selectedTypeId = binding.typeGroup.checkedChipId
             if (selectedTypeId != View.NO_ID) binding.typeGroup.findViewById<Chip>(selectedTypeId).text.toString() else "UNKNOWN"
         } else initialType
-        
-        Toast.makeText(requireContext(), "Saved: $finalAmount as $finalType at $finalMerchant ($finalCategory via $finalPaymentMode)", Toast.LENGTH_LONG).show()
-        
+
+        // Determine currency from the current pending transaction
+        val firstJson = viewModel.firstTransaction.value ?: ""
+        val currencyMatch = Regex(""""currency"\s*:\s*"([^"]+)"""").find(firstJson)
+        val currency = currencyMatch?.groupValues?.get(1) ?: "INR"
+
+        val isLend = binding.switchLend.isChecked
+        val lendName = if (isLend) binding.etLendName.text.toString() else null
+
+        // Build and persist the confirmed transaction JSON
+        val timestamp = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.getDefault())
+            .format(java.util.Date())
+        val confirmedJson = buildConfirmedJson(
+            amount = finalAmount.toDoubleOrNull() ?: 0.0,
+            type = finalType,
+            merchant = finalMerchant,
+            category = finalCategory,
+            paymentMode = finalPaymentMode,
+            currency = currency,
+            savedAt = timestamp,
+            isLend = isLend,
+            lendName = lendName
+        )
+        viewModel.addConfirmedTransaction(confirmedJson)
+
+        if (isLend) {
+            // Also create a separate lend record for the Lend History screen
+            val lend = com.tech.spendwise.models.LendTransaction(
+                id = java.util.UUID.randomUUID().toString(),
+                name = lendName!!,
+                amount = finalAmount.toDoubleOrNull() ?: 0.0,
+                paymentMode = finalPaymentMode,
+                returnDate = System.currentTimeMillis() + (86400000 * 7), // Default 1 week
+                isReturned = false
+            )
+            val uid = FirebaseAuth.getInstance().currentUser?.uid
+            if (uid != null) {
+                FirestoreRepository().saveLend(uid, lend)
+            }
+        }
+
+        UIUtils.showSuccessSnackbar(
+            binding.root,
+            if (isLend) "Lend saved for $lendName" else "Saved: ₹$finalAmount as $finalType at $finalMerchant"
+        )
+
         viewModel.popTransaction()
+    }
+
+    private fun buildConfirmedJson(
+        amount: Double,
+        type: String,
+        merchant: String,
+        category: String,
+        paymentMode: String,
+        currency: String,
+        savedAt: String,
+        isLend: Boolean,
+        lendName: String?
+    ): String {
+        fun String.esc() = replace("\\", "\\\\").replace("\"", "\\\"")
+        val lendStr = if (isLend) ""","is_lend":true,"lend_name":"${lendName?.esc() ?: ""}" """ else ""
+        return """{"amount":$amount,"type":"${type.esc()}","merchant":"${merchant.esc()}","category":"${category.esc()}","payment_mode":"${paymentMode.esc()}","currency":"${currency.esc()}","saved_at":"${savedAt.esc()}"$lendStr}"""
     }
 
     override fun onDestroyView() {

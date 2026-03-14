@@ -177,12 +177,6 @@ class VoiceInputFragment : Fragment() {
     private fun handleResult(text: String) {
         binding.tvTranscriptText.text = text
         showStatus("Got it!")
-
-        val parsed = VoiceExpenseParser.parse(text)
-
-        val action = VoiceInputFragmentDirections
-            .actionVoiceInputToVoiceConfirm(parsed, text)
-        findNavController().navigate(action)
     }
 
     // ── Animations ──────────────────────────────────────────────────────────

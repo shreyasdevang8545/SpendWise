@@ -116,16 +116,32 @@ class SmsReceiver : BroadcastReceiver() {
         Log.d(TAG, "Received SMS from $senderAddress: $fullBody")
 
         // Filter: only process if it's a bank transaction
-//        if (!TransactionExtractor.isBankTransaction(fullBody, senderAddress)) {
-//            Log.i(TAG, "Ignoring non-bank or promotional SMS from $senderAddress")
-//            return
-//        }
+        if (!TransactionExtractor.isBankTransaction(fullBody, senderAddress)) {
+            Log.i(TAG, "Ignoring non-bank or promotional SMS from $senderAddress")
+            return
+        }
 
         Log.i(TAG, "Processing bank transaction SMS...")
 
         try {
             val json = TransactionExtractor.parseSms(fullBody)
             Log.i(TAG, "Parsed transaction JSON: $json")
+
+            // Don't alert if there was a parsing error (e.g. missing crucial fields)
+            if (json.contains("\"error\":")) {
+                Log.w(TAG, "JSON contains error key, skipping alert.")
+                return
+            }
+
+            // Extract amount for extra validation
+            val pattern = Regex(""""amount"\s*:\s*([\d.]+)""")
+            val amountMatch = pattern.find(json)
+            val amountVal = amountMatch?.groupValues?.get(1)?.toDoubleOrNull() ?: 0.0
+            
+            if (amountVal <= 0.0) {
+                Log.i(TAG, "Amount is 0.0 or could not be parsed, skipping alert.")
+                return
+            }
 
             // Send notification or broadcast to UI
             persistAndAlert(context, json)
@@ -189,6 +205,19 @@ class SmsReceiver : BroadcastReceiver() {
             android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
         )
 
+        val notificationId = System.currentTimeMillis().toInt()
+        
+        // Ignore Action
+        val ignoreIntent = Intent(context, TransactionActionReceiver::class.java).apply {
+            action = TransactionActionReceiver.ACTION_IGNORE
+            putExtra("transaction_json", jsonString)
+            putExtra("notification_id", notificationId)
+        }
+        val ignorePendingIntent = android.app.PendingIntent.getBroadcast(
+            context, notificationId + 1, ignoreIntent,
+            android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
+        )
+
         val notification = androidx.core.app.NotificationCompat.Builder(context, MainActivity.TRANSACTION_CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setContentTitle("New Transaction Detected")
@@ -196,8 +225,9 @@ class SmsReceiver : BroadcastReceiver() {
             .setPriority(androidx.core.app.NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
+            .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Ignore", ignorePendingIntent)
             .build()
 
-        notificationManager.notify(System.currentTimeMillis().toInt(), notification)
+        notificationManager.notify(notificationId, notification)
     }
 }

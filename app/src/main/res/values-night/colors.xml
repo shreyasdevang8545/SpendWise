@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark Mode Palette -->
+    <color name="background_light">#121212</color>
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#A0A0A0</color>
+    <color name="chip_background">#2C2C2C</color>
+    <color name="card_surface">#1E1E1E</color>
+    <color name="white">#1E1E1E</color> <!-- Semantic override for dark mode surfaces -->
+</resources>

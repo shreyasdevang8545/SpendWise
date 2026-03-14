@@ -11,70 +11,52 @@
         android:orientation="vertical"
         android:padding="20dp">
 
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:id="@+id/progressIndicator"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:indeterminate="true"
+            android:visibility="gone"
+            app:indicatorColor="@color/primary_green"
+            android:layout_marginBottom="16dp" />
+
         <!-- Toolbar row -->
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp">
+            android:layout_marginBottom="24dp">
 
             <ImageButton
-                android:id="@+id/btnReRecord"
+                android:id="@+id/btnBack"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Re-record"
-                android:src="@android:drawable/ic_btn_speak_now"
-                app:tint="@color/text_secondary"
+                android:contentDescription="Back"
+                android:src="@android:drawable/ic_menu_close_clear_cancel"
+                app:tint="@color/text_primary"
                 android:layout_alignParentStart="true"
                 android:layout_centerVertical="true" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Confirm Expense"
+                android:text="Add Transaction"
                 android:textColor="@color/text_primary"
                 android:textSize="20sp"
                 android:textStyle="bold"
                 android:layout_centerInParent="true" />
+
+            <ImageButton
+                android:id="@+id/btnVoiceStart"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Voice Input"
+                android:src="@android:drawable/ic_btn_speak_now"
+                app:tint="@color/primary_green"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true" />
         </RelativeLayout>
-
-        <!-- Transcript preview card -->
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/transcriptCard"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="20dp"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="2dp"
-            app:strokeColor="@color/primary_green"
-            app:strokeWidth="1dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:padding="14dp">
-
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_gravity="center_vertical"
-                    android:src="@android:drawable/ic_btn_speak_now"
-                    android:layout_marginEnd="10dp"
-                    app:tint="@color/primary_green"
-                    android:contentDescription="Voice input" />
-
-                <TextView
-                    android:id="@+id/tvTranscriptPreview"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="14sp"
-                    android:fontFamily="sans-serif-medium"
-                    android:text="" />
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
 
         <!-- Amount -->
         <com.google.android.material.textfield.TextInputLayout
@@ -83,6 +65,9 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
             android:hint="Amount (₹)"
+            app:startIconDrawable="@android:drawable/ic_menu_camera"
+            app:startIconTint="@color/primary_green"
+            app:startIconContentDescription="Capture Bill"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -151,7 +136,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Expense"
-                android:checkable="true" />
+                android:checkable="true"
+                android:checked="true" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipIncome"
@@ -175,7 +161,7 @@
             android:id="@+id/paymentChipGroup"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
+            android:layout_marginBottom="32dp"
             app:singleSelection="true">
 
             <com.google.android.material.chip.Chip
@@ -183,7 +169,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="UPI"
-                android:checkable="true" />
+                android:checkable="true"
+                android:checked="true" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipCredit"
@@ -214,12 +201,30 @@
                 android:checkable="true" />
         </com.google.android.material.chip.ChipGroup>
 
+        <!-- Date & Time -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/dateLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:hint="Date &amp; Time"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etDate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:focusable="false"
+                android:inputType="none"
+                android:textColor="@color/text_primary" />
+        </com.google.android.material.textfield.TextInputLayout>
+
         <!-- Save button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSave"
             android:layout_width="match_parent"
             android:layout_height="56dp"
-            android:text="Save Expense"
+            android:text="Save Transaction"
             android:textSize="16sp"
             app:backgroundTint="@color/primary_green"
             app:cornerRadius="12dp" />

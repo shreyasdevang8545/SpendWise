@@ -3,7 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.navigation.safe.args)
-    // alias(libs.plugins.google.services) // TODO: Uncomment after adding google-services.json
+    alias(libs.plugins.google.services)
     id("kotlin-parcelize")
 }
 
@@ -61,10 +61,12 @@ dependencies {
     implementation(libs.androidx.lifecycle.livedata.ktx)
     implementation(libs.androidx.datastore.preferences)
     implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
+    implementation(libs.shimmer)
 
     // Firebase
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.firestore)
+    implementation(libs.firebase.auth)
 
     // Widgets (Glance)
     implementation(libs.glance.appwidget)
@@ -72,6 +74,9 @@ dependencies {
 
     // Background Work (WorkManager)
     implementation(libs.work.runtime.ktx)
+
+    // ML Kit Text Recognition
+    implementation(libs.play.services.mlkit.text.recognition)
 
     // JUnit 4 — kept for existing ExampleUnitTest
     testImplementation(libs.junit)

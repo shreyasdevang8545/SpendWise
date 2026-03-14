@@ -2,12 +2,23 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    
-    <!-- Wisecrypto Design System Colors -->
+
+    <!-- SpendWise Design System Colors (Defaulting to Dark) -->
     <color name="primary_green">#6CDB94</color>
-    <color name="background_light">#F9FAFB</color>
-    <color name="text_primary">#111827</color>
-    <color name="text_secondary">#6B7280</color>
+    <color name="background_light">#121212</color>
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#A0A0A0</color>
     <color name="error_red">#F87171</color>
-    <color name="chip_background">#E5E7EB</color>
+    <color name="chip_background">#2C2C2C</color>
+    <color name="card_surface">#1E1E1E</color>
+
+    <!-- Category icon colors -->
+    <color name="cat_food">#FF7043</color>
+    <color name="cat_entertainment">#AB47BC</color>
+    <color name="cat_shopping">#EC407A</color>
+    <color name="cat_transport">#42A5F5</color>
+    <color name="cat_bills">#78909C</color>
+    <color name="cat_health">#26A69A</color>
+    <color name="cat_investment">#66BB6A</color>
+    <color name="cat_others">#BDBDBD</color>
 </resources>

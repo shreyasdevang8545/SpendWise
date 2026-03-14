@@ -14,6 +14,7 @@ import android.provider.Telephony
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -34,11 +35,11 @@ import com.google.android.material.chip.ChipGroup
 import com.google.android.material.textfield.TextInputLayout
 
 import androidx.activity.viewModels
-import androidx.navigation.findNavController
-import androidx.navigation.fragment.NavHostFragment
-import com.google.android.material.snackbar.Snackbar
+import com.tech.spendwise.utils.UIUtils
 import androidx.navigation.NavDeepLinkRequest
 import android.net.Uri
+import androidx.navigation.fragment.NavHostFragment
+import com.google.firebase.auth.FirebaseAuth
 
 class MainActivity : AppCompatActivity() {
 
@@ -70,12 +71,10 @@ class MainActivity : AppCompatActivity() {
                 
                 // Show Snackbar
                 val rootView = findViewById<View>(android.R.id.content)
-                Snackbar.make(rootView, "New Transaction Found", Snackbar.LENGTH_LONG)
-                    .setAction("Review") {
-                        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
-                        navHostFragment.navController.navigate(R.id.reviewTransactionFragment)
-                    }
-                    .show()
+                UIUtils.showActionSnackbar(rootView, "New Transaction Found", "Review") {
+                    val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+                    navHostFragment.navController.navigate(R.id.reviewTransactionFragment)
+                }
 
                 // Mark broadcast as handled so SmsReceiver knows app is in foreground
                 resultCode = AppCompatActivity.RESULT_OK
@@ -101,8 +100,17 @@ class MainActivity : AppCompatActivity() {
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
         super.onCreate(savedInstanceState)
         Log.e(TAG, "ONCREATE STARTED - DEBUGGING")
+
+        // ── Auth guard: redirect to AuthActivity if not signed in ────────
+        if (FirebaseAuth.getInstance().currentUser == null) {
+            startActivity(Intent(this, AuthActivity::class.java))
+            finish()
+            return
+        }
+
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.nav_host_fragment)) { v, insets ->
@@ -115,6 +123,14 @@ class MainActivity : AppCompatActivity() {
         requestNotificationPermission()
         registerSmsReceiver()
         createNotificationChannel()
+ 
+        // Set up Bottom Navigation
+        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+        val navController = navHostFragment.navController
+        val bottomNav = findViewById<com.google.android.material.bottomnavigation.BottomNavigationView>(R.id.bottom_nav)
+        
+        // Connect BottomNav with NavController
+        androidx.navigation.ui.NavigationUI.setupWithNavController(bottomNav, navController)
 
         // Handle intent if app was opened via notification
         handleIntent(intent)
@@ -175,6 +191,16 @@ class MainActivity : AppCompatActivity() {
             val notificationManager: NotificationManager =
                 getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(channel)
+
+            // Create Lend Remainder channel
+            val lendChannel = NotificationChannel(
+                "lend_reminders",
+                "Lend Reminders",
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = "Reminders for money return commitments"
+            }
+            notificationManager.createNotificationChannel(lendChannel)
         }
     }
 
@@ -238,6 +264,17 @@ class MainActivity : AppCompatActivity() {
             unregisterReceiver(smsReceiver)
             unregisterReceiver(foregroundSmsReceiver)
         } catch (e: Exception) {}
+    }
+
+    /**
+     * Signs the user out of Firebase and returns them to the AuthActivity.
+     */
+    fun signOut() {
+        FirebaseAuth.getInstance().signOut()
+        val intent = Intent(this, AuthActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+        finish()
     }
 
     private fun requestSmsPermissions() {

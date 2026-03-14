@@ -1,6 +1,7 @@
 package com.tech.spendwise
 
 import android.content.Context
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -18,7 +19,10 @@ class PreferenceRepository(private val context: Context) {
 
     companion object {
         private val PENDING_TRANSACTIONS_LIST_KEY = stringPreferencesKey("pending_transactions_list_encrypted")
+        private val CONFIRMED_TRANSACTIONS_KEY = stringPreferencesKey("confirmed_transactions_encrypted")
+        private val IS_VOICE_GUIDE_SHOWN_KEY = booleanPreferencesKey("is_voice_guide_shown")
         private const val DELIMITER = "|_|"
+        private const val MAX_CONFIRMED = 100
     }
 
     private val encryptionManager = EncryptionManager()
@@ -41,6 +45,88 @@ class PreferenceRepository(private val context: Context) {
                 }
             }
         }
+
+    /**
+     * Returns a Flow of the confirmed (saved) transaction JSON strings, newest first.
+     */
+    val confirmedTransactionsFlow: Flow<List<String>> = context.dataStore.data
+        .map { preferences ->
+            val encrypted = preferences[CONFIRMED_TRANSACTIONS_KEY] ?: ""
+            if (encrypted.isEmpty()) {
+                emptyList()
+            } else {
+                try {
+                    val decrypted = encryptionManager.decrypt(encrypted)
+                    if (decrypted.isEmpty()) emptyList() else decrypted.split(DELIMITER)
+                } catch (e: Exception) {
+                    emptyList()
+                }
+            }
+        }
+
+    /**
+     * Returns a Flow suggesting if the voice guide has been shown.
+     */
+    val isVoiceGuideShownFlow: Flow<Boolean> = context.dataStore.data
+        .map { preferences ->
+            preferences[IS_VOICE_GUIDE_SHOWN_KEY] ?: false
+        }
+
+    /**
+     * Marks the voice guide as shown.
+     */
+    suspend fun setVoiceGuideShown(shown: Boolean = true) {
+        context.dataStore.edit { preferences ->
+            preferences[IS_VOICE_GUIDE_SHOWN_KEY] = shown
+        }
+    }
+
+    /**
+     * Prepends a confirmed transaction JSON to the persistent store (newest-first).
+     * Automatically trims the list to [MAX_CONFIRMED] entries.
+     */
+    suspend fun addConfirmedTransaction(json: String) {
+        context.dataStore.edit { preferences ->
+            val encryptedCurrent = preferences[CONFIRMED_TRANSACTIONS_KEY] ?: ""
+            val currentDecrypted = if (encryptedCurrent.isEmpty()) {
+                ""
+            } else {
+                try { encryptionManager.decrypt(encryptedCurrent) } catch (e: Exception) { "" }
+            }
+            val currentList = if (currentDecrypted.isEmpty()) mutableListOf() else currentDecrypted.split(DELIMITER).toMutableList()
+            // Prepend so newest is first
+            currentList.add(0, json)
+            // Cap list
+            val trimmed = currentList.take(MAX_CONFIRMED)
+            preferences[CONFIRMED_TRANSACTIONS_KEY] = encryptionManager.encrypt(trimmed.joinToString(DELIMITER))
+        }
+    }
+
+    /**
+     * Removes a specific confirmed transaction JSON from the store.
+     * Used when a previously offline transaction is successfully synced to cloud.
+     */
+    suspend fun removeConfirmedTransaction(json: String) {
+        context.dataStore.edit { preferences ->
+            val encryptedCurrent = preferences[CONFIRMED_TRANSACTIONS_KEY] ?: ""
+            if (encryptedCurrent.isNotEmpty()) {
+                try {
+                    val currentDecrypted = encryptionManager.decrypt(encryptedCurrent)
+                    val list = currentDecrypted.split(DELIMITER).toMutableList()
+                    if (list.remove(json)) {
+                        if (list.isEmpty()) {
+                            preferences.remove(CONFIRMED_TRANSACTIONS_KEY)
+                        } else {
+                            val newListDecrypted = list.joinToString(DELIMITER)
+                            preferences[CONFIRMED_TRANSACTIONS_KEY] = encryptionManager.encrypt(newListDecrypted)
+                        }
+                    }
+                } catch (e: Exception) {
+                    preferences.remove(CONFIRMED_TRANSACTIONS_KEY)
+                }
+            }
+        }
+    }
 
     /**
      * Appends a new transaction JSON to the encrypted persistent queue.
@@ -71,6 +157,31 @@ class PreferenceRepository(private val context: Context) {
                     val list = currentDecrypted.split(DELIMITER).toMutableList()
                     if (list.isNotEmpty()) {
                         list.removeAt(0)
+                        if (list.isEmpty()) {
+                            preferences.remove(PENDING_TRANSACTIONS_LIST_KEY)
+                        } else {
+                            val newListDecrypted = list.joinToString(DELIMITER)
+                            preferences[PENDING_TRANSACTIONS_LIST_KEY] = encryptionManager.encrypt(newListDecrypted)
+                        }
+                    }
+                } catch (e: Exception) {
+                    preferences.remove(PENDING_TRANSACTIONS_LIST_KEY)
+                }
+            }
+        }
+    }
+
+    /**
+     * Removes a specific transaction JSON from the queue.
+     */
+    suspend fun removeTransaction(json: String) {
+        context.dataStore.edit { preferences ->
+            val encryptedCurrent = preferences[PENDING_TRANSACTIONS_LIST_KEY] ?: ""
+            if (encryptedCurrent.isNotEmpty()) {
+                try {
+                    val currentDecrypted = encryptionManager.decrypt(encryptedCurrent)
+                    val list = currentDecrypted.split(DELIMITER).toMutableList()
+                    if (list.remove(json)) {
                         if (list.isEmpty()) {
                             preferences.remove(PENDING_TRANSACTIONS_LIST_KEY)
                         } else {

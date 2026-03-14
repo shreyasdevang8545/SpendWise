@@ -152,7 +152,8 @@ object TransactionExtractor {
         val promoKeywords = listOf(
             "offer", "discount", "cashback", "apply now", "limited time",
             "congratulations", "win", "gift", "voucher", "click here",
-            "subscription", "upgrade", "pre-approved", "loan", "emi starting"
+            "subscription", "upgrade", "pre-approved", "loan", "emi starting",
+            "recharge", "payment due", "bill due", "reminder", "overdue"
         )
         val lowerMsg = message.lowercase()
         for (keyword in promoKeywords) {

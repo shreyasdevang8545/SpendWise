@@ -18,13 +18,59 @@
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
         <action
-            android:id="@+id/action_home_to_voiceInput"
-            app:destination="@id/voiceInputFragment"
+            android:id="@+id/action_home_to_addTransaction"
+            app:destination="@id/addTransactionFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_home_to_addLend"
+            app:destination="@id/addLendFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_home_to_transactionHistory"
+            app:destination="@id/transactionHistoryFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_home_to_lendHistory"
+            app:destination="@id/lendHistoryFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     </fragment>
+
+    <fragment
+        android:id="@+id/transactionHistoryFragment"
+        android:name="com.tech.spendwise.TransactionHistoryFragment"
+        android:label="Transaction History"
+        tools:layout="@layout/fragment_transaction_history" />
+
+    <fragment
+        android:id="@+id/addLendFragment"
+        android:name="com.tech.spendwise.AddLendFragment"
+        android:label="Add Lend Amount"
+        tools:layout="@layout/fragment_add_lend">
+        <argument
+            android:name="lendId"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/addTransactionFragment"
+        android:name="com.tech.spendwise.AddTransactionFragment"
+        android:label="Add Transaction"
+        tools:layout="@layout/fragment_add_transaction"/>
+
 
     <fragment
         android:id="@+id/reviewTransactionFragment"
@@ -50,30 +96,22 @@
             android:id="@+id/deepLink_voiceEntry"
             app:uri="spendwise://voice" />
 
+    </fragment>
+
+    <!-- ── Voice Confirm ────────────────────────────────────────────────── -->
+
+    <fragment
+        android:id="@+id/lendHistoryFragment"
+        android:name="com.tech.spendwise.LendHistoryFragment"
+        android:label="Lend History"
+        tools:layout="@layout/fragment_lend_history">
         <action
-            android:id="@+id/action_voiceInput_to_voiceConfirm"
-            app:destination="@id/voiceConfirmFragment"
+            android:id="@+id/action_history_to_addLend"
+            app:destination="@id/addLendFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
-    </fragment>
-
-    <!-- ── Voice Confirm ────────────────────────────────────────────────── -->
-    <fragment
-        android:id="@+id/voiceConfirmFragment"
-        android:name="com.tech.spendwise.VoiceConfirmFragment"
-        android:label="Confirm Expense"
-        tools:layout="@layout/fragment_voice_confirm">
-
-        <argument
-            android:name="parsedExpense"
-            app:argType="com.tech.spendwise.ParsedExpense" />
-
-        <argument
-            android:name="transcript"
-            app:argType="string"
-            android:defaultValue="" />
     </fragment>
 
 </navigation>
