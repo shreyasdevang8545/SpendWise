@@ -125,10 +125,12 @@ class LendHistoryFragment : Fragment() {
     private fun markAsReturned(lend: LendTransaction) {
         val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
         firestoreRepository.updateLendStatus(uid, lend.id!!, true) {
-            lend.id?.let { id ->
-                ReminderManager.cancelReminder(requireContext(), id)
+            _binding?.let {
+                lend.id?.let { id ->
+                    ReminderManager.cancelReminder(requireContext(), id)
+                }
+                fetchLends() // Refresh
             }
-            fetchLends() // Refresh
         }
     }
 
@@ -142,10 +144,12 @@ class LendHistoryFragment : Fragment() {
         ) {
             val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return@showAlertDialog
             firestoreRepository.deleteLend(uid, lend.id!!) {
-                lend.id?.let { id ->
-                    ReminderManager.cancelReminder(requireContext(), id)
+                _binding?.let {
+                    lend.id?.let { id ->
+                        ReminderManager.cancelReminder(requireContext(), id)
+                    }
+                    fetchLends() // Refresh list
                 }
-                fetchLends() // Refresh list
             }
         }
         // Special case: we need to reset swipe if canceled. 
@@ -162,15 +166,17 @@ class LendHistoryFragment : Fragment() {
         binding.emptyState.visibility = View.GONE
 
         firestoreRepository.fetchLends(uid) { lends ->
-            binding.shimmerViewContainer.stopShimmer()
-            binding.shimmerViewContainer.visibility = View.GONE
-            binding.lendRecyclerView.visibility = View.VISIBLE
-            
-            if (lends.isEmpty()) {
-                binding.emptyState.visibility = View.VISIBLE
-            } else {
-                binding.emptyState.visibility = View.GONE
-                adapter.submitList(lends)
+            _binding?.let { binding ->
+                binding.shimmerViewContainer.stopShimmer()
+                binding.shimmerViewContainer.visibility = View.GONE
+                binding.lendRecyclerView.visibility = View.VISIBLE
+                
+                if (lends.isEmpty()) {
+                    binding.emptyState.visibility = View.VISIBLE
+                } else {
+                    binding.emptyState.visibility = View.GONE
+                    adapter.submitList(lends)
+                }
             }
         }
     }

@@ -11,6 +11,10 @@
     <color name="error_red">#F87171</color>
     <color name="chip_background">#2C2C2C</color>
     <color name="card_surface">#1E1E1E</color>
+    <color name="dark_header_green">#2E7D32</color>
+    <color name="income_indicator">#4ADE80</color>
+    <color name="spent_indicator">#FB7185</color>
+    <color name="badge_background_green">#1AFFFFFF</color>
 
     <!-- Category icon colors -->
     <color name="cat_food">#FF7043</color>

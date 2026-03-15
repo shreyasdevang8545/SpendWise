@@ -20,32 +20,19 @@
             android:orientation="vertical"
             android:padding="20dp">
 
-            <!-- Toolbar row -->
-            <RelativeLayout
+            <com.google.android.material.appbar.AppBarLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp">
+                style="@style/Widget.SpendWise.AppBarLayout">
 
-                <ImageButton
-                    android:id="@+id/btnBack"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="Cancel Review"
-                    android:src="@android:drawable/ic_menu_close_clear_cancel"
-                    app:tint="@color/text_primary"
-                    android:layout_alignParentStart="true"
-                    android:layout_centerVertical="true" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Review Transaction"
-                    android:textColor="@color/text_primary"
-                    android:textSize="20sp"
-                    android:textStyle="bold"
-                    android:layout_centerInParent="true" />
-            </RelativeLayout>
+                <com.google.android.material.appbar.MaterialToolbar
+                    android:id="@+id/toolbar"
+                    android:layout_width="match_parent"
+                    android:layout_height="?attr/actionBarSize"
+                    style="@style/Widget.SpendWise.Toolbar"
+                    app:navigationIcon="@android:drawable/ic_menu_close_clear_cancel"
+                    app:title="Review Transaction" />
+            </com.google.android.material.appbar.AppBarLayout>
 
             <!-- Amount -->
             <com.google.android.material.textfield.TextInputLayout
@@ -245,14 +232,13 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSave"
+            style="@style/Widget.SpendWise.Button.Outlined"
             android:layout_width="0dp"
             android:layout_height="56dp"
             android:layout_marginStart="16dp"
             android:layout_weight="2"
             android:text="Save &amp; Continue"
-            android:textStyle="bold"
-            app:backgroundTint="@color/primary_green"
-            app:cornerRadius="12dp" />
+            android:textStyle="bold" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

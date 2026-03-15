@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SpendWise</string>
+
+    <!-- Settings Sections -->
+    <string name="settings_title">सेटिंग्स</string>
+    <string name="section_general">सामान्य</string>
+    <string name="section_sms">एसएमएस और ऑटो-डिटेक्शन</string>
+    <string name="section_notifications">सूचनाएं</string>
+    <string name="section_data_privacy">डेटा और गोपनीयता</string>
+    <string name="section_support">सहायता</string>
+
+    <!-- General Section -->
+    <string name="title_profile">प्रोफाइल और खाता</string>
+    <string name="subtitle_profile">नाम, ईमेल, मासिक बजट</string>
+    <string name="title_currency">मुद्रा और क्षेत्र</string>
+    <string name="subtitle_currency">मुद्रा चिन्ह, दिनांक प्रारूप</string>
+    <string name="title_appearance">दिखावट</string>
+    <string name="subtitle_appearance">थीम, एक्सेंट रंग, फ़ॉन्ट आकार</string>
+    <string name="title_language">भाषा</string>
+    <string name="subtitle_language">ऐप की भाषा</string>
+
+    <!-- SMS Section -->
+    <string name="title_sms_auto_scan">एसएमएस ऑटो-स्कैन</string>
+    <string name="subtitle_sms_auto_scan">बैंक एसएमएस से लेनदेन का पता लगाएं</string>
+    <string name="title_rcs_support">आरसीएस संदेश सहायता</string>
+    <string name="subtitle_rcs_support">आरसीएस बैंक संदेशों को भी स्कैन करें</string>
+    <string name="title_manage_bank_senders">बैंक सेंडर प्रबंधित करें</string>
+    <string name="subtitle_manage_bank_senders">विश्वसनीय बैंक आईडी जोड़ें या निकालें</string>
+    <string name="title_auto_categorise">स्वचालित श्रेणी</string>
+    <string name="subtitle_auto_categorise">संदेश टेक्स्ट से श्रेणी का अनुमान लगाएं</string>
+    <string name="title_confirm_before_saving">सहेजने से पहले पुष्टि करें</string>
+    <string name="subtitle_confirm_before_saving">प्रत्येक एसएमएस लेनदेन की पहले समीक्षा करें</string>
+
+    <!-- Notifications Section -->
+    <string name="title_transaction_alerts">लेनदेन अलर्ट</string>
+    <string name="subtitle_transaction_alerts">एसएमएस लेनदेन का पता चलने पर सूचित करें</string>
+    <string name="title_budget_alerts">बजट अलर्ट</string>
+    <string name="subtitle_budget_alerts">सीमा के 75%, 90%, 100% पर चेतावनी दें</string>
+    <string name="title_monthly_summary">मासिक सारांश</string>
+    <string name="subtitle_monthly_summary">प्रत्येक महीने की 1 तारीख को रिपोर्ट भेजें</string>
+    <string name="title_daily_reminder">दैनिक खर्च अनुस्मारक</string>
+    <string name="subtitle_daily_reminder">खर्चों को लॉग करने के लिए शाम को याद दिलाएं</string>
+
+    <!-- Data & Privacy Section -->
+    <string name="title_backup_restore">बैकअप और पुनर्स्थापना</string>
+    <string name="subtitle_backup_restore">सीएसवी या गूगल ड्राइव पर निर्यात करें</string>
+    <string name="title_security_lock">सुरक्षा और लॉक</string>
+    <string name="subtitle_security_lock">पिन, फिंगरप्रिंट, ऐप लॉक</string>
+    <string name="title_data_on_device">डेटा डिवाइस पर रहता है</string>
+    <string name="subtitle_data_on_device">कोई क्लाउड सिंक नहीं - पूरी तरह से निजी</string>
+    <string name="title_clear_all_data">सारा डेटा साफ़ करें</string>
+    <string name="subtitle_clear_all_data">सभी लेनदेन स्थायी रूप से हटा दें</string>
+
+    <!-- Support Section -->
+    <string name="title_about">SpendWise के बारे में</string>
+    <string name="subtitle_about">संस्करण, लाइसेंस, चेंजलॉग</string>
+    <string name="title_feedback">प्रतिक्रिया भेजें</string>
+    <string name="subtitle_feedback">बग की रिपोर्ट करें या सुविधा का सुझाव दें</string>
+    <string name="title_privacy_policy">गोपनीयता नीति</string>
+    <string name="subtitle_privacy_policy">आपका डेटा कैसे संभाला जाता है</string>
+    <string name="title_rate">SpendWise को रेट करें</string>
+    <string name="subtitle_rate">ऐप का आनंद ले रहे हैं? समीक्षा छोड़ें</string>
+
+    <!-- Language Selection -->
+    <string name="select_language">भाषा चुनें</string>
+    <string name="lang_english">English</string>
+    <string name="lang_hindi">हिंदी (Hindi)</string>
+    <string name="lang_kannada">ಕನ್ನಡ (Kannada)</string>
+    <string name="apply_language">लागू करें</string>
+
+    <!-- Settings Badges -->
+    <string name="badge_inr">₹ INR</string>
+    <string name="badge_light">लाइट</string>
+    <string name="badge_banks">15 बैंक</string>
+    <string name="badge_on">चालू</string>
+    <string name="badge_never">कभी नहीं</string>
+    <string name="badge_off">बंद</string>
+    <string name="badge_active">सक्रिय</string>
+
+    <!-- Home Screen -->
+    <string name="home_this_week">इस सप्ताह</string>
+    <string name="home_recent_transactions">हाल के लेनदेन</string>
+    <string name="home_view_all">सभी देखें</string>
+    <string name="home_pending_review">समीक्षा बाकी</string>
+    <string name="home_no_transactions">अभी तक कोई लेनदेन नहीं</string>
+    <string name="home_no_transactions_desc">अपने खर्चों को स्वचालित रूप से पता लगाने के लिए बैंकिंग SMS सुनें। सब कुछ आपके डिवाइस पर निजी रहता है।</string>
+    <string name="home_income">आय %1$s</string>
+    <string name="home_spent">खर्च %1$s</string>
+    <string name="home_lent">उधार %1$s</string>
+    <string name="home_transaction_found_single">1 लेनदेन मिला। समीक्षा करने के लिए टैप करें।</string>
+    <string name="home_transaction_found_plural">%1$d लेनदेन मिले। समीक्षा करने के लिए टैप करें।</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_edit_transaction">लेनदेन संपादित करें</string>
+    <string name="dialog_save">सहेजें</string>
+    <string name="dialog_cancel">रद्द करें</string>
+    <string name="dialog_delete">हटाएं</string>
+    <string name="dialog_delete_transaction">लेनदेन हटाएं</string>
+    <string name="dialog_delete_confirm">क्या आप वाकई इस लेनदेन को हटाना चाहते हैं?</string>
+    <string name="dialog_sign_out">साइन आउट</string>
+    <string name="dialog_sign_out_confirm">क्या आप वाकई साइन आउट करना चाहते हैं?\nअपने डेटा तक पहुंचने के लिए आपको फिर से अपना फोन नंबर सत्यापित करना होगा।</string>
+    <string name="dialog_upload_now">अभी अपलोड करें</string>
+    <string name="dialog_edit">संपादित करें</string>
+    <string name="dialog_offline_transaction">ऑफ़लाइन लेनदेन</string>
+    <string name="dialog_transaction_options">लेनदेन विकल्प</string>
+
+    <!-- Security & Lock -->
+    <string name="security_enable_lock">ऐप लॉक सक्षम करें</string>
+    <string name="security_enable_lock_desc">ऐप खोलने के लिए PIN या बायोमेट्रिक आवश्यक</string>
+    <string name="security_set_pin">PIN सेट करें</string>
+    <string name="security_change_pin">PIN बदलें</string>
+    <string name="security_pin_not_set">कोई PIN सेट नहीं है</string>
+    <string name="security_pin_is_set">4-अंकीय PIN सेट है</string>
+    <string name="security_use_biometric">बायोमेट्रिक उपयोग करें</string>
+    <string name="security_biometric_desc">फिंगरप्रिंट या फेस अनलॉक</string>
+    <string name="security_biometric_available">फिंगरप्रिंट / फेस उपलब्ध</string>
+    <string name="security_biometric_no_hardware">इस डिवाइस पर कोई बायोमेट्रिक हार्डवेयर नहीं</string>
+    <string name="security_biometric_unavailable">बायोमेट्रिक हार्डवेयर अनुपलब्ध</string>
+    <string name="security_biometric_not_enrolled">डिवाइस सेटिंग्स में कोई बायोमेट्रिक पंजीकृत नहीं</string>
+    <string name="security_info">आपका PIN इस डिवाइस पर सुरक्षित रूप से संग्रहीत है। यदि आप अपना PIN भूल जाते हैं, तो आप ऐप डेटा साफ़ करके फिर से साइन इन कर सकते हैं।</string>
+    <string name="security_enter_new_pin">4-अंकीय PIN दर्ज करें</string>
+    <string name="security_confirm_pin">PIN की पुष्टि करें</string>
+    <string name="security_pin_must_be_4">PIN 4 अंकों का होना चाहिए</string>
+    <string name="security_pin_mismatch">PIN मेल नहीं खाते</string>
+    <string name="security_pin_saved">PIN सफलतापूर्वक सहेजा गया</string>
+
+    <!-- Lock Screen -->
+    <string name="lock_enter_pin">अनलॉक करने के लिए अपना PIN दर्ज करें</string>
+    <string name="lock_wrong_pin">गलत PIN। %1$d प्रयास शेष।</string>
+    <string name="lock_too_many_attempts">बहुत अधिक प्रयास। 30 सेकंड बाद पुन: प्रयास करें।</string>
+    <string name="lock_biometric_title">SpendWise अनलॉक करें</string>
+    <string name="lock_biometric_subtitle">अनलॉक करने के लिए फिंगरप्रिंट या फेस का उपयोग करें</string>
+    <string name="lock_use_pin">PIN का उपयोग करें</string>
+    <string name="lock_biometric_failed">प्रमाणीकरण विफल</string>
+
+    <!-- Budget Alerts -->
+    <string name="budget_info">अपने खर्च लक्ष्यों को पार करने पर सूचनाएं प्राप्त करने के लिए बजट सीमा निर्धारित करें।</string>
+    <string name="overall_monthly_budget">कुल मासिक बजट</string>
+    <string name="category_budgets">श्रेणी बजट</string>
+    <string name="category_budgets_desc">विशिष्ट श्रेणियों के लिए अलग-अलग सीमाएँ निर्धारित करें</string>
+    <string name="amount">राशि</string>
+    <string name="save_budgets">बजट सहेजें</string>
+    <string name="budgets_saved">बजट सफलतापूर्वक सहेजे गए</string>
+    <string name="budget_not_set">सेट नहीं है</string>
+    <string name="budget_limit_set">सीमा: %1$s</string>
+</resources>

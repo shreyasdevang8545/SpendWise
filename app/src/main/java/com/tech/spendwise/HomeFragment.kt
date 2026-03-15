@@ -17,6 +17,10 @@ import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import android.os.Handler
+import android.os.Looper
+import android.view.MotionEvent
+import com.tech.spendwise.views.SummaryBarGraph.BarData
 
 /**
  * Main screen showing the monthly spend summary, 10 most recent transactions,
@@ -29,6 +33,30 @@ class HomeFragment : Fragment() {
 
     private val viewModel: TransactionViewModel by activityViewModels()
     private val adapter = TransactionListAdapter()
+
+    private val autoScrollHandler = Handler(Looper.getMainLooper())
+    private var isUserTouching = false
+    private val autoScrollRunnable = object : Runnable {
+        override fun run() {
+            if (!isUserTouching && _binding != null) {
+                val scrollView = binding.badgeScrollView
+                val badgeRow = binding.badgeRow
+                
+                // Infinite Loop Logic: Reset scroll when halfway through the duplicated content
+                val resetPoint = badgeRow.width / 2
+                if (resetPoint > 0) {
+                    var newScrollX = scrollView.scrollX + 2
+                    if (newScrollX >= resetPoint) {
+                        newScrollX = 0 // Instant reset to start
+                        scrollView.scrollTo(0, 0)
+                    } else {
+                        scrollView.scrollTo(newScrollX, 0)
+                    }
+                }
+            }
+            autoScrollHandler.postDelayed(this, 30)
+        }
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
@@ -53,9 +81,9 @@ class HomeFragment : Fragment() {
                 binding.pendingTransactionCard.visibility = View.VISIBLE
                 val count = list.size
                 binding.pendingTransactionText.text = if (count == 1) {
-                    "1 Transaction found. Tap to review."
+                    getString(R.string.home_transaction_found_single)
                 } else {
-                    "$count Transactions found. Tap to review."
+                    getString(R.string.home_transaction_found_plural, count)
                 }
             } else {
                 binding.pendingTransactionCard.visibility = View.GONE
@@ -63,8 +91,12 @@ class HomeFragment : Fragment() {
         }
 
         // Observe Firestore transactions — merge with local, deduplicate, show top-10
-        viewModel.firestoreTransactions.observe(viewLifecycleOwner) { list ->
-            mergeAndDisplay(list)
+        viewModel.firestoreTransactions.observe(viewLifecycleOwner) { _ ->
+            refreshSummary()
+        }
+
+        viewModel.lends.observe(viewLifecycleOwner) { _ ->
+            refreshSummary()
         }
 
         viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
@@ -80,28 +112,54 @@ class HomeFragment : Fragment() {
         }
         // Observe local confirmed transactions — merge with cloud
         viewModel.confirmedTransactions.observe(viewLifecycleOwner) { _ ->
-            val cloudList = viewModel.firestoreTransactions.value ?: emptyList()
-            mergeAndDisplay(cloudList)
+            refreshSummary()
         }
-
         // Navigation
         binding.pendingTransactionCard.setOnClickListener {
             findNavController().navigate(R.id.action_home_to_review)
         }
 
-        binding.pendingTransactionCard.setOnClickListener {
-            findNavController().navigate(R.id.action_home_to_review)
+        binding.profileImageContainer.setOnClickListener {
+            findNavController().navigate(R.id.action_home_to_settings)
         }
 
-        // Long-press on the summary card → sign out (UX: accessible but not accidental)
-        binding.summaryCard.setOnLongClickListener {
-            showSignOutDialog()
-            true
-        }
-
-        binding.viewAllButton.setOnClickListener {
+        binding.viewAllBadge.setOnClickListener {
             findNavController().navigate(R.id.action_home_to_transactionHistory)
         }
+
+        // Enable marquee for badges
+        binding.incomeTotalText.isSelected = true
+        binding.spentTotalText.isSelected = true
+        binding.lentTotalText.isSelected = true
+        binding.incomeTotalText2.isSelected = true
+        binding.spentTotalText2.isSelected = true
+        binding.lentTotalText2.isSelected = true
+
+        // Initial start of auto-scroll
+        autoScrollHandler.postDelayed(autoScrollRunnable, 1000)
+
+        binding.btnEmptyGetStarted.setOnClickListener {
+            findNavController().navigate(R.id.action_home_to_addTransaction)
+        }
+
+        // Pause on touch, resume after delay
+        binding.badgeScrollView.setOnTouchListener { _, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> {
+                    isUserTouching = true
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    autoScrollHandler.postDelayed({ isUserTouching = false }, 2000)
+                }
+            }
+            false // Continue handling touch
+        }
+    }
+
+    private fun refreshSummary() {
+        val cloudList = viewModel.firestoreTransactions.value ?: emptyList()
+        mergeAndDisplay(cloudList)
+        updateAnalyticsGraph()
     }
 
     // ── Merge & Display ─────────────────────────────────────────────────────
@@ -129,12 +187,24 @@ class HomeFragment : Fragment() {
         }
 
         if (merged.isEmpty()) {
-            binding.summaryCard.visibility       = View.GONE
+            binding.headerLayout.visibility       = View.VISIBLE
             binding.emptyStateContainer.visibility = View.VISIBLE
+            binding.transactionsContainer.visibility = View.GONE
+            binding.graphSection.visibility = View.GONE
+            // Hide budget details in header when empty
+            binding.mainBalanceText.visibility = View.GONE
+            binding.headerMonthLabel.visibility = View.GONE
+            binding.badgeScrollView.visibility = View.GONE
         } else {
-            binding.summaryCard.visibility       = View.VISIBLE
+            binding.headerLayout.visibility       = View.VISIBLE
             binding.emptyStateContainer.visibility = View.GONE
-            binding.viewAllButton.visibility     = if (merged.size > 3) View.VISIBLE else View.GONE
+            binding.transactionsContainer.visibility = View.VISIBLE
+            binding.graphSection.visibility = View.VISIBLE
+            // Show budget details in header when data present
+            binding.mainBalanceText.visibility = View.VISIBLE
+            binding.headerMonthLabel.visibility = View.VISIBLE
+            binding.badgeScrollView.visibility = View.VISIBLE
+            binding.viewAllBadge.visibility     = if (merged.size > 3) View.VISIBLE else View.GONE
 
             // Show 5 most recent in the list
             adapter.submitList(merged.take(5))
@@ -144,31 +214,61 @@ class HomeFragment : Fragment() {
             val currentYear  = cal.get(Calendar.YEAR)
             val currentMonth = cal.get(Calendar.MONTH) + 1
 
-            var monthlyTotal = 0.0
-            var expensesOnly = 0.0
-            var lendsOnly    = 0.0
+            var totalIncome  = 0.0
+            var totalSpent   = 0.0
+            var totalLent    = 0.0
 
             merged.forEach { json ->
                 val data    = parseSimpleJson(json)
                 val type    = data["type"] ?: ""
                 val savedAt = data["saved_at"] ?: ""
                 val amount  = data["amount"]?.toDoubleOrNull() ?: 0.0
-                val isLend  = data["is_lend"]?.toBoolean() ?: false
 
-                if (type.equals("DEBIT", ignoreCase = true) && isSameMonth(savedAt, currentYear, currentMonth)) {
-                    monthlyTotal += amount
-                    if (isLend) {
-                        lendsOnly += amount
-                    } else {
-                        expensesOnly += amount
+                if (isSameMonth(savedAt, currentYear, currentMonth)) {
+                    if (type.equals("CREDIT", ignoreCase = true)) {
+                        totalIncome += amount
+                    } else if (type.equals("DEBIT", ignoreCase = true)) {
+                        totalSpent += amount
                     }
                 }
             }
 
-            binding.monthlyTotalText.text = formatAmount(monthlyTotal, merged.firstOrNull())
-            binding.expensesOnlyText.text = formatAmount(expensesOnly, merged.firstOrNull())
-            binding.lendsOnlyText.text    = formatAmount(lendsOnly, merged.firstOrNull())
-            binding.monthLabelText.text   = monthLabel(cal)
+            // Calculate total lent from lends list
+            val currentLends = viewModel.lends.value ?: emptyList()
+            currentLends.forEach { lend ->
+                // LendTransaction uses createdAt timestamp
+                val calLend = Calendar.getInstance().apply { timeInMillis = lend.createdAt }
+                if (calLend.get(Calendar.YEAR) == currentYear && (calLend.get(Calendar.MONTH) + 1) == currentMonth) {
+                    if (!lend.isReturned) {
+                       totalLent += lend.amount
+                    }
+                }
+            }
+
+            val mainBalance = totalIncome - totalSpent
+            
+            binding.mainBalanceText.text = formatAmount(mainBalance, merged.firstOrNull())
+            
+            val formattedIncome = getString(R.string.home_income, formatAmount(totalIncome, merged.firstOrNull()))
+            val formattedSpent = getString(R.string.home_spent, formatAmount(totalSpent, merged.firstOrNull()))
+            val formattedLent = getString(R.string.home_lent, formatAmount(totalLent, merged.firstOrNull()))
+            
+            // Set first set
+            binding.incomeTotalText.text = formattedIncome
+            binding.spentTotalText.text  = formattedSpent
+            binding.lentTotalText.text   = formattedLent
+            
+            // Set second set for seamless loop
+            binding.incomeTotalText2.text = formattedIncome
+            binding.spentTotalText2.text  = formattedSpent
+            binding.lentTotalText2.text   = formattedLent
+            binding.headerMonthLabel.text = monthLabel(cal).uppercase()
+            
+            // Set initials from User Name if available
+            val user = FirebaseAuth.getInstance().currentUser
+            binding.profileInitials.text = user?.displayName?.split(" ")?.let {
+                if (it.size >= 2) "${it[0][0]}${it[1][0]}" else it[0].take(2).uppercase()
+            } ?: "SD"
         }
     }
 
@@ -186,12 +286,12 @@ class HomeFragment : Fragment() {
         val id = data["id"]
         val isOffline = id == null
 
-        val options = if (isOffline) arrayOf("Upload Now", "Delete") else arrayOf("Edit", "Delete")
-        UIUtils.showListDialog(requireContext(), if (isOffline) "Offline Transaction" else "Transaction Options", options) { which ->
+        val options = if (isOffline) arrayOf(getString(R.string.dialog_upload_now), getString(R.string.dialog_delete)) else arrayOf(getString(R.string.dialog_edit), getString(R.string.dialog_delete))
+        UIUtils.showListDialog(requireContext(), if (isOffline) getString(R.string.dialog_offline_transaction) else getString(R.string.dialog_transaction_options), options) { which ->
             when (options[which]) {
-                "Upload Now" -> viewModel.uploadOfflineTransaction(json)
-                "Edit" -> showEditDialog(id!!, json)
-                "Delete" -> if (isOffline) {
+                getString(R.string.dialog_upload_now) -> viewModel.uploadOfflineTransaction(json)
+                getString(R.string.dialog_edit) -> showEditDialog(id!!, json)
+                getString(R.string.dialog_delete) -> if (isOffline) {
                     // Local delete
                     lifecycleScope.launchWhenStarted {
                         viewModel.deleteLocalTransaction(json)
@@ -221,8 +321,8 @@ class HomeFragment : Fragment() {
         editCategory.setAdapter(catAdapter)
 
         builder.setView(dialogView)
-            .setTitle("Edit Transaction")
-            .setPositiveButton("Save") { _, _ ->
+            .setTitle(getString(R.string.dialog_edit_transaction))
+            .setPositiveButton(getString(R.string.dialog_save)) { _, _ ->
                 val newMerchant = editMerchant.text.toString()
                 val newAmount = editAmount.text.toString().toDoubleOrNull() ?: 0.0
                 val newCategory = editCategory.text.toString()
@@ -234,17 +334,17 @@ class HomeFragment : Fragment() {
 
                 viewModel.updateTransaction(id, buildJsonString(updatedData))
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(getString(R.string.dialog_cancel), null)
             .show()
     }
 
     private fun confirmSingleDelete(id: String) {
         UIUtils.showAlertDialog(
             requireContext(),
-            "Delete Transaction",
-            "Are you sure you want to delete this transaction?",
-            "Delete",
-            "Cancel"
+            getString(R.string.dialog_delete_transaction),
+            getString(R.string.dialog_delete_confirm),
+            getString(R.string.dialog_delete),
+            getString(R.string.dialog_cancel)
         ) {
             viewModel.deleteTransaction(id)
         }
@@ -262,10 +362,10 @@ class HomeFragment : Fragment() {
     private fun showSignOutDialog() {
         UIUtils.showAlertDialog(
             requireContext(),
-            "Sign Out",
-            "Are you sure you want to sign out?\nYou'll need to verify your phone number again to access your data.",
-            "Sign Out",
-            "Cancel"
+            getString(R.string.dialog_sign_out),
+            getString(R.string.dialog_sign_out_confirm),
+            getString(R.string.dialog_sign_out),
+            getString(R.string.dialog_cancel)
         ) {
             (activity as? MainActivity)?.signOut()
         }
@@ -310,8 +410,69 @@ class HomeFragment : Fragment() {
         }
         return result
     }
+    private fun updateAnalyticsGraph() {
+        val cloudList = viewModel.firestoreTransactions.value ?: emptyList()
+        val localList = viewModel.confirmedTransactions.value ?: emptyList()
+        val lends = viewModel.lends.value ?: emptyList()
+
+        val mergedTransactions = (cloudList + localList).distinctBy { parseSimpleJson(it)["saved_at"] ?: it }
+
+        val barDataList = mutableListOf<BarData>()
+
+        // Show last 7 days including today
+        val days = arrayOf("S", "M", "T", "W", "T", "F", "S")
+        for (i in 6 downTo 0) {
+            val targetCal = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, -i) }
+            val dayName = days[targetCal.get(Calendar.DAY_OF_WEEK) - 1]
+            
+            var income = 0.0
+            var spent = 0.0
+            
+            mergedTransactions.forEach { json ->
+                val data = parseSimpleJson(json)
+                val savedAt = data["saved_at"] ?: ""
+                val amount = data["amount"]?.toDoubleOrNull() ?: 0.0
+                val type = data["type"] ?: ""
+                
+                if (isSameDay(savedAt, targetCal)) {
+                    if (type.equals("CREDIT", ignoreCase = true)) income += amount
+                    else if (type.equals("DEBIT", ignoreCase = true)) spent += amount
+                }
+            }
+            
+            lends.forEach { lend ->
+                if (isSameDay(lend.createdAt, targetCal)) {
+                    spent += lend.amount // Lending is an outflow
+                }
+            }
+            
+            barDataList.add(BarData(dayName, income, spent))
+        }
+
+        binding.summaryGraph.setData(barDataList)
+    }
+
+    private fun isSameDay(savedAt: String, target: Calendar): Boolean {
+        val date = parseIsoDate(savedAt) ?: return false
+        val dCal = Calendar.getInstance().apply { time = date }
+        return dCal.get(Calendar.YEAR) == target.get(Calendar.YEAR) &&
+               dCal.get(Calendar.DAY_OF_YEAR) == target.get(Calendar.DAY_OF_YEAR)
+    }
+
+    private fun isSameDay(timestamp: Long, target: Calendar): Boolean {
+        val dCal = Calendar.getInstance().apply { timeInMillis = timestamp }
+        return dCal.get(Calendar.YEAR) == target.get(Calendar.YEAR) &&
+               dCal.get(Calendar.DAY_OF_YEAR) == target.get(Calendar.DAY_OF_YEAR)
+    }
+
+    private fun parseIsoDate(iso: String): java.util.Date? {
+        return try {
+            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()).parse(iso)
+        } catch (_: Exception) { null }
+    }
 
     override fun onDestroyView() {
+        autoScrollHandler.removeCallbacksAndMessages(null)
         super.onDestroyView()
         _binding = null
     }

@@ -14,6 +14,7 @@
     <!-- ── Voice Input ───────────────────────────────────────────────────── -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
 
     <application
         android:allowBackup="true"
@@ -55,6 +56,13 @@
             <!-- Let NavController resolve the deep link URI automatically -->
             <nav-graph android:value="@navigation/nav_graph" />
         </activity>
+
+        <!-- ── LockActivity (PIN + Biometric lock screen) ──────────────── -->
+        <activity
+            android:name=".LockActivity"
+            android:exported="false"
+            android:theme="@style/Theme.SpendWise"
+            android:noHistory="true" />
 
         <!-- ── SmsReceiver ─────────────────────────────────────────────────── -->
         <receiver

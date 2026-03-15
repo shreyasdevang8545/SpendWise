@@ -30,6 +30,10 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
     private val _firestoreTransactions = MutableLiveData<List<String>>(emptyList())
     val firestoreTransactions: LiveData<List<String>> = _firestoreTransactions
 
+    // Lends fetched from Firestore
+    private val _lends = MutableLiveData<List<com.tech.spendwise.models.LendTransaction>>(emptyList())
+    val lends: LiveData<List<com.tech.spendwise.models.LendTransaction>> = _lends
+
     // Loading state for Firestore fetch
     private val _isLoading = MutableLiveData<Boolean>(false)
     val isLoading: LiveData<Boolean> = _isLoading
@@ -96,7 +100,7 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
      * Fetches the [limit] most recent confirmed transactions from Firestore for the signed-in user.
      * Results are posted to [firestoreTransactions].
      */
-    fun fetchFromFirestore(limit: Long = 10) {
+    fun fetchFromFirestore(limit: Long = 100) {
         val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
         _isLoading.value = true
         firestoreRepository.fetchRecentTransactions(
@@ -107,6 +111,10 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
                 _isLoading.postValue(false)
             }
         )
+        // Also fetch lends for the summary
+        firestoreRepository.fetchLends(uid) { list ->
+            _lends.postValue(list)
+        }
     }
 
     /**

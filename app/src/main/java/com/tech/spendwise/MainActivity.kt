@@ -40,6 +40,8 @@ import androidx.navigation.NavDeepLinkRequest
 import android.net.Uri
 import androidx.navigation.fragment.NavHostFragment
 import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 
 class MainActivity : AppCompatActivity() {
 
@@ -222,13 +224,26 @@ class MainActivity : AppCompatActivity() {
         } else {
             registerReceiver(transactionBroadcastReceiver, filter)
         }
+
+        // Check app lock
+        checkAppLock()
     }
 
     override fun onPause() {
         super.onPause()
+        SpendWiseLockManager.onAppBackgrounded()
         try {
             unregisterReceiver(transactionBroadcastReceiver)
         } catch (e: Exception) {}
+    }
+
+    private fun checkAppLock() {
+        SpendWiseLockManager.onAppForegrounded()
+        val lockEnabled = runBlocking { SettingsManager(this@MainActivity).appLockEnabled.first() }
+        val pinSet = runBlocking { SettingsManager(this@MainActivity).appLockPin.first().isNotEmpty() }
+        if (lockEnabled && pinSet && SpendWiseLockManager.shouldShowLockScreen()) {
+            startActivity(Intent(this, LockActivity::class.java))
+        }
     }
 
     private val foregroundSmsReceiver = object : BroadcastReceiver() {

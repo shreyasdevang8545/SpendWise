@@ -9,9 +9,9 @@
         android:icon="@drawable/ic_add"
         android:title="Add" />
     <item
-        android:id="@+id/lendHistoryFragment"
-        android:icon="@drawable/ic_lend"
-        android:title="Lends" />
+        android:id="@+id/budgetDashboardFragment"
+        android:icon="@drawable/ic_timer"
+        android:title="Budget" />
     <item
         android:id="@+id/transactionHistoryFragment"
         android:icon="@drawable/ic_history"

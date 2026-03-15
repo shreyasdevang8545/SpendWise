@@ -17,33 +17,19 @@
             android:orientation="vertical"
             android:padding="20dp">
 
-            <!-- Toolbar row -->
-            <RelativeLayout
+            <com.google.android.material.appbar.AppBarLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp">
+                style="@style/Widget.SpendWise.AppBarLayout">
 
-                <ImageButton
-                    android:id="@+id/btnBack"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="Back"
-                    android:src="@android:drawable/ic_menu_close_clear_cancel"
-                    app:tint="@color/text_primary"
-                    android:layout_alignParentStart="true"
-                    android:layout_centerVertical="true" />
-
-                <TextView
-                    android:id="@+id/toolbarTitle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Add Lend Amount"
-                    android:textColor="@color/text_primary"
-                    android:textSize="20sp"
-                    android:textStyle="bold"
-                    android:layout_centerInParent="true" />
-            </RelativeLayout>
+                <com.google.android.material.appbar.MaterialToolbar
+                    android:id="@+id/toolbar"
+                    android:layout_width="match_parent"
+                    android:layout_height="?attr/actionBarSize"
+                    style="@style/Widget.SpendWise.Toolbar"
+                    app:navigationIcon="@android:drawable/ic_menu_close_clear_cancel"
+                    app:title="Add Lend Amount" />
+            </com.google.android.material.appbar.AppBarLayout>
 
             <!-- Name of Person -->
             <com.google.android.material.textfield.TextInputLayout
@@ -154,13 +140,12 @@
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnSave"
+        style="@style/Widget.SpendWise.Button.Outlined"
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:layout_margin="20dp"
         android:text="Save Lend Detail"
         android:textSize="16sp"
-        app:backgroundTint="@color/primary_green"
-        app:cornerRadius="12dp"
         app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -143,6 +143,9 @@ class PreferenceRepository(private val context: Context) {
             val newListDecrypted = if (currentDecrypted.isEmpty()) json else "$currentDecrypted$DELIMITER$json"
             preferences[PENDING_TRANSACTIONS_LIST_KEY] = encryptionManager.encrypt(newListDecrypted)
         }
+        
+        // Trigger Budget Check
+        BudgetNotificationHelper.checkBudgetsAndNotify(context, json)
     }
 
     /**
@@ -202,6 +205,17 @@ class PreferenceRepository(private val context: Context) {
     suspend fun clearAll() {
         context.dataStore.edit { preferences ->
             preferences.remove(PENDING_TRANSACTIONS_LIST_KEY)
+        }
+    }
+
+    /**
+     * Decrypts the raw string payload and returns the clear JSON.
+     */
+    fun decryptData(encrypted: String): String {
+        return try {
+            encryptionManager.decrypt(encrypted)
+        } catch (e: Exception) {
+            ""
         }
     }
 }

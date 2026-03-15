@@ -45,6 +45,13 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_home_to_settings"
+            app:destination="@id/settingsFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     </fragment>
 
     <fragment
@@ -108,6 +115,107 @@
         <action
             android:id="@+id/action_history_to_addLend"
             app:destination="@id/addLendFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.tech.spendwise.SettingsFragment"
+        android:label="Settings"
+        tools:layout="@layout/fragment_settings">
+        <action
+            android:id="@+id/action_settings_to_profile"
+            app:destination="@id/profileFragment" />
+        <action
+            android:id="@+id/action_settings_to_currency"
+            app:destination="@id/currencyRegionFragment" />
+        <action
+            android:id="@+id/action_settings_to_appearance"
+            app:destination="@id/appearanceFragment" />
+        <action
+            android:id="@+id/action_settings_to_language"
+            app:destination="@id/languageFragment" />
+        <action
+            android:id="@+id/action_settings_to_bankSenders"
+            app:destination="@id/bankSendersFragment" />
+        <action
+            android:id="@+id/action_settings_to_budgetAlerts"
+            app:destination="@id/budgetAlertsFragment" />
+        <action
+            android:id="@+id/action_settings_to_backupRestore"
+            app:destination="@id/backupRestoreFragment" />
+        <action
+            android:id="@+id/action_settings_to_securityLock"
+            app:destination="@id/securityLockFragment" />
+        <action
+            android:id="@+id/action_settings_to_about"
+            app:destination="@id/aboutFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/currencyRegionFragment"
+        android:name="com.tech.spendwise.CurrencyRegionFragment"
+        android:label="Currency &amp; Region" />
+    
+    <fragment
+        android:id="@+id/appearanceFragment"
+        android:name="com.tech.spendwise.AppearanceFragment"
+        android:label="Appearance" />
+
+    <fragment
+        android:id="@+id/languageFragment"
+        android:name="com.tech.spendwise.LanguageFragment"
+        android:label="Language" />
+
+    <fragment
+        android:id="@+id/bankSendersFragment"
+        android:name="com.tech.spendwise.BankSendersFragment"
+        android:label="Manage Bank Senders" />
+
+    <fragment
+        android:id="@+id/budgetAlertsFragment"
+        android:name="com.tech.spendwise.BudgetAlertsFragment"
+        android:label="Budget Alerts" />
+
+    <fragment
+        android:id="@+id/budgetDashboardFragment"
+        android:name="com.tech.spendwise.BudgetDashboardFragment"
+        android:label="Budget Dashboard"
+        tools:layout="@layout/fragment_budget_dashboard" />
+
+    <fragment
+        android:id="@+id/backupRestoreFragment"
+        android:name="com.tech.spendwise.BackupRestoreFragment"
+        android:label="Backup &amp; Restore" />
+
+    <fragment
+        android:id="@+id/securityLockFragment"
+        android:name="com.tech.spendwise.SecurityLockFragment"
+        android:label="Security &amp; Lock" />
+
+    <fragment
+        android:id="@+id/aboutFragment"
+        android:name="com.tech.spendwise.AboutFragment"
+        android:label="About SpendWise" />
+
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.tech.spendwise.ProfileFragment"
+        android:label="Profile"
+        tools:layout="@layout/fragment_profile">
+        <action
+            android:id="@+id/action_profile_to_transactionHistory"
+            app:destination="@id/transactionHistoryFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_profile_to_lendHistory"
+            app:destination="@id/lendHistoryFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"

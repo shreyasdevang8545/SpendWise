@@ -5,6 +5,8 @@
         <item name="android:windowBackground">@color/background_light</item>
         <item name="android:textColorPrimary">@color/text_primary</item>
         <item name="android:textColorSecondary">@color/text_secondary</item>
+        <item name="android:fontFamily">@font/nunito_sans</item>
+        <item name="fontFamily">@font/nunito_sans</item>
         <!-- Material 3 Overrides -->
         <item name="materialButtonStyle">@style/Widget.SpendWise.Button</item>
     </style>
@@ -14,8 +16,29 @@
     </style>
 
     <style name="ShapeAppearance.SpendWise.Button" parent="">
-        <item name="cornerSize">24dp</item>
+        <item name="cornerSize">12dp</item>
+    </style>
+
+    <style name="Widget.SpendWise.Button.Outlined" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearance.SpendWise.Button</item>
+        <item name="strokeColor">@color/primary_green</item>
+        <item name="strokeWidth">1.5dp</item>
+        <item name="android:textColor">@color/primary_green</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
     </style>
 
     <style name="Theme.SpendWise" parent="Base.Theme.SpendWise" />
+
+    <style name="CustomAlertDialog" parent="Theme.Material3.DayNight.Dialog.Alert">
+        <item name="android:textAllCaps">false</item>
+        <item name="android:fontFamily">@font/nunito_sans</item>
+    </style>
+    <style name="SettingsDivider">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">1dp</item>
+        <item name="android:layout_marginStart">72dp</item>
+        <item name="android:background">#10FFFFFF</item>
+    </style>
 </resources>

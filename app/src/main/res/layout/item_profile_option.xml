@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:padding="16dp">
+
+    <ImageView
+        android:id="@+id/optionIcon"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:tint="@color/primary_green"
+        tools:src="@drawable/ic_history" />
+
+    <TextView
+        android:id="@+id/optionTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_weight="1"
+        android:fontFamily="@font/nunito_sans"
+        android:textColor="@color/text_primary"
+        android:textSize="16sp"
+        tools:text="Transaction History" />
+
+    <ImageView
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        app:srcCompat="@drawable/ic_back"
+        android:rotation="180"
+        app:tint="@color/text_secondary" />
+
+</LinearLayout>

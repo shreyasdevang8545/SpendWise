@@ -7,6 +7,7 @@ import android.os.Build
 import android.telephony.SmsMessage
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 
 /**
@@ -60,6 +61,14 @@ class SmsReceiver : BroadcastReceiver() {
 
         if (context == null) {
             Log.e(TAG, "Context is null, cannot proceed.")
+            return
+        }
+
+        // Check if SMS auto-scan is enabled
+        val settingsManager = SettingsManager(context)
+        val autoScanEnabled = runBlocking { settingsManager.smsAutoScan.first() }
+        if (!autoScanEnabled) {
+            Log.i(TAG, "SMS auto-scan is disabled in settings. Ignoring SMS.")
             return
         }
 
@@ -158,6 +167,10 @@ class SmsReceiver : BroadcastReceiver() {
             repo.addTransaction(json)
         }
 
+        // Check if transaction alerts (notifications) are enabled
+        val settingsManager = SettingsManager(context)
+        val alertsEnabled = runBlocking { settingsManager.transactionAlerts.first() }
+
         val intent = Intent(MainActivity.NEW_TRANSACTION_ACTION).apply {
             putExtra("transaction_json", json)
             `package` = context.packageName
@@ -168,8 +181,12 @@ class SmsReceiver : BroadcastReceiver() {
             override fun onReceive(ctx: Context?, intent: Intent?) {
                 if (resultCode != AppCompatActivity.RESULT_OK) {
                     // Not handled by activity -> App is in background
-                    Log.i(TAG, "Broadcast not handled by activity. Showing notification.")
-                    showNotification(ctx ?: context, json)
+                    if (alertsEnabled) {
+                        Log.i(TAG, "Broadcast not handled by activity. Showing notification.")
+                        showNotification(ctx ?: context, json)
+                    } else {
+                        Log.i(TAG, "Broadcast not handled by activity. Transaction alerts disabled — skipping notification.")
+                    }
                 } else {
                     Log.i(TAG, "Broadcast handled by activity. Skipping notification.")
                 }

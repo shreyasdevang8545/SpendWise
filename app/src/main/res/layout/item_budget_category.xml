@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingTop="16dp"
+    android:paddingBottom="16dp"
+    android:paddingHorizontal="16dp">
+
+    <!-- Divider Line Top -->
+    <View
+        android:id="@+id/vTopDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#333333"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/ivIcon"
+        android:layout_marginBottom="16dp"/>
+
+    <ImageView
+        android:id="@+id/ivIcon"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="@drawable/bg_icon_circle"
+        android:padding="8dp"
+        tools:src="@drawable/ic_home"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/vTopDivider" />
+
+    <TextView
+        android:id="@+id/tvCategoryName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        tools:text="Food &amp; Dining"
+        android:textColor="@color/white"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toEndOf="@id/ivIcon"
+        app:layout_constraintTop_toTopOf="@id/ivIcon" />
+
+    <TextView
+        android:id="@+id/tvRemaining"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        tools:text="₹3,760 remaining"
+        android:textColor="#B0BEC5"
+        android:textSize="12sp"
+        app:layout_constraintStart_toEndOf="@id/ivIcon"
+        app:layout_constraintTop_toBottomOf="@id/tvCategoryName" />
+
+    <!-- Right Side Amounts -->
+    <TextView
+        android:id="@+id/tvSpentAmount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:text="₹8,240"
+        android:textColor="@color/white"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/tvCategoryName" />
+
+    <TextView
+        android:id="@+id/tvLimitAmount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:text="/ ₹12,000"
+        android:textColor="#B0BEC5"
+        android:textSize="12sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvSpentAmount" />
+
+    <!-- Progress Bar Section -->
+    <FrameLayout
+        android:id="@+id/categoryProgressContainer"
+        android:layout_width="0dp"
+        android:layout_height="6dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginStart="12dp"
+        android:background="#333333"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/ivIcon"
+        app:layout_constraintTop_toBottomOf="@id/tvRemaining">
+
+        <View
+            android:id="@+id/vCategoryProgressFill"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:background="#FF9800" />
+    </FrameLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

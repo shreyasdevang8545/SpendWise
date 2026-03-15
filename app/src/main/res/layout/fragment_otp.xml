@@ -61,12 +61,12 @@
     <!-- Verify Button -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/verifyButton"
+        style="@style/Widget.SpendWise.Button.Outlined"
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:layout_marginTop="20dp"
         android:text="Verify &amp; Sign In"
-        android:textSize="16sp"
-        app:backgroundTint="@color/primary_green" />
+        android:textSize="16sp" />
 
     <!-- Progress -->
     <ProgressBar
