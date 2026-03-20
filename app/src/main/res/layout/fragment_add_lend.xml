@@ -1,35 +1,36 @@
-<?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background_light">
 
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/Widget.SpendWise.AppBarLayout"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            style="@style/Widget.SpendWise.Toolbar"
+            app:navigationIcon="@drawable/ic_close"
+            app:title="Add Lend Amount" />
+    </com.google.android.material.appbar.AppBarLayout>
+
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         app:layout_constraintBottom_toTopOf="@+id/btnSave"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toBottomOf="@id/appBarLayout">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="20dp">
-
-            <com.google.android.material.appbar.AppBarLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                style="@style/Widget.SpendWise.AppBarLayout">
-
-                <com.google.android.material.appbar.MaterialToolbar
-                    android:id="@+id/toolbar"
-                    android:layout_width="match_parent"
-                    android:layout_height="?attr/actionBarSize"
-                    style="@style/Widget.SpendWise.Toolbar"
-                    app:navigationIcon="@android:drawable/ic_menu_close_clear_cancel"
-                    app:title="Add Lend Amount" />
-            </com.google.android.material.appbar.AppBarLayout>
 
             <!-- Name of Person -->
             <com.google.android.material.textfield.TextInputLayout
@@ -88,6 +89,7 @@
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipUpi"
+                    style="@style/Widget.SpendWise.Chip"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="UPI"
@@ -96,6 +98,7 @@
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipCash"
+                    style="@style/Widget.SpendWise.Chip"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Cash"
@@ -103,6 +106,7 @@
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipCard"
+                    style="@style/Widget.SpendWise.Chip"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Card"
@@ -110,6 +114,7 @@
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipOther"
+                    style="@style/Widget.SpendWise.Chip"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Other"

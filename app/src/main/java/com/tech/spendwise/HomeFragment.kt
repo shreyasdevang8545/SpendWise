@@ -192,6 +192,7 @@ class HomeFragment : Fragment() {
             binding.transactionsContainer.visibility = View.GONE
             binding.graphSection.visibility = View.GONE
             // Hide budget details in header when empty
+            binding.mainBalanceLabel.visibility = View.GONE
             binding.mainBalanceText.visibility = View.GONE
             binding.headerMonthLabel.visibility = View.GONE
             binding.badgeScrollView.visibility = View.GONE
@@ -201,6 +202,7 @@ class HomeFragment : Fragment() {
             binding.transactionsContainer.visibility = View.VISIBLE
             binding.graphSection.visibility = View.VISIBLE
             // Show budget details in header when data present
+            binding.mainBalanceLabel.visibility = View.VISIBLE
             binding.mainBalanceText.visibility = View.VISIBLE
             binding.headerMonthLabel.visibility = View.VISIBLE
             binding.badgeScrollView.visibility = View.VISIBLE
@@ -247,7 +249,13 @@ class HomeFragment : Fragment() {
 
             val mainBalance = totalIncome - totalSpent
             
-            binding.mainBalanceText.text = formatAmount(mainBalance, merged.firstOrNull())
+            if (totalIncome == 0.0 && totalSpent > 0.0) {
+                binding.mainBalanceLabel.text = "TOTAL SPENDING"
+                binding.mainBalanceText.text = formatAmount(totalSpent, merged.firstOrNull())
+            } else {
+                binding.mainBalanceLabel.text = "MAIN BALANCE"
+                binding.mainBalanceText.text = formatAmount(mainBalance, merged.firstOrNull())
+            }
             
             val formattedIncome = getString(R.string.home_income, formatAmount(totalIncome, merged.firstOrNull()))
             val formattedSpent = getString(R.string.home_spent, formatAmount(totalSpent, merged.firstOrNull()))
@@ -385,11 +393,12 @@ class HomeFragment : Fragment() {
     private fun formatAmount(total: Double, firstJson: String?): String {
         val currency = if (firstJson != null) parseSimpleJson(firstJson)["currency"] ?: "INR" else "INR"
         val symbol   = if (currency == "INR") "₹" else "$currency "
-        val fmt      = NumberFormat.getNumberInstance(Locale.getDefault()).apply {
+        val fmt = NumberFormat.getNumberInstance(Locale.getDefault()).apply {
             minimumFractionDigits = 2
             maximumFractionDigits = 2
         }
-        return "$symbol${fmt.format(total)}"
+        val mainPart  = fmt.format(Math.abs(total))
+        return if (total < 0) "-$symbol$mainPart" else "$symbol$mainPart"
     }
 
     private fun monthLabel(cal: Calendar): String {

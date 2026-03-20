@@ -36,7 +36,7 @@
     <string name="title_transaction_alerts">लेनदेन अलर्ट</string>
     <string name="subtitle_transaction_alerts">एसएमएस लेनदेन का पता चलने पर सूचित करें</string>
     <string name="title_budget_alerts">बजट अलर्ट</string>
-    <string name="subtitle_budget_alerts">सीमा के 75%, 90%, 100% पर चेतावनी दें</string>
+    <string name="subtitle_budget_alerts" formatted="false">सीमा के 75%, 90%, 100% पर चेतावनी दें</string>
     <string name="title_monthly_summary">मासिक सारांश</string>
     <string name="subtitle_monthly_summary">प्रत्येक महीने की 1 तारीख को रिपोर्ट भेजें</string>
     <string name="title_daily_reminder">दैनिक खर्च अनुस्मारक</string>

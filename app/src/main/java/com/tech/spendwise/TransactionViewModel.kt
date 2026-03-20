@@ -59,18 +59,23 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
      * Persists a confirmed (reviewed and saved) transaction locally,
      * then syncs it to Firestore (encrypted) if the user is signed in.
      */
-    fun addConfirmedTransaction(json: String) {
+    fun addConfirmedTransaction(json: String, retryCount: Int = 0) {
         viewModelScope.launch {
             val uid = FirebaseAuth.getInstance().currentUser?.uid
             if (uid != null) {
-                firestoreRepository.saveTransaction(uid, json) { success ->
-                    if (!success) {
-                        // Offline: Save locally
-                        viewModelScope.launch { repository.addConfirmedTransaction(json) }
+                firestoreRepository.saveTransaction(uid, json) { result ->
+                    result.onSuccess {
+                        Log.d("TransactionVM", "Transaction synced successfully")
+                    }.onFailure { e ->
+                        Log.e("TransactionVM", "Sync failed: ${e.message}")
+                        if (retryCount < 3) {
+                            Log.d("TransactionVM", "Retrying sync... attempt ${retryCount + 1}")
+                            addConfirmedTransaction(json, retryCount + 1)
+                        } else {
+                            // Max retries reached or terminal error: Save locally for later
+                            viewModelScope.launch { repository.addConfirmedTransaction(json) }
+                        }
                     }
-                    // If success, we don't save locally as per user request
-                    // If we want immediate feedback, we'd need to fetch or manage a local success list
-                    // but the user said "dont want to save any transaction locally now"
                 }
             } else {
                 // Not logged in: Save locally
@@ -86,11 +91,13 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
     fun uploadOfflineTransaction(json: String) {
         viewModelScope.launch {
             val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return@launch
-            firestoreRepository.saveTransaction(uid, json) { success ->
-                if (success) {
+            firestoreRepository.saveTransaction(uid, json) { result ->
+                result.onSuccess {
                     viewModelScope.launch {
                         repository.removeConfirmedTransaction(json)
                     }
+                }.onFailure { e ->
+                    Log.e("TransactionVM", "Offline upload failed: ${e.message}")
                 }
             }
         }
@@ -106,14 +113,22 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
         firestoreRepository.fetchRecentTransactions(
             uid  = uid,
             limit = limit,
-            onResult = { list -> 
-                _firestoreTransactions.postValue(list)
+            onResult = { result -> 
+                result.onSuccess { list ->
+                    _firestoreTransactions.postValue(list)
+                }.onFailure { e ->
+                    Log.e("TransactionVM", "Fetch failed: ${e.message}")
+                }
                 _isLoading.postValue(false)
             }
         )
         // Also fetch lends for the summary
-        firestoreRepository.fetchLends(uid) { list ->
-            _lends.postValue(list)
+        firestoreRepository.fetchLends(uid) { result ->
+            result.onSuccess { list ->
+                _lends.postValue(list)
+            }.onFailure { e ->
+                Log.e("TransactionVM", "Lend fetch failed: ${e.message}")
+            }
         }
     }
 

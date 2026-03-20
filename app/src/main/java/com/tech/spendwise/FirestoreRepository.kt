@@ -28,7 +28,7 @@ class FirestoreRepository {
      * Encrypts [plainJson] and writes it to Firestore under `users/{uid}/transactions`.
      * Fails silently (logs error) to avoid blocking the user on network issues.
      */
-    fun saveTransaction(uid: String, plainJson: String, onComplete: (Boolean) -> Unit = {}) {
+    fun saveTransaction(uid: String, plainJson: String, onResult: (Result<String>) -> Unit) {
         Log.d(TAG, "saveTransaction: Preparing to sync. UID=$uid")
         try {
             val encryptedMap = TransactionCrypto.encryptTransaction(plainJson, uid)
@@ -40,15 +40,15 @@ class FirestoreRepository {
                 .add(encryptedMap)
                 .addOnSuccessListener { ref ->
                     Log.d(TAG, "saveTransaction SUCCESS: Document added with ID=${ref.id}")
-                    onComplete(true)
+                    onResult(Result.success(ref.id))
                 }
                 .addOnFailureListener { e ->
                     Log.e(TAG, "saveTransaction FAILURE: ${e.message}", e)
-                    onComplete(false)
+                    onResult(Result.failure(e))
                 }
         } catch (e: Exception) {
             Log.e(TAG, "saveTransaction ERROR: Encryption failed: ${e.message}", e)
-            onComplete(false)
+            onResult(Result.failure(e))
         }
     }
 
@@ -60,8 +60,7 @@ class FirestoreRepository {
     fun fetchRecentTransactions(
         uid: String,
         limit: Long = 10,
-        onResult: (List<String>) -> Unit,
-        onError: (Exception) -> Unit = { Log.e(TAG, "Fetch failed: ${it.message}") }
+        onResult: (Result<List<String>>) -> Unit
     ) {
         db.collection(USERS)
             .document(uid)
@@ -81,16 +80,17 @@ class FirestoreRepository {
                         null
                     }
                 }
-                onResult(decryptedList)
+                onResult(Result.success(decryptedList))
             }
             .addOnFailureListener { e ->
-                onError(e)
+                Log.e(TAG, "Fetch failed: ${e.message}")
+                onResult(Result.failure(e))
             }
     }
     /**
      * Encrypts and saves a lend transaction to Firestore.
      */
-    fun saveLend(uid: String, lend: com.tech.spendwise.models.LendTransaction, onComplete: (Boolean) -> Unit = {}) {
+    fun saveLend(uid: String, lend: com.tech.spendwise.models.LendTransaction, onResult: (Result<String>) -> Unit) {
         try {
             val encryptedMap = TransactionCrypto.encryptLend(lend, uid)
             val collection = db.collection(USERS).document(uid).collection("lends")
@@ -104,22 +104,22 @@ class FirestoreRepository {
             docRef.set(encryptedMap)
                 .addOnSuccessListener { 
                     Log.d(TAG, "Lend saved: ${docRef.id}")
-                    onComplete(true)
+                    onResult(Result.success(docRef.id))
                 }
-                .addOnFailureListener { 
-                    Log.e(TAG, "Lend save failed: ${it.message}")
-                    onComplete(false)
+                .addOnFailureListener { e ->
+                    Log.e(TAG, "Lend save failed: ${e.message}")
+                    onResult(Result.failure(e))
                 }
         } catch (e: Exception) {
             Log.e(TAG, "Lend save error: ${e.message}")
-            onComplete(false)
+            onResult(Result.failure(e))
         }
     }
 
     /**
      * Fetches all lend transactions for a user.
      */
-    fun fetchLends(uid: String, onResult: (List<com.tech.spendwise.models.LendTransaction>) -> Unit) {
+    fun fetchLends(uid: String, onResult: (Result<List<com.tech.spendwise.models.LendTransaction>>) -> Unit) {
         db.collection(USERS)
             .document(uid)
             .collection("lends")
@@ -129,9 +129,12 @@ class FirestoreRepository {
                 val list = snapshot.documents.mapNotNull { doc ->
                     TransactionCrypto.decryptLend(doc.id, doc.data ?: emptyMap(), uid)
                 }
-                onResult(list)
+                onResult(Result.success(list))
             }
-            .addOnFailureListener { Log.e(TAG, "Lend fetch failed: ${it.message}") }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "Lend fetch failed: ${e.message}")
+                onResult(Result.failure(e))
+            }
     }
 
     /**

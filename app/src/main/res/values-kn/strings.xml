@@ -36,7 +36,7 @@
     <string name="title_transaction_alerts">ವಹಿವಾಟು ಎಚ್ಚರಿಕೆಗಳು</string>
     <string name="subtitle_transaction_alerts">SMS ವಹಿವಾಟು ಪತ್ತೆಯಾದಾಗ ಅಧಿಸೂಚಿಸಿ</string>
     <string name="title_budget_alerts">ಬಜೆಟ್ ಎಚ್ಚರಿಕೆಗಳು</string>
-    <string name="subtitle_budget_alerts">ಮಿತಿಯ 75%, 90%, 100% ತಲುಪಿದಾಗ ಎಚ್ಚರಿಸಿ</string>
+    <string name="subtitle_budget_alerts" formatted="false">ಮಿತಿಯ 75%, 90%, 100% ನಲ್ಲಿ ಎಚ್ಚರಿಸಿ</string>
     <string name="title_monthly_summary">ಮಾಸಿಕ ಸಾರಾಂಶ</string>
     <string name="subtitle_monthly_summary">ಪ್ರತಿ ತಿಂಗಳ 1 ರಂದು ವರದಿ ಕಳುಹಿಸಿ</string>
     <string name="title_daily_reminder">ದೈನಂದಿನ ಖರ್ಚು ಜ್ಞಾಪನೆ</string>

@@ -1,6 +1,5 @@
 package com.tech.spendwise
 
-import android.content.res.ColorStateList
 import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -8,12 +7,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.FrameLayout
-import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
-import androidx.lifecycle.lifecycleScope
+import androidx.fragment.app.activityViewModels
 import com.tech.spendwise.databinding.FragmentBudgetDashboardBinding
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -22,13 +19,18 @@ import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
 
 class BudgetDashboardFragment : Fragment() {
 
     private var _binding: FragmentBudgetDashboardBinding? = null
     private val binding get() = _binding!!
+    private val viewModel: TransactionViewModel by activityViewModels()
     private lateinit var settingsManager: SettingsManager
-    private lateinit var repo: PreferenceRepository
+    private val selectedCalendar = Calendar.getInstance()
 
     // Standard hardcoded categories for missing defaults based on mockup
     private val defaultCategories = listOf(
@@ -42,16 +44,22 @@ class BudgetDashboardFragment : Fragment() {
     ): View {
         _binding = FragmentBudgetDashboardBinding.inflate(inflater, container, false)
         settingsManager = SettingsManager(requireContext())
-        repo = PreferenceRepository(requireContext())
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         
-        // Wait for data calculation
+        // Observe both local and cloud transactions
+        viewModel.confirmedTransactions.observe(viewLifecycleOwner) { refreshData() }
+        viewModel.firestoreTransactions.observe(viewLifecycleOwner) { refreshData() }
+        
+        // Also observe settings changes (budget limits)
         viewLifecycleOwner.lifecycleScope.launch {
-            calculateAndDisplayBudgets()
+            settingsManager.overallBudgetLimit.collect { refreshData() }
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            settingsManager.categoryBudgetLimits.collect { refreshData() }
         }
 
         binding.btnAddCategory.setOnClickListener {
@@ -62,25 +70,58 @@ class BudgetDashboardFragment : Fragment() {
             showOverallBudgetDialog()
         }
 
-        binding.backBtn.setOnClickListener {
+        binding.budgetToolbar.setNavigationOnClickListener {
             findNavController().navigateUp()
+        }
+
+        binding.btnPrevMonth.setOnClickListener {
+            selectedCalendar.add(Calendar.MONTH, -1)
+            updateDateAndRefresh()
+        }
+
+        binding.btnNextMonth.setOnClickListener {
+            selectedCalendar.add(Calendar.MONTH, 1)
+            updateDateAndRefresh()
         }
 
         setupDateDisplay()
     }
 
-    private fun setupDateDisplay() {
-        val calendar = Calendar.getInstance()
-        val monthYearFormat = SimpleDateFormat("MMMM yyyy", Locale.getDefault())
-        binding.tvMonthYear.text = monthYearFormat.format(calendar.time)
+    private fun updateDateAndRefresh() {
+        setupDateDisplay()
+        refreshData()
     }
 
-    private suspend fun calculateAndDisplayBudgets() {
+    private fun setupDateDisplay() {
+        val monthYearFormat = SimpleDateFormat("MMMM yyyy", Locale.getDefault())
+        binding.tvMonthYear.text = monthYearFormat.format(selectedCalendar.time)
+    }
+
+    private fun refreshData() {
+        val localList = viewModel.confirmedTransactions.value ?: emptyList()
+        val cloudList = viewModel.firestoreTransactions.value ?: emptyList()
+        
+        // Merge and remove duplicates by ID if possible, or just merge strings
+        // Since they are all JSON strings, we can just merge.
+        val combined = (localList + cloudList).distinct()
+        
+        calculateAndDisplayBudgets(combined)
+    }
+
+    private fun calculateAndDisplayBudgets(txList: List<String>) {
         try {
-            // Fetch budget limits
-            val overallLimit = settingsManager.overallBudgetLimit.first()
-            val categoryLimitsStr = settingsManager.categoryBudgetLimits.first().ifEmpty { "{}" }
-            
+            // Fetch budget limits synchronously if possible, or use current values
+            viewLifecycleOwner.lifecycleScope.launch {
+                val overallLimit = settingsManager.overallBudgetLimit.first()
+                val categoryLimitsStr = settingsManager.categoryBudgetLimits.first().ifEmpty { "{}" }
+                
+                renderUI(txList, overallLimit.toDouble(), categoryLimitsStr)
+            }
+        } catch (e: Exception) { e.printStackTrace() }
+    }
+
+    private fun renderUI(txList: List<String>, overallLimit: Double, categoryLimitsStr: String) {
+        try {
             val categoryBudgetsLimitMap = mutableMapOf<String, Double>()
             try {
                 val json = JSONObject(categoryLimitsStr)
@@ -89,14 +130,11 @@ class BudgetDashboardFragment : Fragment() {
                 }
             } catch (e: Exception) { e.printStackTrace() }
 
-            // Fetch transaction amounts
-            val txList = try { repo.confirmedTransactionsFlow.first() } catch (e: Exception) { emptyList<String>() }
             var totalSpend = 0.0
             val categorySpendMap = mutableMapOf<String, Double>()
 
-            val calendar = Calendar.getInstance()
-            val currentMonth = calendar.get(Calendar.MONTH) + 1 // 1-based (Jan=1, Mar=3)
-            val currentYear = calendar.get(Calendar.YEAR)
+            val currentMonth = selectedCalendar.get(Calendar.MONTH) + 1 
+            val currentYear = selectedCalendar.get(Calendar.YEAR)
             
             for (txStr in txList) {
                 if (txStr.isBlank()) continue
@@ -104,18 +142,17 @@ class BudgetDashboardFragment : Fragment() {
                     val tx = JSONObject(txStr)
                     val type = tx.optString("type", "").uppercase()
                     
-                    // Filter out Income/Credits
+                    // Filter out Income/Credits - Case insensitive check via uppercase()
                     if (type == "INCOME" || type == "CREDIT") continue
 
                     val amt = tx.optDouble("amount", 0.0)
                     val cat = tx.optString("category", "Others")
-                    val savedAt = tx.optString("saved_at", "") // yyyy-MM-dd'T'HH:mm:ss
-                    val dateTime = tx.optString("date_time", "") // dd-MM-yyyy HH:mm:ss IST
+                    val savedAt = tx.optString("saved_at", "")
+                    val dateTime = tx.optString("date_time", "")
 
                     var isCurrentMonth = false
                     
                     if (savedAt.isNotEmpty()) {
-                        // saved_at: 2026-03-15T18:03:52
                         val datePart = savedAt.split("T").getOrNull(0) ?: ""
                         val parts = datePart.split("-")
                         if (parts.size >= 2) {
@@ -124,7 +161,6 @@ class BudgetDashboardFragment : Fragment() {
                             if (txYear == currentYear && txMonth == currentMonth) isCurrentMonth = true
                         }
                     } else if (dateTime.isNotEmpty()) {
-                        // date_time: 15-03-2026 18:03:52 IST
                         val datePart = dateTime.split(" ").getOrNull(0) ?: ""
                         val parts = datePart.split("-")
                         if (parts.size >= 3) {
@@ -133,7 +169,6 @@ class BudgetDashboardFragment : Fragment() {
                             if (txYear == currentYear && txMonth == currentMonth) isCurrentMonth = true
                         }
                     } else {
-                        // Fallback: If no date info, include it (treating as recent)
                         isCurrentMonth = true
                     }
 
@@ -160,16 +195,13 @@ class BudgetDashboardFragment : Fragment() {
             if (left >= 0) {
                 binding.tvTotalLeft.text = "\u20B9${left.toInt()} left"
                 binding.tvTotalLeft.setTextColor(Color.WHITE)
-                // Set green background for card, and pink progress
-                binding.overallBudgetCard.setBackgroundColor(Color.parseColor("#388E3C"))
-                binding.vProgressFill.setBackgroundColor(Color.parseColor("#F48FB1"))
+                // Respect black background, use progress color for status
+                binding.vProgressFill.setBackgroundColor(Color.parseColor("#4CAF50")) // Green
             } else {
                 val exceededBy = totalSpend - overallLimit
                 binding.tvTotalLeft.text = "Exceeded by \u20B9${exceededBy.toInt()}"
-                binding.tvTotalLeft.setTextColor(Color.parseColor("#FFCDD2")) // Red tint
-                // Red theme if exceeded
-                binding.overallBudgetCard.setBackgroundColor(Color.parseColor("#D32F2F"))
-                binding.vProgressFill.setBackgroundColor(Color.WHITE)
+                binding.tvTotalLeft.setTextColor(Color.parseColor("#FF5252")) // Bright Red
+                binding.vProgressFill.setBackgroundColor(Color.parseColor("#FF5252")) // Red
             }
 
             // Adjust progress width dynamically
@@ -259,8 +291,18 @@ class BudgetDashboardFragment : Fragment() {
                     progressFill.setBackgroundColor(Color.parseColor("#F44336")) // Red progress bar
                 }
                 
-                updateProgressWidth(progressContainer, progressFill, spend, limit)
-            } else {
+            updateProgressWidth(progressContainer, progressFill, spend, limit)
+            
+            // Set Category Icon and Color
+            val tvIcon = itemView.findViewById<TextView>(R.id.ivIcon)
+            tvIcon.text = categoryEmoji(cat)
+            val iconBgColor = categoryIconColor(cat)
+            tvIcon.background?.mutate()?.let {
+                if (it is android.graphics.drawable.GradientDrawable) {
+                    it.setColor(ContextCompat.getColor(requireContext(), iconBgColor))
+                }
+            }
+        } else {
                 tvLimit.text = ""
                 tvRemaining.text = "No limit set"
                 progressFill.layoutParams.width = 0
@@ -302,7 +344,7 @@ class BudgetDashboardFragment : Fragment() {
                 val amt = input.text.toString().toFloatOrNull() ?: 0f
                 viewLifecycleOwner.lifecycleScope.launch {
                     settingsManager.setFloat(SettingsManager.OVERALL_BUDGET_LIMIT, amt)
-                    calculateAndDisplayBudgets() // refresh UI
+                    // No need to call refreshData, collector above will trigger
                 }
             }
             .setNegativeButton("Cancel", null)
@@ -357,12 +399,34 @@ class BudgetDashboardFragment : Fragment() {
             }
             
             settingsManager.setString(SettingsManager.CATEGORY_BUDGET_LIMITS, json.toString())
-            calculateAndDisplayBudgets() // Refresh UI
+            // No need to call refreshData, collector above will trigger
         }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    private fun categoryEmoji(category: String): String = when (category.lowercase()) {
+        "food"          -> "🍽"
+        "entertainment" -> "🎬"
+        "shopping"      -> "🛍"
+        "transport"     -> "🚌"
+        "bills"         -> "📄"
+        "health"        -> "💊"
+        "investment"    -> "📈"
+        else            -> "💳"
+    }
+
+    private fun categoryIconColor(category: String): Int = when (category.lowercase()) {
+        "food"          -> R.color.cat_food
+        "entertainment" -> R.color.cat_entertainment
+        "shopping"      -> R.color.cat_shopping
+        "transport"     -> R.color.cat_transport
+        "bills"         -> R.color.cat_bills
+        "health"        -> R.color.cat_health
+        "investment"    -> R.color.cat_investment
+        else            -> R.color.cat_others
     }
 }

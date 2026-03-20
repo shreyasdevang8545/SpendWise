@@ -107,7 +107,7 @@
         android:id="@+id/fabVoiceMic"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:srcCompat="@android:drawable/ic_btn_speak_now"
+        app:srcCompat="@drawable/ic_mic"
         app:backgroundTint="@color/primary_green"
         app:tint="@color/white"
         android:layout_marginBottom="16dp" />

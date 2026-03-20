@@ -7,14 +7,19 @@
     android:background="@color/background_light"
     android:orientation="vertical">
 
-    <androidx.appcompat.widget.Toolbar
-        android:id="@+id/toolbar"
+    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:background="@color/card_surface"
-        app:navigationIcon="@drawable/ic_back"
-        app:title="Transaction History"
-        app:titleTextColor="@color/text_primary" />
+        android:layout_height="wrap_content"
+        style="@style/Widget.SpendWise.AppBarLayout">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            style="@style/Widget.SpendWise.Toolbar"
+            app:navigationIcon="@drawable/ic_back"
+            app:title="Transaction History" />
+    </com.google.android.material.appbar.AppBarLayout>
 
     <HorizontalScrollView
         android:layout_width="match_parent"

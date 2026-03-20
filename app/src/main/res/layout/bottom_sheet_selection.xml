@@ -12,7 +12,7 @@
         android:layout_height="4dp"
         android:layout_gravity="center_horizontal"
         android:layout_marginBottom="24dp"
-        android:background="#E5E7EB" />
+        android:background="#33FFFFFF" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -27,13 +27,13 @@
         android:id="@+id/optionAddTransaction"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
+        android:layout_marginBottom="12dp"
         android:clickable="true"
         android:focusable="true"
-        app:cardBackgroundColor="@color/card_surface"
-        app:cardCornerRadius="16dp"
+        app:cardBackgroundColor="#1AFFFFFF"
+        app:cardCornerRadius="20dp"
         app:cardElevation="0dp"
-        app:strokeColor="#F3F4F6"
+        app:strokeColor="#1AFFFFFF"
         app:strokeWidth="1dp">
 
         <LinearLayout
@@ -44,11 +44,12 @@
             android:padding="16dp">
 
             <ImageView
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:background="@drawable/bg_icon_green"
-                android:padding="12dp"
-                android:src="@android:drawable/ic_menu_add"
+                android:backgroundTint="#0D4ADE80"
+                android:padding="10dp"
+                android:src="@drawable/ic_add"
                 app:tint="@color/primary_green" />
 
             <LinearLayout
@@ -80,13 +81,13 @@
         android:id="@+id/optionAddLend"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
+        android:layout_marginBottom="12dp"
         android:clickable="true"
         android:focusable="true"
-        app:cardBackgroundColor="@color/card_surface"
-        app:cardCornerRadius="16dp"
+        app:cardBackgroundColor="#1AFFFFFF"
+        app:cardCornerRadius="20dp"
         app:cardElevation="0dp"
-        app:strokeColor="#F3F4F6"
+        app:strokeColor="#1AFFFFFF"
         app:strokeWidth="1dp">
 
         <LinearLayout
@@ -97,11 +98,12 @@
             android:padding="16dp">
 
             <ImageView
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:background="@drawable/bg_icon_blue"
-                android:padding="12dp"
-                android:src="@android:drawable/ic_menu_share"
+                android:backgroundTint="#0D3B82F6"
+                android:padding="10dp"
+                android:src="@drawable/ic_share"
                 app:tint="#3B82F6" />
 
             <LinearLayout
@@ -133,13 +135,13 @@
         android:id="@+id/optionLendHistory"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
+        android:layout_marginBottom="12dp"
         android:clickable="true"
         android:focusable="true"
-        app:cardBackgroundColor="@color/card_surface"
-        app:cardCornerRadius="16dp"
+        app:cardBackgroundColor="#1AFFFFFF"
+        app:cardCornerRadius="20dp"
         app:cardElevation="0dp"
-        app:strokeColor="#F3F4F6"
+        app:strokeColor="#1AFFFFFF"
         app:strokeWidth="1dp">
 
         <LinearLayout
@@ -150,11 +152,12 @@
             android:padding="16dp">
 
             <ImageView
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:background="@drawable/bg_icon_purple"
-                android:padding="12dp"
-                android:src="@android:drawable/ic_menu_recent_history"
+                android:backgroundTint="#0DAB47BC"
+                android:padding="10dp"
+                android:src="@drawable/ic_history"
                 app:tint="@color/cat_entertainment" />
 
             <LinearLayout

@@ -35,7 +35,7 @@
     <string name="title_transaction_alerts">Transaction alerts</string>
     <string name="subtitle_transaction_alerts">Notify when SMS transaction detected</string>
     <string name="title_budget_alerts">Budget alerts</string>
-    <string name="subtitle_budget_alerts">Warn at 75%, 90%, 100% of limit</string>
+    <string name="subtitle_budget_alerts" formatted="false">Warn at 75%, 90%, 100% of limit</string>
     <string name="title_monthly_summary">Monthly summary</string>
     <string name="subtitle_monthly_summary">Send report on 1st of each month</string>
     <string name="title_daily_reminder">Daily spending reminder</string>
@@ -103,6 +103,7 @@
     <string name="dialog_edit">Edit</string>
     <string name="dialog_offline_transaction">Offline Transaction</string>
     <string name="dialog_transaction_options">Transaction Options</string>
+    <string name="dialog_add_transaction">Add Transaction</string>
 
     <!-- Security & Lock -->
     <string name="security_enable_lock">Enable app lock</string>
@@ -143,5 +144,15 @@
     <string name="budgets_saved">Budgets saved successfully</string>
     <string name="budget_not_set">Not Set</string>
     <string name="budget_limit_set">Limit: %1$s</string>
+
+    <!-- Add Transaction -->
+    <string name="cd_capture_bill">Capture bill</string>
+    <string name="hint_merchant">Merchant / Note</string>
+    <string name="hint_category">Category</string>
+    <string name="label_type">Transaction Type</string>
+    <string name="chip_expense">Expense</string>
+    <string name="chip_income">Income</string>
+    <string name="label_payment_mode">Payment Mode</string>
+    <string name="hint_date_time">Date &amp; Time</string>
 
 </resources>

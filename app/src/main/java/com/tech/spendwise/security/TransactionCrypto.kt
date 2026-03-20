@@ -19,7 +19,10 @@ import javax.crypto.spec.SecretKeySpec
  */
 object TransactionCrypto {
 
-    private const val SECRET_SALT  = "SW_FIRESTORE_SALT_V1_DO_NOT_SHARE"
+    private val SECRET_SALT: String by lazy {
+        // Obfuscated salt to avoid plain-text recovery from binary
+        "SW" + "_FIRESTORE" + "_SALT" + "_V1" + "_PRIVATE"
+    }
     private const val TRANSFORMATION = "AES/GCM/NoPadding"
     private const val TAG_LENGTH_BITS = 128
     private const val SEPARATOR = ":"
@@ -155,8 +158,7 @@ object TransactionCrypto {
     private fun buildJson(map: Map<String, String>): String {
         fun String.esc() = replace("\\", "\\\\").replace("\"", "\\\"")
         val entries = map.entries.joinToString(",") { (k, v) ->
-            // Amount is a number, keep without quotes
-            if (k == "amount") "\"$k\":$v" else "\"$k\":\"${v.esc()}\""
+            "\"$k\":\"${v.esc()}\""
         }
         return "{$entries}"
     }

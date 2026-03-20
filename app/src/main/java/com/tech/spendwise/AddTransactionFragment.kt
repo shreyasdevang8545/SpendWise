@@ -55,7 +55,7 @@ class AddTransactionFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.btnBack.setOnClickListener { findNavController().popBackStack() }
+        binding.toolbar.setNavigationOnClickListener { findNavController().popBackStack() }
 
         // Camera Launcher for Bill Capture
         val takePictureLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->

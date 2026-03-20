@@ -25,4 +25,9 @@
     <color name="cat_health">#26A69A</color>
     <color name="cat_investment">#66BB6A</color>
     <color name="cat_others">#BDBDBD</color>
+
+    <!-- Guide Card Green Colors -->
+    <color name="guide_bg_green">#E8F5E9</color>
+    <color name="guide_stroke_green">#C8E6C9</color>
+    <color name="guide_text_green">#1B5E20</color>
 </resources>

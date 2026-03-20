@@ -18,13 +18,13 @@
         app:layout_constraintBottom_toTopOf="@id/ivIcon"
         android:layout_marginBottom="16dp"/>
 
-    <ImageView
+    <TextView
         android:id="@+id/ivIcon"
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:background="@drawable/bg_icon_circle"
-        android:padding="8dp"
-        tools:src="@drawable/ic_home"
+        android:gravity="center"
+        android:textSize="18sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/vTopDivider" />
 

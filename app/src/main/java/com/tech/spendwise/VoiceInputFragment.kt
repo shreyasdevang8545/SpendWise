@@ -53,7 +53,7 @@ class VoiceInputFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.btnBack.setOnClickListener { findNavController().popBackStack() }
+        binding.toolbar.setNavigationOnClickListener { findNavController().popBackStack() }
         binding.btnCancel.setOnClickListener { findNavController().popBackStack() }
 
         binding.btnMic.setOnClickListener {

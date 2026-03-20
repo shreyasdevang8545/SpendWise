@@ -6,57 +6,46 @@
     android:layout_height="match_parent"
     android:background="@color/background_light">
 
-    <!-- Toolbar row -->
-    <RelativeLayout
-        android:id="@+id/toolbar"
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="20dp"
+        style="@style/Widget.SpendWise.AppBarLayout"
         app:layout_constraintTop_toTopOf="parent">
 
-        <ImageButton
-            android:id="@+id/btnBack"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Back"
-            android:src="@android:drawable/ic_menu_close_clear_cancel"
-            app:tint="@color/text_primary"
-            android:layout_alignParentStart="true"
-            android:layout_centerVertical="true" />
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            style="@style/Widget.SpendWise.Toolbar"
+            app:navigationIcon="@drawable/ic_back"
+            app:title="Lend History">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Lend History"
-            android:textColor="@color/text_primary"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:layout_centerInParent="true" />
+            <ImageButton
+                android:id="@+id/btnHelp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="end"
+                android:layout_marginEnd="8dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Help"
+                android:src="@drawable/ic_help"
+                app:tint="@color/white" />
 
-        <ImageButton
-            android:id="@+id/btnHelp"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Help"
-            android:src="@android:drawable/ic_menu_help"
-            app:tint="@color/text_primary"
-            android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true" />
-    </RelativeLayout>
+        </com.google.android.material.appbar.MaterialToolbar>
+    </com.google.android.material.appbar.AppBarLayout>
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/guideCard"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
-        app:cardCornerRadius="5dp"
+        app:cardCornerRadius="12dp"
         app:cardElevation="0dp"
-        app:strokeColor="#DBEAFE"
+        app:strokeColor="@color/guide_stroke_green"
         app:strokeWidth="1dp"
-        app:cardBackgroundColor="#EFF6FF"
-        app:layout_constraintTop_toBottomOf="@id/toolbar">
+        app:cardBackgroundColor="@color/guide_bg_green"
+        app:layout_constraintTop_toBottomOf="@id/appBarLayout">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -73,8 +62,8 @@
                 <ImageView
                     android:layout_width="20dp"
                     android:layout_height="20dp"
-                    android:src="@android:drawable/ic_dialog_info"
-                    app:tint="#3B82F6" />
+                    android:src="@drawable/ic_info"
+                    app:tint="@color/guide_text_green" />
 
                 <TextView
                     android:layout_width="0dp"
@@ -82,7 +71,7 @@
                     android:layout_marginStart="8dp"
                     android:layout_weight="1"
                     android:text="Pro Tips"
-                    android:textColor="#1E40AF"
+                    android:textColor="@color/guide_text_green"
                     android:textSize="14sp"
                     android:textStyle="bold" />
 
@@ -91,8 +80,8 @@
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:src="@android:drawable/ic_menu_close_clear_cancel"
-                    app:tint="#1E40AF" />
+                    android:src="@drawable/ic_close"
+                    app:tint="@color/guide_text_green" />
             </LinearLayout>
 
             <TextView
@@ -100,7 +89,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:text="• Swipe RIGHT to Edit or Mark as Returned.\n• Swipe LEFT to Delete a record."
-                android:textColor="#1E3A8A"
+                android:textColor="@color/guide_text_green"
                 android:textSize="13sp"
                 android:lineSpacingExtra="4dp" />
         </LinearLayout>

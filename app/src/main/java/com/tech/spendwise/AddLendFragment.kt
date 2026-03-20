@@ -15,7 +15,9 @@ import com.tech.spendwise.databinding.FragmentAddLendBinding
 import com.tech.spendwise.models.LendTransaction
 import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Date
 import java.util.Locale
+import java.util.UUID
 
 class AddLendFragment : Fragment() {
 
@@ -38,7 +40,7 @@ class AddLendFragment : Fragment() {
 
         val lendId = arguments?.getString("lendId")
         if (lendId != null) {
-            binding.toolbarTitle.text = "Edit Lend Detail"
+            binding.toolbar.title = "Edit Lend Detail"
             binding.btnSave.text = "Update Lend Detail"
             loadLend(lendId)
         } else {
@@ -48,7 +50,7 @@ class AddLendFragment : Fragment() {
             updateDate(calendar.timeInMillis)
         }
 
-        binding.btnBack.setOnClickListener {
+        binding.toolbar.setNavigationOnClickListener {
             findNavController().popBackStack()
         }
 
@@ -129,7 +131,7 @@ class AddLendFragment : Fragment() {
             return
         }
 
-        val lendId = existingId ?: java.util.UUID.randomUUID().toString()
+        val lendId = existingId ?: UUID.randomUUID().toString()
         val lend = LendTransaction(
             id = lendId,
             name = name,
@@ -138,10 +140,13 @@ class AddLendFragment : Fragment() {
             returnDate = selectedReturnDate
         )
 
-        firestoreRepository.saveLend(uid, lend)
+        firestoreRepository.saveLend(
+            uid, lend,
+            onResult = TODO()
+        )
         
         // --- ADDED FIX: Also create a transaction record so it shows on Home Screen ---
-        val timestamp = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()).format(java.util.Date())
+        val timestamp = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()).format(Date())
         fun String.esc() = replace("\\", "\\\\").replace("\"", "\\\"")
         val lendJson = """{"amount":$amount,"type":"DEBIT","merchant":"${name.esc()}","category":"Lend","payment_mode":"${paymentMode.esc()}","currency":"INR","saved_at":"$timestamp","is_lend":true,"lend_name":"${name.esc()}"}"""
         viewModel.addConfirmedTransaction(lendJson)

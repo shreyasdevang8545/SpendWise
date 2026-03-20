@@ -1,6 +1,7 @@
 package com.tech.spendwise
 
 import android.os.Bundle
+import android.util.Log
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
@@ -59,7 +60,7 @@ class ReviewTransactionFragment : Fragment() {
             viewModel.popTransaction()
         }
 
-        binding.btnBack.setOnClickListener {
+        binding.toolbar.setNavigationOnClickListener {
             // Act like discard/close for now to handle it gracefully
             viewModel.popTransaction()
         }
@@ -102,9 +103,6 @@ class ReviewTransactionFragment : Fragment() {
             val chip = Chip(requireContext()).apply {
                 text = mode
                 isCheckable = true
-                setChipBackgroundColorResource(R.color.chip_background)
-                setTextColor(ContextCompat.getColor(requireContext(), R.color.text_primary))
-                shapeAppearanceModel = shapeAppearanceModel.toBuilder().setAllCornerSizes(24f).build()
             }
             binding.paymentGroup.addView(chip)
         }
@@ -129,9 +127,6 @@ class ReviewTransactionFragment : Fragment() {
                 val chip = Chip(requireContext()).apply {
                     text = t
                     isCheckable = true
-                    setChipBackgroundColorResource(R.color.chip_background)
-                    setTextColor(ContextCompat.getColor(requireContext(), R.color.text_primary))
-                    shapeAppearanceModel = shapeAppearanceModel.toBuilder().setAllCornerSizes(24f).build()
                 }
                 binding.typeGroup.addView(chip)
             }
@@ -238,7 +233,11 @@ class ReviewTransactionFragment : Fragment() {
             )
             val uid = FirebaseAuth.getInstance().currentUser?.uid
             if (uid != null) {
-                FirestoreRepository().saveLend(uid, lend)
+                FirestoreRepository().saveLend(uid, lend) { result ->
+                    result.onFailure { e ->
+                        Log.e("ReviewTransaction", "Failed to save lend record: ${e.message}")
+                    }
+                }
             }
         }
 
@@ -263,7 +262,7 @@ class ReviewTransactionFragment : Fragment() {
     ): String {
         fun String.esc() = replace("\\", "\\\\").replace("\"", "\\\"")
         val lendStr = if (isLend) ""","is_lend":true,"lend_name":"${lendName?.esc() ?: ""}" """ else ""
-        return """{"amount":$amount,"type":"${type.esc()}","merchant":"${merchant.esc()}","category":"${category.esc()}","payment_mode":"${paymentMode.esc()}","currency":"${currency.esc()}","saved_at":"${savedAt.esc()}"$lendStr}"""
+        return """{"amount":"$amount","type":"${type.esc()}","merchant":"${merchant.esc()}","category":"${category.esc()}","payment_mode":"${paymentMode.esc()}","currency":"${currency.esc()}","saved_at":"${savedAt.esc()}"$lendStr}"""
     }
 
     override fun onDestroyView() {

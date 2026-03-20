@@ -80,10 +80,11 @@ class TransactionListAdapter :
 
         // Amount with sign and color
         val currencySymbol = if (currency == "INR") "₹" else currency
-        val sign = if (type == "CREDIT") "+" else "-"
+        val isCredit = type.equals("CREDIT", ignoreCase = true)
+        val sign = if (isCredit) "+" else "-"
         holder.amount.text = "$sign$currencySymbol%.2f".format(amountVal)
 
-        val colorRes = if (type == "CREDIT") R.color.primary_green else R.color.error_red
+        val colorRes = if (isCredit) R.color.primary_green else R.color.error_red
         holder.amount.setTextColor(ContextCompat.getColor(holder.itemView.context, colorRes))
         
         if (isOffline) {

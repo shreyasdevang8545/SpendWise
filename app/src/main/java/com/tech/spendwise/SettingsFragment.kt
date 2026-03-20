@@ -215,7 +215,7 @@ class SettingsFragment : Fragment() {
     }
 
     private fun setupClickListeners() {
-        binding.backBtn.setOnClickListener {
+        binding.settingsToolbar.setNavigationOnClickListener {
             findNavController().navigateUp()
         }
     }

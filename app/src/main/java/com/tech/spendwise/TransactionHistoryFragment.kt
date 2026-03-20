@@ -281,7 +281,7 @@ class TransactionHistoryFragment : Fragment() {
 
     private fun buildJsonString(map: Map<String, String>): String {
         val entries = map.entries.joinToString(",") { (k, v) ->
-            if (k == "amount") "\"$k\":$v" else "\"$k\":\"$v\""
+            "\"$k\":\"$v\""
         }
         return "{$entries}"
     }

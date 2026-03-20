@@ -19,7 +19,7 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             style="@style/Widget.SpendWise.Toolbar"
-            app:navigationIcon="@android:drawable/ic_menu_close_clear_cancel"
+            app:navigationIcon="@drawable/ic_close"
             app:title="Voice Entry" />
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -54,7 +54,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:contentDescription="Start voice recording"
-        android:src="@android:drawable/ic_btn_speak_now"
+        android:src="@drawable/ic_mic"
         app:backgroundTint="@color/primary_green"
         app:tint="@color/white"
         app:layout_constraintBottom_toBottomOf="@id/micRingOuter"

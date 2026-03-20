@@ -37,7 +37,7 @@ class LanguageFragment : Fragment() {
     }
 
     private fun setupUI() {
-        binding.backBtn.setOnClickListener {
+        binding.languageToolbar.setNavigationOnClickListener {
             findNavController().navigateUp()
         }
 

@@ -2,6 +2,7 @@ package com.tech.spendwise
 
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -31,7 +32,7 @@ class LendHistoryFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.btnBack.setOnClickListener {
+        binding.toolbar.setNavigationOnClickListener {
             findNavController().popBackStack()
         }
 
@@ -165,17 +166,22 @@ class LendHistoryFragment : Fragment() {
         binding.lendRecyclerView.visibility = View.GONE
         binding.emptyState.visibility = View.GONE
 
-        firestoreRepository.fetchLends(uid) { lends ->
+        firestoreRepository.fetchLends(uid) { result ->
             _binding?.let { binding ->
                 binding.shimmerViewContainer.stopShimmer()
                 binding.shimmerViewContainer.visibility = View.GONE
                 binding.lendRecyclerView.visibility = View.VISIBLE
                 
-                if (lends.isEmpty()) {
+                result.onSuccess { lends ->
+                    if (lends.isEmpty()) {
+                        binding.emptyState.visibility = View.VISIBLE
+                    } else {
+                        binding.emptyState.visibility = View.GONE
+                        adapter.submitList(lends)
+                    }
+                }.onFailure { e ->
+                    Log.e("LendHistoryFragment", "Error fetching lends: ${e.message}")
                     binding.emptyState.visibility = View.VISIBLE
-                } else {
-                    binding.emptyState.visibility = View.GONE
-                    adapter.submitList(lends)
                 }
             }
         }

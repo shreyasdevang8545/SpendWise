@@ -115,9 +115,11 @@ class MainActivity : AppCompatActivity() {
 
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
+        
+        // Handle window insets for fragment container (Top only, bottom is handled by nav card)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.nav_host_fragment)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, 0) // No bottom padding here
             insets
         }
 
@@ -134,9 +136,40 @@ class MainActivity : AppCompatActivity() {
         // Connect BottomNav with NavController
         androidx.navigation.ui.NavigationUI.setupWithNavController(bottomNav, navController)
 
+        // Modern Animations for Navigation without breaking NavigationUI
+        bottomNav.setOnItemSelectedListener { item ->
+            if (item.itemId == R.id.addTransactionFragment) {
+                // Show Selection Bottom Sheet instead of direct navigation
+                SelectionBottomSheet { option ->
+                    when (option) {
+                        SelectionBottomSheet.SelectionOption.TRANSACTION -> 
+                            navController.navigate(R.id.addTransactionFragment)
+                        SelectionBottomSheet.SelectionOption.LEND -> 
+                            navController.navigate(R.id.addLendFragment)
+                        SelectionBottomSheet.SelectionOption.HISTORY -> 
+                            navController.navigate(R.id.lendHistoryFragment)
+                    }
+                }.show(supportFragmentManager, SelectionBottomSheet.TAG)
+                false // We handle the selection ourselves for this item
+            } else {
+                // Standard NavigationUI handling
+                androidx.navigation.ui.NavigationUI.onNavDestinationSelected(item, navController)
+            }
+        }
+
+        // Apply Insets to the bottom nav
+        ViewCompat.setOnApplyWindowInsetsListener(bottomNav) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(0, 0, 0, systemBars.bottom)
+            insets
+        }
+
         // Handle intent if app was opened via notification
         handleIntent(intent)
     }
+
+    // Helper for DP to PX
+    private fun Int.toPx(context: Context): Int = (this * context.resources.displayMetrics.density).toInt()
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
