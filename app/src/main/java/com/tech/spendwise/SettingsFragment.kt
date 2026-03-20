@@ -12,6 +12,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import com.tech.spendwise.R
 import java.util.Locale
+import com.google.android.material.timepicker.MaterialTimePicker
+import com.google.android.material.timepicker.TimeFormat
 
 class SettingsFragment : Fragment() {
 
@@ -136,14 +138,65 @@ class SettingsFragment : Fragment() {
             }
             binding.itemDailyReminder.apply {
                 rowTitle.text = getString(R.string.title_daily_reminder)
-                rowSubtitle.text = getString(R.string.subtitle_daily_reminder)
                 rowIcon.setImageResource(R.drawable.ic_schedule)
-                rowSwitch.isChecked = settingsManager.dailyReminder.first()
+                
+                lifecycleScope.launch {
+                    val isEnabled = settingsManager.dailyReminder.first()
+                    rowSwitch.isChecked = isEnabled
+                    if (isEnabled) {
+                        val hour = settingsManager.dailyReminderHour.first()
+                        val minute = settingsManager.dailyReminderMinute.first()
+                        rowSubtitle.text = getString(R.string.reminder_scheduled_at, hour, minute)
+                    } else {
+                        rowSubtitle.text = getString(R.string.subtitle_daily_reminder)
+                    }
+                }
+
                 rowSwitch.setOnCheckedChangeListener { _, isChecked ->
-                    lifecycleScope.launch { settingsManager.setBoolean(SettingsManager.DAILY_REMINDER, isChecked) }
+                    if (isChecked) {
+                        showTimePicker()
+                    } else {
+                        lifecycleScope.launch {
+                            settingsManager.setBoolean(SettingsManager.DAILY_REMINDER, false)
+                            ReminderManager.cancelDailyReminder(requireContext())
+                            rowSubtitle.text = getString(R.string.subtitle_daily_reminder)
+                        }
+                    }
                 }
             }
         }
+    }
+
+    private fun showTimePicker() {
+        val picker = com.google.android.material.timepicker.MaterialTimePicker.Builder()
+            .setTimeFormat(com.google.android.material.timepicker.TimeFormat.CLOCK_24H)
+            .setHour(20)
+            .setMinute(0)
+            .setTitleText(getString(R.string.set_reminder_time))
+            .build()
+
+        picker.addOnPositiveButtonClickListener {
+            lifecycleScope.launch {
+                settingsManager.setBoolean(SettingsManager.DAILY_REMINDER, true)
+                settingsManager.setInt(SettingsManager.DAILY_REMINDER_HOUR, picker.hour)
+                settingsManager.setInt(SettingsManager.DAILY_REMINDER_MINUTE, picker.minute)
+                
+                ReminderManager.scheduleDailyReminder(requireContext(), picker.hour, picker.minute)
+                
+                binding.itemDailyReminder.rowSubtitle.text = 
+                    getString(R.string.reminder_scheduled_at, picker.hour, picker.minute)
+            }
+        }
+
+        picker.addOnCancelListener {
+            binding.itemDailyReminder.rowSwitch.isChecked = false
+        }
+
+        picker.addOnNegativeButtonClickListener {
+            binding.itemDailyReminder.rowSwitch.isChecked = false
+        }
+
+        picker.show(childFragmentManager, "time_picker")
     }
 
     private fun populateDataPrivacySection() {

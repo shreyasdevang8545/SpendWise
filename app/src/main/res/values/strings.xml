@@ -40,6 +40,8 @@
     <string name="subtitle_monthly_summary">Send report on 1st of each month</string>
     <string name="title_daily_reminder">Daily spending reminder</string>
     <string name="subtitle_daily_reminder">Evening nudge to log expenses</string>
+    <string name="set_reminder_time">Select Reminder Time</string>
+    <string name="reminder_scheduled_at">Reminder set for %1$02d:%2$02d</string>
 
     <!-- Data & Privacy Section -->
     <string name="title_backup_restore">Backup &amp; restore</string>

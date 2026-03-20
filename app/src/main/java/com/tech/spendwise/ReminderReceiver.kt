@@ -7,13 +7,23 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.first
 
 class ReminderReceiver : BroadcastReceiver() {
     private val repository = FirestoreRepository()
 
     override fun onReceive(context: Context, intent: Intent) {
-        val lendId = intent.getStringExtra("lend_id") ?: return
+        val isDaily = intent.getBooleanExtra("is_daily_reminder", false)
+        val lendId = intent.getStringExtra("lend_id")
         val uid = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid ?: return
+
+        if (isDaily) {
+            handleDailyReminder(context)
+            return
+        }
+
+        if (lendId == null) return
 
         Log.d("ReminderReceiver", "Alarm fired for lend: $lendId")
 
@@ -84,7 +94,41 @@ class ReminderReceiver : BroadcastReceiver() {
         notificationManager.notify(lend.id.hashCode(), notification)
     }
 
+    private fun handleDailyReminder(context: Context) {
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        
+        val mainIntent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            // Add a deep link or extra to open Add Transaction screen
+            data = android.net.Uri.parse("spendwise://add_transaction")
+        }
+        val mainPendingIntent = PendingIntent.getActivity(
+            context, DAILY_REMINDER_ID, mainIntent, PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val notification = NotificationCompat.Builder(context, DAILY_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_schedule)
+            .setContentTitle("Add Your Expenses")
+            .setContentText("Don't forget to log your spending for today!")
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
+            .setContentIntent(mainPendingIntent)
+            .build()
+
+        notificationManager.notify(DAILY_REMINDER_ID, notification)
+
+        // Reschedule for tomorrow
+        val settingsManager = SettingsManager(context)
+        GlobalScope.launch {
+            val hour = settingsManager.dailyReminderHour.first()
+            val minute = settingsManager.dailyReminderMinute.first()
+            ReminderManager.scheduleDailyReminder(context, hour, minute)
+        }
+    }
+
     companion object {
         const val LEND_CHANNEL_ID = "lend_reminders"
+        const val DAILY_CHANNEL_ID = "daily_reminders"
+        private const val DAILY_REMINDER_ID = 1001
     }
 }

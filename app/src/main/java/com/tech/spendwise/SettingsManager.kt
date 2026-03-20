@@ -19,6 +19,8 @@ class SettingsManager(private val context: Context) {
         val TRANSACTION_ALERTS = booleanPreferencesKey("transaction_alerts")
         val MONTHLY_SUMMARY = booleanPreferencesKey("monthly_summary")
         val DAILY_REMINDER = booleanPreferencesKey("daily_reminder")
+        val DAILY_REMINDER_HOUR = intPreferencesKey("daily_reminder_hour")
+        val DAILY_REMINDER_MINUTE = intPreferencesKey("daily_reminder_minute")
         
         val CURRENCY = stringPreferencesKey("currency")
         val THEME = stringPreferencesKey("theme")
@@ -39,6 +41,8 @@ class SettingsManager(private val context: Context) {
     val transactionAlerts: Flow<Boolean> = context.dataStore.data.map { it[TRANSACTION_ALERTS] ?: true }
     val monthlySummary: Flow<Boolean> = context.dataStore.data.map { it[MONTHLY_SUMMARY] ?: true }
     val dailyReminder: Flow<Boolean> = context.dataStore.data.map { it[DAILY_REMINDER] ?: false }
+    val dailyReminderHour: Flow<Int> = context.dataStore.data.map { it[DAILY_REMINDER_HOUR] ?: 20 } // Default 8 PM
+    val dailyReminderMinute: Flow<Int> = context.dataStore.data.map { it[DAILY_REMINDER_MINUTE] ?: 0 }
     val language: Flow<String> = context.dataStore.data.map { it[LANGUAGE] ?: "en" }
     val appLockEnabled: Flow<Boolean> = context.dataStore.data.map { it[APP_LOCK_ENABLED] ?: false }
     val appLockPin: Flow<String> = context.dataStore.data.map { it[APP_LOCK_PIN] ?: "" }
@@ -56,6 +60,10 @@ class SettingsManager(private val context: Context) {
     }
 
     suspend fun setFloat(key: Preferences.Key<Float>, value: Float) {
+        context.dataStore.edit { it[key] = value }
+    }
+
+    suspend fun setInt(key: Preferences.Key<Int>, value: Int) {
         context.dataStore.edit { it[key] = value }
     }
 }
