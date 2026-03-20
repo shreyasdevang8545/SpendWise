@@ -208,14 +208,20 @@ class PreferenceRepository(private val context: Context) {
         }
     }
 
-    /**
-     * Decrypts the raw string payload and returns the clear JSON.
-     */
     fun decryptData(encrypted: String): String {
         return try {
             encryptionManager.decrypt(encrypted)
         } catch (e: Exception) {
             ""
+        }
+    }
+
+    /**
+     * Clears all local persistent data.
+     */
+    suspend fun clearEverything() {
+        context.dataStore.edit { preferences ->
+            preferences.clear()
         }
     }
 }

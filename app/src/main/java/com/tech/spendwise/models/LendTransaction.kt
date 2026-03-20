@@ -9,6 +9,8 @@ data class LendTransaction(
     val amount: Double,
     val paymentMode: String,
     val returnDate: Long, // committed return date timestamp
+    val phoneNumber: String? = null,
+    val note: String? = null,
     val isReturned: Boolean = false,
     val createdAt: Long = System.currentTimeMillis()
 )

@@ -172,11 +172,32 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     /**
-     * Clears all pending transactions.
+     * Wipes all local and remote data for the user.
      */
-    fun clearAll() {
+    fun clearEverything(onComplete: () -> Unit) {
         viewModelScope.launch {
-            repository.clearAll()
+            val uid = FirebaseAuth.getInstance().currentUser?.uid
+            
+            // 1. Clear Local Preferences & State
+            repository.clearEverything()
+            val settingsManager = SettingsManager(getApplication())
+            settingsManager.clearAll()
+            
+            // 2. Reset LiveData
+            _firestoreTransactions.postValue(emptyList())
+            _lends.postValue(emptyList())
+
+            if (uid != null) {
+                // 3. Clear Firestore Data (Transactions, Lends, Public Lends)
+                firestoreRepository.clearAllUserData(uid) {
+                    // 4. Clear Splitwise Data
+                    com.tech.spendwise.splitwise.SplitRepository.clearAllSplitData(uid) {
+                        onComplete()
+                    }
+                }
+            } else {
+                onComplete()
+            }
         }
     }
 

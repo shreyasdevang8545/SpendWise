@@ -302,7 +302,9 @@ class AddLendFragment : Fragment() {
             name        = name,
             amount      = amount,
             paymentMode = paymentMode,
-            returnDate  = selectedReturnDate
+            returnDate  = selectedReturnDate,
+            phoneNumber = contactPhoneNumber, // Use the class-level variable
+            note        = "" // Default empty note for now, as there's no input field
         )
 
         // ── Save to Firestore ──

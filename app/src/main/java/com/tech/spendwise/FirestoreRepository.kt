@@ -256,7 +256,9 @@ class FirestoreRepository {
     private fun savePublicLend(lend: com.tech.spendwise.models.LendTransaction, lendId: String) {
         val publicLend = mapOf(
             "name" to lend.name,
+            "phone" to (lend.phoneNumber ?: ""),
             "amount" to lend.amount,
+            "note" to (lend.note ?: ""),
             "paymentMode" to lend.paymentMode,
             "returnDate" to lend.returnDate,
             "isReturned" to lend.isReturned,
@@ -264,6 +266,33 @@ class FirestoreRepository {
             "updatedAt" to System.currentTimeMillis()
         )
         db.collection("public_lends").document(lendId).set(publicLend)
-            .addOnFailureListener { e -> Log.e(TAG, "Public lend sync failed: ${e.message}") }
+    }
+
+    /**
+     * Wipes all user data from Firestore (Transactions and Lends).
+     */
+    fun clearAllUserData(uid: String, onComplete: () -> Unit) {
+        // 1. Delete transactions
+        db.collection(USERS).document(uid).collection("transactions").get().addOnSuccessListener { snapshot ->
+            val batch = db.batch()
+            snapshot.documents.forEach { batch.delete(it.reference) }
+            batch.commit()
+        }
+
+        // 2. Delete lends and public_lends
+        db.collection(USERS).document(uid).collection("lends").get().addOnSuccessListener { snapshot ->
+            val batch = db.batch()
+            val publicBatch = db.batch()
+            snapshot.documents.forEach { doc ->
+                batch.delete(doc.reference)
+                // Also delete from public_lends
+                publicBatch.delete(db.collection("public_lends").document(doc.id))
+            }
+            batch.commit().addOnSuccessListener {
+                publicBatch.commit().addOnSuccessListener {
+                    onComplete()
+                }.addOnFailureListener { onComplete() }
+            }.addOnFailureListener { onComplete() }
+        }.addOnFailureListener { onComplete() }
     }
 }

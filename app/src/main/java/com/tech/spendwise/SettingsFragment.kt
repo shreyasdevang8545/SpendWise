@@ -14,12 +14,16 @@ import com.tech.spendwise.R
 import java.util.Locale
 import com.google.android.material.timepicker.MaterialTimePicker
 import com.google.android.material.timepicker.TimeFormat
+import androidx.fragment.app.activityViewModels
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.tech.spendwise.utils.UIUtils
 
 class SettingsFragment : Fragment() {
 
     private var _binding: FragmentSettingsBinding? = null
     private val binding get() = _binding!!
     private lateinit var settingsManager: SettingsManager
+    private val viewModel: TransactionViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -242,6 +246,26 @@ class SettingsFragment : Fragment() {
             rowSubtitle.text = getString(R.string.subtitle_clear_all_data)
             rowIcon.setImageResource(R.drawable.ic_delete_forever)
             rowTitle.setTextColor(resources.getColor(R.color.error_red, null))
+            root.setOnClickListener { showClearAllDataDialog() }
+        }
+    }
+
+    private fun showClearAllDataDialog() {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.dialog_clear_all_title)
+            .setMessage(R.string.dialog_clear_all_message)
+            .setNegativeButton(R.string.dialog_cancel, null)
+            .setPositiveButton(R.string.action_clear_everything) { _, _ ->
+                performClearAll()
+            }
+            .show()
+    }
+
+    private fun performClearAll() {
+        viewModel.clearEverything {
+            view?.let {
+                UIUtils.showSuccessSnackbar(it, getString(R.string.msg_data_cleared))
+            }
         }
     }
 

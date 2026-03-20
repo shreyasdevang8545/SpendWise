@@ -772,31 +772,17 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 
-  // ── Data Handling ──
-  const params = new URLSearchParams(window.location.search);
-  function p(key, fallback) { return params.get(key) || fallback; }
+  // ── Helpers ──
+  function getInitials(name) {
+    return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+  }
 
-  // Initial data from URL (fallback/instant load)
-  const name = p('name', 'User');
-  let lend = {
-    name        : name,
-    phone       : p('phone', ''),
-    initials    : name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2),
-    avatarColor : (function(n) {
-      const colors = ['#2E7D32','#1565C0','#6A1B9A','#C62828','#E65100','#00838F','#4527A0'];
-      let hash = 0;
-      for (let i = 0; i < n.length; i++) hash = n.charCodeAt(i) + ((hash << 5) - hash);
-      return colors[Math.abs(hash) % colors.length];
-    })(name),
-    totalAmount : parseFloat(p('amount', '0')),
-    paidAmount  : p('status', '') === 'settled' ? parseFloat(p('amount', '0')) : parseFloat(p('paid', '0')),
-    lentOn      : p('lentOn', new Date().toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'})),
-    returnDate  : p('date', ''),
-    returnLabel : p('returnLabel', p('date', '')),
-    paymentMode : p('mode', 'UPI'),
-    note        : p('note', '—'),
-    status      : p('status', 'pending'),
-  };
+  function getAvatarColor(name) {
+    const colors = ['#2E7D32','#1565C0','#6A1B9A','#C62828','#E65100','#00838F','#4527A0'];
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    return colors[Math.abs(hash) % colors.length];
+  }
 
   function formatAmount(amount) {
     return new Intl.NumberFormat("en-IN").format(amount);
@@ -804,8 +790,30 @@
 
   function formatTs(ts) {
     if (!ts) return "—";
-    return new Date(ts).toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'});
+    const date = (typeof ts === 'number') ? new Date(ts) : new Date(ts.toDate ? ts.toDate() : ts); // Handle Firestore Timestamp objects
+    return date.toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'});
   }
+
+  // ── Data Handling ──
+  const params = new URLSearchParams(window.location.search);
+  function p(key, fallback) { return params.get(key) || fallback; }
+
+  const initialName = p('name', 'User');
+  let lend = {
+    name        : initialName,
+    phone       : p('phone', ''),
+    initials    : getInitials(initialName),
+    avatarColor : getAvatarColor(initialName),
+    totalAmount : parseFloat(p('amount', '0')),
+    paidAmount  : p('status', '') === 'settled' ? parseFloat(p('amount', '0')) : parseFloat(p('paid', '0')),
+    lentOn      : p('lentOn', formatTs(new Date())),
+    returnDate  : p('date', ''),
+    returnLabel : p('returnLabel', p('date', '')),
+    paymentMode : p('mode', 'UPI'),
+    note        : p('note', '—'),
+    status      : p('status', 'pending'),
+    updatedAt   : null
+  };
 
   // ── UI Rendering ──
   function renderLend() {
@@ -844,34 +852,47 @@
     document.getElementById("statTotal").textContent       = "₹" + formatAmount(lend.totalAmount);
     document.getElementById("statOutstanding").textContent = "₹" + formatAmount(remaining);
 
-    // Days chip
+    // Days chip & Status Badge
     const today      = new Date();
     const returnDate = lend.returnDate ? new Date(lend.returnDate) : new Date();
     const diffDays   = Math.ceil((returnDate - today) / (1000 * 60 * 60 * 24));
     const chip       = document.getElementById("daysChip");
+    const badge      = document.getElementById("heroStatusBadge");
+    
     chip.className   = "days-chip"; // reset
+    badge.className  = "status-badge"; // reset
 
     if (lend.status === "settled") {
       chip.textContent = "Settled ✓";
       chip.classList.add("done-chip");
+      badge.textContent = "Settled ✓";
+      badge.classList.add("status-settled");
       document.getElementById("statDays").textContent = "0";
       document.getElementById("statDays").style.color = "var(--green-dark)";
       document.getElementById("tlSettledItem").style.display = "flex";
-      document.getElementById("tlSettledDate").textContent = formatTs(new Date());
+      document.getElementById("tlSettledDate").textContent = formatTs(lend.updatedAt || new Date());
       document.getElementById("tlDueDot").textContent = "✓";
       document.getElementById("tlDueDot").className   = "tl-dot done";
     } else if (diffDays < 0) {
       const overdueDays = Math.abs(diffDays);
       chip.textContent = overdueDays + "d overdue";
       chip.classList.add("overdue-chip");
+      badge.textContent = "Overdue";
+      badge.classList.add("status-overdue");
       document.getElementById("statDays").textContent = overdueDays;
       document.getElementById("statDays").style.color = "var(--red)";
-      document.getElementById("heroStatusBadge").textContent = "Overdue";
-      document.getElementById("heroStatusBadge").className   = "status-badge status-overdue";
     } else {
       chip.textContent = diffDays === 0 ? "Due today!" : diffDays + " days left";
-      if (diffDays === 0) chip.classList.add("overdue-chip");
+      if (diffDays === 0) {
+        chip.classList.add("overdue-chip");
+        badge.textContent = "Due Today";
+        badge.classList.add("status-overdue");
+      } else {
+        badge.textContent = "Pending";
+        badge.classList.add("status-pending");
+      }
       document.getElementById("statDays").textContent = "0";
+      document.getElementById("statDays").style.color = "var(--text-secondary)";
     }
 
     // Timeline
@@ -880,10 +901,10 @@
     document.getElementById("tlDueDate").textContent  = lend.returnLabel;
 
     // WhatsApp Link
-    const msg = encodeURIComponent(
+    const waMsg = encodeURIComponent(
       `Hi ${lend.name}! 👋\n\nJust a reminder — you owe me ₹${formatAmount(remaining)} (from a lend of ₹${formatAmount(lend.totalAmount)}).\n\n📅 Return date: *${lend.returnLabel}*\n\n— Sent via SpendWise 💚`
     );
-    document.querySelector(".btn-whatsapp").href = `https://wa.me/${lend.phone}?text=${msg}`;
+    document.querySelector(".btn-whatsapp").href = `https://wa.me/${lend.phone}?text=${waMsg}`;
 
     // Handle button visibility
     document.querySelector(".btn-settle").style.display = lend.status === 'settled' ? 'none' : 'flex';
@@ -903,6 +924,10 @@
             console.log("Live update received:", data);
             
             lend.name        = data.name;
+            lend.phone       = data.phone || lend.phone;
+            lend.note        = data.note || "—";
+            lend.initials    = getInitials(data.name);
+            lend.avatarColor = getAvatarColor(data.name);
             lend.totalAmount = data.amount;
             lend.status      = data.isReturned ? "settled" : "pending";
             lend.paidAmount  = data.isReturned ? data.amount : 0;
@@ -910,6 +935,7 @@
             lend.paymentMode = data.paymentMode;
             lend.lentOn      = formatTs(data.createdAt);
             lend.returnDate  = data.returnDate;
+            lend.updatedAt   = data.updatedAt;
 
             renderLend();
           } else {

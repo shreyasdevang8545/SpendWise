@@ -112,6 +112,8 @@ object TransactionCrypto {
         result["name"] = encryptField(lend.name, uid)
         result["amount"] = encryptField(lend.amount.toString(), uid)
         result["payment_mode"] = encryptField(lend.paymentMode, uid)
+        result["phone_number"] = encryptField(lend.phoneNumber ?: "", uid)
+        result["note"] = encryptField(lend.note ?: "", uid)
         result["return_date"] = lend.returnDate
         result["is_returned"] = lend.isReturned
         result["created_at"] = lend.createdAt
@@ -133,6 +135,8 @@ object TransactionCrypto {
                 name = decryptField(nameRaw, uid),
                 amount = decryptField(amountRaw, uid).toDoubleOrNull() ?: 0.0,
                 paymentMode = decryptField(modeRaw, uid),
+                phoneNumber = decryptField(map["phone_number"]?.toString() ?: "", uid),
+                note = decryptField(map["note"]?.toString() ?: "", uid),
                 returnDate = (map["return_date"] as? Long) ?: 0L,
                 isReturned = (map["is_returned"] as? Boolean) ?: false,
                 createdAt = (map["created_at"] as? Long) ?: 0L

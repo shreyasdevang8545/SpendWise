@@ -158,4 +158,10 @@
     <string name="label_payment_mode">Payment Mode</string>
     <string name="hint_date_time">Date &amp; Time</string>
 
+    <!-- Clear All Data Dialog -->
+    <string name="dialog_clear_all_title">Clear All Data?</string>
+    <string name="dialog_clear_all_message">This will permanently delete all your transactions, lends, and Splitwise records from both your device and the cloud. This action cannot be undone.</string>
+    <string name="action_clear_everything">Clear Everything</string>
+    <string name="msg_data_cleared">All data cleared successfully</string>
+
 </resources>

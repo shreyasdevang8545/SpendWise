@@ -66,4 +66,11 @@ class SettingsManager(private val context: Context) {
     suspend fun setInt(key: Preferences.Key<Int>, value: Int) {
         context.dataStore.edit { it[key] = value }
     }
+
+    /**
+     * Clears all settings data.
+     */
+    suspend fun clearAll() {
+        context.dataStore.edit { it.clear() }
+    }
 }

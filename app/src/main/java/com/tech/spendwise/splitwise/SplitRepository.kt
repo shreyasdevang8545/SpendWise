@@ -165,6 +165,27 @@ object SplitRepository {
                 }
                 onResult(Result.success(list))
             }
-            .addOnFailureListener { onResult(Result.failure(it)) }
+    }
+
+    /**
+     * Deletes all Splitwise data for the user.
+     */
+    fun clearAllSplitData(uid: String, onComplete: () -> Unit = {}) {
+        val collections = listOf("split_groups", "split_expenses", "settlements")
+        var count = 0
+        
+        collections.forEach { col ->
+            db.collection(USERS).document(uid).collection(col).get().addOnSuccessListener { snapshot ->
+                val batch = db.batch()
+                snapshot.documents.forEach { batch.delete(it.reference) }
+                batch.commit().addOnCompleteListener {
+                    count++
+                    if (count == collections.size) onComplete()
+                }
+            }.addOnFailureListener {
+                count++
+                if (count == collections.size) onComplete()
+            }
+        }
     }
 }
