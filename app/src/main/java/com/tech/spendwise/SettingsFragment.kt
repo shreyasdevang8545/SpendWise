@@ -142,7 +142,10 @@ class SettingsFragment : Fragment() {
                 
                 lifecycleScope.launch {
                     val isEnabled = settingsManager.dailyReminder.first()
+                    
+                    // Set initial state without triggering listener (listener not set yet)
                     rowSwitch.isChecked = isEnabled
+                    
                     if (isEnabled) {
                         val hour = settingsManager.dailyReminderHour.first()
                         val minute = settingsManager.dailyReminderMinute.first()
@@ -150,16 +153,17 @@ class SettingsFragment : Fragment() {
                     } else {
                         rowSubtitle.text = getString(R.string.subtitle_daily_reminder)
                     }
-                }
 
-                rowSwitch.setOnCheckedChangeListener { _, isChecked ->
-                    if (isChecked) {
-                        showTimePicker()
-                    } else {
-                        lifecycleScope.launch {
-                            settingsManager.setBoolean(SettingsManager.DAILY_REMINDER, false)
-                            ReminderManager.cancelDailyReminder(requireContext())
-                            rowSubtitle.text = getString(R.string.subtitle_daily_reminder)
+                    // Set listener AFTER initial state is set
+                    rowSwitch.setOnCheckedChangeListener { _, isChecked ->
+                        if (isChecked) {
+                            showTimePicker()
+                        } else {
+                            lifecycleScope.launch {
+                                settingsManager.setBoolean(SettingsManager.DAILY_REMINDER, false)
+                                ReminderManager.cancelDailyReminder(requireContext())
+                                rowSubtitle.text = getString(R.string.subtitle_daily_reminder)
+                            }
                         }
                     }
                 }

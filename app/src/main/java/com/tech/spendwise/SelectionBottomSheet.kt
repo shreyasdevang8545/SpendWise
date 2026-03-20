@@ -12,7 +12,7 @@ class SelectionBottomSheet(
 ) : BottomSheetDialogFragment() {
 
     enum class SelectionOption {
-        TRANSACTION, LEND, HISTORY
+        TRANSACTION, LEND, HISTORY, SPLITWISE
     }
 
     private var _binding: BottomSheetSelectionBinding? = null
@@ -42,6 +42,11 @@ class SelectionBottomSheet(
 
         binding.optionLendHistory.setOnClickListener {
             onOptionSelected(SelectionOption.HISTORY)
+            dismiss()
+        }
+
+        binding.optionSplitExpense.setOnClickListener {
+            onOptionSelected(SelectionOption.SPLITWISE)
             dismiss()
         }
     }

@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SpendWise — Lend Details</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ── Reset ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  /* ── Design tokens ── */
+  :root {
+    --green-darkest : #1B5E20;
+    --green-dark    : #2E7D32;
+    --green         : #388E3C;
+    --green-mid     : #43A047;
+    --green-light   : #66BB6A;
+    --green-tint    : #A5D6A9;
+    --green-surface : #E8F5E9;
+    --green-pale    : #F1F8E9;
+    --red           : #C62828;
+    --red-light     : #FFEBEE;
+    --amber         : #E65100;
+    --amber-light   : #FFF3E0;
+    --blue          : #1565C0;
+    --blue-light    : #E3F2FD;
+    --text-primary  : #1A1A1A;
+    --text-secondary: #5C5C5C;
+    --text-muted    : #9E9E9E;
+    --surface       : #FFFFFF;
+    --surface-off   : #FAFAFA;
+    --border        : #E8E8E8;
+    --shadow-sm     : 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md     : 0 4px 16px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04);
+    --shadow-lg     : 0 12px 40px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.06);
+    --r-sm          : 10px;
+    --r-md          : 16px;
+    --r-lg          : 22px;
+    --r-xl          : 28px;
+    --fn            : 'Nunito Sans', sans-serif;
+    --fnh           : 'Nunito', sans-serif;
+  }
+
+  /* ── Base ── */
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--fn);
+    background: var(--green-pale);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Page load animations ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.92); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  @keyframes slideRight {
+    from { width: 0; }
+    to   { width: var(--target-width); }
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50%       { transform: scale(1.04); }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50%       { transform: translateY(-6px); }
+  }
+  .anim-1 { animation: fadeUp 0.6s ease both; animation-delay: 0.05s; }
+  .anim-2 { animation: fadeUp 0.6s ease both; animation-delay: 0.15s; }
+  .anim-3 { animation: fadeUp 0.6s ease both; animation-delay: 0.25s; }
+  .anim-4 { animation: fadeUp 0.6s ease both; animation-delay: 0.35s; }
+  .anim-5 { animation: fadeUp 0.6s ease both; animation-delay: 0.45s; }
+  .anim-6 { animation: fadeUp 0.6s ease both; animation-delay: 0.55s; }
+
+  /* ── Layout ── */
+  .page {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 0 0 48px;
+    position: relative;
+  }
+
+  /* ── Hero header ── */
+  .hero {
+    background: var(--green-dark);
+    padding: 52px 24px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    right: -40px; top: -40px;
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.05);
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    left: -30px; bottom: -60px;
+    width: 160px; height: 160px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.04);
+  }
+  .hero-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+    position: relative;
+    z-index: 1;
+    animation: fadeIn 0.5s ease both;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .brand-icon {
+    width: 38px; height: 38px;
+    background: var(--green-mid);
+    border-radius: 11px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--fnh);
+    font-size: 16px;
+    font-weight: 900;
+    color: white;
+    position: relative;
+    overflow: hidden;
+  }
+  .brand-icon::after {
+    content: '';
+    position: absolute;
+    right: -4px; top: -4px;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+  }
+  .brand-name {
+    font-family: var(--fnh);
+    font-size: 18px;
+    font-weight: 800;
+    color: white;
+    letter-spacing: -0.3px;
+  }
+  .status-badge {
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    font-family: var(--fnh);
+  }
+  .status-pending  { background: var(--amber-light); color: var(--amber); }
+  .status-settled  { background: var(--green-surface); color: var(--green-dark); }
+  .status-overdue  { background: var(--red-light); color: var(--red); }
+  .status-partial  { background: var(--blue-light); color: var(--blue); }
+
+  /* ── Amount hero ── */
+  .amount-hero {
+    position: relative;
+    z-index: 1;
+    animation: scaleIn 0.5s ease both;
+    animation-delay: 0.1s;
+  }
+  .amount-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--green-tint);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .amount-value {
+    font-family: var(--fnh);
+    font-size: 52px;
+    font-weight: 900;
+    color: white;
+    letter-spacing: -2px;
+    line-height: 1;
+    margin-bottom: 10px;
+  }
+  .amount-value span {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    opacity: 0.75;
+    vertical-align: super;
+    margin-right: 2px;
+  }
+  .lent-to {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .lent-avatar {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: var(--green-mid);
+    border: 2px solid rgba(255,255,255,0.25);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--fnh);
+    font-size: 14px;
+    font-weight: 800;
+    color: white;
+    flex-shrink: 0;
+  }
+  .lent-info {}
+  .lent-name {
+    font-family: var(--fnh);
+    font-size: 16px;
+    font-weight: 800;
+    color: white;
+    line-height: 1.1;
+  }
+  .lent-sub {
+    font-size: 12px;
+    color: var(--green-tint);
+    margin-top: 1px;
+  }
+
+  /* ── Floating card (overlaps hero) ── */
+  .card-float {
+    margin: -44px 16px 0;
+    background: var(--surface);
+    border-radius: var(--r-xl);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    position: relative;
+    z-index: 10;
+    animation: scaleIn 0.55s ease both;
+    animation-delay: 0.2s;
+  }
+
+  /* ── Progress section ── */
+  .progress-section {
+    padding: 22px 22px 18px;
+    border-bottom: 1px solid var(--border);
+  }
+  .progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 12px;
+  }
+  .progress-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+  .progress-pct {
+    font-family: var(--fnh);
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--green-dark);
+  }
+  .progress-track {
+    height: 10px;
+    background: var(--green-pale);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: var(--green-mid);
+    width: 0;
+    transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .progress-fill.overdue { background: var(--red); }
+  .progress-fill.partial { background: var(--blue); }
+  .progress-fill.settled { background: var(--green-mid); }
+  .progress-amounts {
+    display: flex;
+    justify-content: space-between;
+  }
+  .prog-amt {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .prog-amt strong {
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  /* ── Detail rows ── */
+  .details-section {
+    padding: 6px 0;
+  }
+  .detail-row {
+    display: flex;
+    align-items: center;
+    padding: 13px 22px;
+    border-bottom: 1px solid var(--border);
+    gap: 14px;
+    transition: background 0.15s;
+  }
+  .detail-row:last-child { border-bottom: none; }
+  .detail-row:hover { background: var(--surface-off); }
+  .detail-icon {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .detail-body { flex: 1; }
+  .detail-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 2px;
+  }
+  .detail-value {
+    font-family: var(--fnh);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+  .detail-value.overdue { color: var(--red); }
+  .detail-value.green   { color: var(--green-dark); }
+  .detail-tag {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+  }
+
+  /* ── Timeline section ── */
+  .timeline-card {
+    margin: 14px 16px 0;
+    background: var(--surface);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+  .section-title {
+    font-family: var(--fnh);
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--text-primary);
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--green-mid);
+    flex-shrink: 0;
+  }
+  .timeline {
+    padding: 16px 20px;
+    position: relative;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 33px; top: 22px;
+    width: 2px;
+    bottom: 22px;
+    background: var(--border);
+  }
+  .tl-item {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 20px;
+    position: relative;
+  }
+  .tl-item:last-child { margin-bottom: 0; }
+  .tl-dot {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+  }
+  .tl-dot.done    { background: var(--green-surface); }
+  .tl-dot.pending { background: var(--amber-light); }
+  .tl-dot.due     { background: var(--red-light); }
+  .tl-body { padding-top: 2px; }
+  .tl-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+  }
+  .tl-date {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  /* ── Summary stats ── */
+  .stats-card {
+    margin: 14px 16px 0;
+    background: var(--surface);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+  }
+  .stat-cell {
+    background: var(--surface);
+    padding: 18px 20px;
+  }
+  .stat-cell-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 6px;
+  }
+  .stat-cell-value {
+    font-family: var(--fnh);
+    font-size: 20px;
+    font-weight: 900;
+    color: var(--text-primary);
+    line-height: 1;
+  }
+  .stat-cell-value.red   { color: var(--red); }
+  .stat-cell-value.green { color: var(--green-dark); }
+  .stat-cell-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  /* ── All lends table ── */
+  .lends-card {
+    margin: 14px 16px 0;
+    background: var(--surface);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+  .lend-row {
+    display: flex;
+    align-items: center;
+    padding: 13px 20px;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+  }
+  .lend-row:last-child { border-bottom: none; }
+  .lend-row:hover { background: var(--surface-off); }
+  .lend-row.active-row { background: var(--green-pale); }
+  .lend-row-avatar {
+    width: 40px; height: 40px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--fnh);
+    font-size: 14px;
+    font-weight: 800;
+    color: white;
+    flex-shrink: 0;
+  }
+  .lend-row-info { flex: 1; min-width: 0; }
+  .lend-row-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .lend-row-date {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+  .lend-row-right { text-align: right; flex-shrink: 0; }
+  .lend-row-amount {
+    font-family: var(--fnh);
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+  .lend-row-status {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+    margin-top: 3px;
+    display: inline-block;
+  }
+
+  /* ── Action buttons ── */
+  .actions-card {
+    margin: 14px 16px 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .action-btn {
+    border: none;
+    border-radius: var(--r-md);
+    padding: 16px 12px;
+    font-family: var(--fnh);
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    transition: transform 0.15s, box-shadow 0.15s;
+    text-decoration: none;
+  }
+  .action-btn:active { transform: scale(0.97); }
+  .action-btn-icon {
+    width: 44px; height: 44px;
+    border-radius: 13px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+  }
+  .btn-whatsapp {
+    background: #E7F8EE;
+    color: #1B5E20;
+    box-shadow: var(--shadow-sm);
+  }
+  .btn-whatsapp .action-btn-icon { background: #25D366; }
+  .btn-whatsapp:hover { box-shadow: var(--shadow-md); }
+  .btn-settle {
+    background: var(--green-surface);
+    color: var(--green-dark);
+    box-shadow: var(--shadow-sm);
+  }
+  .btn-settle .action-btn-icon { background: var(--green-dark); }
+  .btn-settle:hover { box-shadow: var(--shadow-md); }
+  .btn-call {
+    background: var(--blue-light);
+    color: var(--blue);
+    box-shadow: var(--shadow-sm);
+  }
+  .btn-call .action-btn-icon { background: var(--blue); }
+  .btn-edit {
+    background: var(--amber-light);
+    color: var(--amber);
+    box-shadow: var(--shadow-sm);
+  }
+  .btn-edit .action-btn-icon { background: var(--amber); }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    padding: 28px 24px 0;
+    animation: fadeIn 0.6s ease both;
+    animation-delay: 0.7s;
+  }
+  .footer-brand {
+    font-family: var(--fnh);
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--green-dark);
+    margin-bottom: 4px;
+  }
+  .footer-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  /* ── Tooltip ── */
+  .days-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--amber-light);
+    color: var(--amber);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+    margin-left: 8px;
+    vertical-align: middle;
+    animation: pulse 2s ease infinite;
+  }
+  .days-chip.overdue-chip {
+    background: var(--red-light);
+    color: var(--red);
+  }
+  .days-chip.done-chip {
+    background: var(--green-surface);
+    color: var(--green-dark);
+    animation: none;
+  }
+
+  /* ── Responsive ── */
+  @media (min-width: 500px) {
+    .page { padding-bottom: 64px; }
+    .hero { padding: 60px 32px 90px; }
+    .card-float { margin: -52px 24px 0; }
+  }
+</style>
+</head>
+
+<body>
+<div class="page">
+
+  <!-- ── Hero header ── -->
+  <div class="hero">
+    <div class="hero-top">
+      <div class="brand">
+        <div class="brand-icon">₹</div>
+        <div class="brand-name">SpendWise</div>
+      </div>
+      <div class="status-badge status-pending" id="heroStatusBadge">Pending</div>
+    </div>
+
+    <div class="amount-hero">
+      <div class="amount-label">Total lent</div>
+      <div class="amount-value" id="heroAmount">
+        <span>₹</span><span id="amountNumber">5,000</span>
+      </div>
+      <div class="lent-to">
+        <div class="lent-avatar" id="heroAvatar">RK</div>
+        <div class="lent-info">
+          <div class="lent-name" id="heroName">Raj Kumar</div>
+          <div class="lent-sub" id="heroPhone">+91 98765 43210</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Floating card ── -->
+  <div class="card-float anim-2">
+    <!-- Progress -->
+    <div class="progress-section">
+      <div class="progress-header">
+        <div class="progress-label">Repayment progress</div>
+        <div class="progress-pct" id="progressPct">0%</div>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill pending" id="progressFill"></div>
+      </div>
+      <div class="progress-amounts">
+        <div class="prog-amt">Paid back: <strong id="paidBack">₹0</strong></div>
+        <div class="prog-amt">Remaining: <strong id="remaining">₹5,000</strong></div>
+      </div>
+    </div>
+
+    <!-- Detail rows -->
+    <div class="details-section">
+      <div class="detail-row">
+        <div class="detail-icon" style="background:#E8F5E9;">📅</div>
+        <div class="detail-body">
+          <div class="detail-label">Lent on</div>
+          <div class="detail-value" id="lentOn">15 Mar, 2026</div>
+        </div>
+      </div>
+      <div class="detail-row">
+        <div class="detail-icon" style="background:#FFF3E0;">🗓️</div>
+        <div class="detail-body">
+          <div class="detail-label">Return date</div>
+          <div class="detail-value" id="returnDate">
+            21 Mar, 2026
+            <span class="days-chip" id="daysChip">5 days left</span>
+          </div>
+        </div>
+      </div>
+      <div class="detail-row">
+        <div class="detail-icon" style="background:#E3F2FD;">💳</div>
+        <div class="detail-body">
+          <div class="detail-label">Payment mode</div>
+          <div class="detail-value" id="paymentMode">UPI</div>
+        </div>
+      </div>
+      <div class="detail-row">
+        <div class="detail-icon" style="background:#F3E5F5;">📝</div>
+        <div class="detail-body">
+          <div class="detail-label">Note</div>
+          <div class="detail-value" id="lendNote" style="font-size:13px;font-weight:600;color:var(--text-secondary);">Emergency medical expense</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Stats grid ── -->
+  <div class="stats-card anim-3">
+    <div class="section-title">
+      <div class="section-title-dot"></div>
+      Summary
+    </div>
+    <div class="stats-grid">
+      <div class="stat-cell">
+        <div class="stat-cell-label">Total lent</div>
+        <div class="stat-cell-value" id="statTotal">₹5,000</div>
+        <div class="stat-cell-sub">This person</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-cell-label">Outstanding</div>
+        <div class="stat-cell-value red" id="statOutstanding">₹5,000</div>
+        <div class="stat-cell-sub">Not yet returned</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-cell-label">Transactions</div>
+        <div class="stat-cell-value" id="statCount">3</div>
+        <div class="stat-cell-sub">All time</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-cell-label">Days overdue</div>
+        <div class="stat-cell-value" id="statDays" style="color:var(--amber);">0</div>
+        <div class="stat-cell-sub">Since due date</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Timeline ── -->
+  <div class="timeline-card anim-4">
+    <div class="section-title">
+      <div class="section-title-dot"></div>
+      Timeline
+    </div>
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="tl-dot done">✓</div>
+        <div class="tl-body">
+          <div class="tl-title">Lend recorded</div>
+          <div class="tl-date" id="tlCreated">15 Mar, 2026 · 10:30 AM</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot done">📲</div>
+        <div class="tl-body">
+          <div class="tl-title">WhatsApp reminder sent</div>
+          <div class="tl-date" id="tlReminder">15 Mar, 2026 · 10:31 AM</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot pending" id="tlDueDot">⏳</div>
+        <div class="tl-body">
+          <div class="tl-title" id="tlDueTitle">Return due</div>
+          <div class="tl-date" id="tlDueDate">21 Mar, 2026</div>
+        </div>
+      </div>
+      <div class="tl-item" id="tlSettledItem" style="display:none;">
+        <div class="tl-dot done">🎉</div>
+        <div class="tl-body">
+          <div class="tl-title">Fully settled</div>
+          <div class="tl-date" id="tlSettledDate">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── All lends list ── -->
+  <div class="lends-card anim-5">
+    <div class="section-title">
+      <div class="section-title-dot"></div>
+      All lends to Raj Kumar
+    </div>
+
+    <div class="lend-row active-row">
+      <div class="lend-row-avatar" style="background:#2E7D32;">RK</div>
+      <div class="lend-row-info">
+        <div class="lend-row-name">Emergency medical</div>
+        <div class="lend-row-date">15 Mar, 2026 · UPI</div>
+      </div>
+      <div class="lend-row-right">
+        <div class="lend-row-amount">₹5,000</div>
+        <div class="lend-row-status status-pending">Pending</div>
+      </div>
+    </div>
+
+    <div class="lend-row">
+      <div class="lend-row-avatar" style="background:#1565C0;">RK</div>
+      <div class="lend-row-info">
+        <div class="lend-row-name">Travel expenses</div>
+        <div class="lend-row-date">2 Feb, 2026 · Cash</div>
+      </div>
+      <div class="lend-row-right">
+        <div class="lend-row-amount">₹1,200</div>
+        <div class="lend-row-status status-settled">Settled ✓</div>
+      </div>
+    </div>
+
+    <div class="lend-row">
+      <div class="lend-row-avatar" style="background:#6A1B9A;">RK</div>
+      <div class="lend-row-info">
+        <div class="lend-row-name">Dinner split</div>
+        <div class="lend-row-date">18 Jan, 2026 · UPI</div>
+      </div>
+      <div class="lend-row-right">
+        <div class="lend-row-amount">₹840</div>
+        <div class="lend-row-status status-settled">Settled ✓</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Action buttons ── -->
+  <div class="actions-card anim-5">
+    <a href="https://wa.me/919876543210?text=Hi+Raj%2C+just+a+reminder+about+the+%E2%82%B95%2C000+lend+in+SpendWise+%F0%9F%92%9A"
+       target="_blank"
+       class="action-btn btn-whatsapp">
+      <div class="action-btn-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="white">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+        </svg>
+      </div>
+      WhatsApp reminder
+    </a>
+
+    <button class="action-btn btn-settle" onclick="markSettled()">
+      <div class="action-btn-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round">
+          <polyline points="20,6 9,17 4,12"/>
+        </svg>
+      </div>
+      Mark settled
+    </button>
+
+    <a href="tel:+919876543210" class="action-btn btn-call">
+      <div class="action-btn-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round">
+          <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 8.81 19.79 19.79 0 01.01 8.18 2 2 0 012 6h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 13a16 16 0 006.12 6.12l.36-.21a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>
+        </svg>
+      </div>
+      Call person
+    </a>
+
+    <button class="action-btn btn-edit" onclick="editLend()">
+      <div class="action-btn-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round">
+          <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+          <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+        </svg>
+      </div>
+      Edit lend
+    </button>
+  </div>
+
+  <!-- ── Footer ── -->
+  <div class="footer anim-6">
+    <div class="footer-brand">SpendWise</div>
+    <div class="footer-sub">Track · Save · Grow 💚</div>
+  </div>
+
+</div>
+
+<script>
+  // ── Read lend data from URL query parameters ──
+  const params = new URLSearchParams(window.location.search);
+
+  function p(key, fallback) { return params.get(key) || fallback; }
+
+  // Generate initials from name
+  function getInitials(name) {
+    return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+  }
+
+  // Pick a deterministic avatar colour from the name
+  function avatarColor(name) {
+    const colors = ['#2E7D32','#1565C0','#6A1B9A','#C62828','#E65100','#00838F','#4527A0'];
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    return colors[Math.abs(hash) % colors.length];
+  }
+
+  const name = p('name', 'Unknown');
+
+  const lend = {
+    name        : name,
+    phone       : p('phone', ''),
+    initials    : getInitials(name),
+    avatarColor : avatarColor(name),
+    totalAmount : parseFloat(p('amount', '0')),
+    paidAmount  : parseFloat(p('paid', '0')),
+    lentOn      : p('lentOn', new Date().toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'})),
+    returnDate  : p('date', ''),            // ISO format for calculations
+    returnLabel : p('returnLabel', p('date', '')),
+    paymentMode : p('mode', 'UPI'),
+    note        : p('note', '—'),
+    status      : p('status', 'pending'),   // "pending" | "partial" | "settled" | "overdue"
+  };
+
+  // Set page title dynamically
+  document.title = `SpendWise — Lend to ${lend.name}`;
+
+  // ── Initialise page with lend data ──
+  function init() {
+    // Hero
+    document.getElementById("heroName").textContent    = lend.name;
+    document.getElementById("heroPhone").textContent   = "+" + lend.phone;
+    document.getElementById("heroAvatar").textContent  = lend.initials;
+    document.getElementById("heroAvatar").style.background = lend.avatarColor;
+    document.getElementById("amountNumber").textContent = formatAmount(lend.totalAmount);
+
+    // Detail rows
+    document.getElementById("lentOn").textContent      = lend.lentOn;
+    document.getElementById("returnDate").childNodes[0].textContent = lend.returnLabel + " ";
+    document.getElementById("paymentMode").textContent = lend.paymentMode;
+    document.getElementById("lendNote").textContent    = lend.note;
+
+    // Progress
+    const pct  = lend.totalAmount > 0
+      ? Math.round((lend.paidAmount / lend.totalAmount) * 100)
+      : 0;
+    const remaining = lend.totalAmount - lend.paidAmount;
+
+    document.getElementById("progressPct").textContent = pct + "%";
+    document.getElementById("paidBack").textContent    = "₹" + formatAmount(lend.paidAmount);
+    document.getElementById("remaining").textContent   = "₹" + formatAmount(remaining);
+
+    // Animate progress bar after short delay
+    setTimeout(() => {
+      const fill = document.getElementById("progressFill");
+      fill.style.width = pct + "%";
+      if (lend.status === "overdue") fill.classList.add("overdue");
+      else if (lend.status === "partial") fill.classList.add("partial");
+      else if (lend.status === "settled") fill.classList.add("settled");
+    }, 600);
+
+    // Stats
+    document.getElementById("statTotal").textContent       = "₹" + formatAmount(lend.totalAmount);
+    document.getElementById("statOutstanding").textContent = "₹" + formatAmount(remaining);
+    document.getElementById("statCount").textContent       = "3";
+
+    // Days chip & overdue
+    const today      = new Date();
+    const returnDate = new Date(lend.returnDate);
+    const diffDays   = Math.ceil((returnDate - today) / (1000 * 60 * 60 * 24));
+    const chip       = document.getElementById("daysChip");
+
+    if (lend.status === "settled") {
+      chip.textContent = "Settled ✓";
+      chip.classList.add("done-chip");
+      document.getElementById("statDays").textContent = "0";
+      document.getElementById("statDays").style.color = "var(--green-dark)";
+      document.getElementById("tlSettledItem").style.display = "flex";
+      document.getElementById("tlDueDot").textContent = "✓";
+      document.getElementById("tlDueDot").className   = "tl-dot done";
+    } else if (diffDays < 0) {
+      const overdueDays = Math.abs(diffDays);
+      chip.textContent = overdueDays + "d overdue";
+      chip.classList.add("overdue-chip");
+      document.getElementById("statDays").textContent = overdueDays;
+      document.getElementById("statDays").style.color = "var(--red)";
+      document.getElementById("heroStatusBadge").textContent = "Overdue";
+      document.getElementById("heroStatusBadge").className   = "status-badge status-overdue";
+    } else if (diffDays === 0) {
+      chip.textContent = "Due today!";
+      chip.classList.add("overdue-chip");
+      document.getElementById("statDays").textContent = "0";
+    } else {
+      chip.textContent = diffDays + " days left";
+      document.getElementById("statDays").textContent = "0";
+    }
+
+    // Timeline dates
+    document.getElementById("tlCreated").textContent  = lend.lentOn + " · Recorded";
+    document.getElementById("tlReminder").textContent = lend.lentOn + " · Via WhatsApp";
+    document.getElementById("tlDueDate").textContent  = lend.returnLabel;
+
+    // Update WhatsApp href
+    const msg = encodeURIComponent(
+      `Hi ${lend.name}! 👋\n\nJust a reminder — you owe me ₹${formatAmount(remaining)} (from a lend of ₹${formatAmount(lend.totalAmount)}).\n\n📅 Return date: *${lend.returnLabel}*\n\n— Sent via SpendWise 💚`
+    );
+    document.querySelector(".btn-whatsapp").href =
+      `https://wa.me/${lend.phone}?text=${msg}`;
+
+    // Status badge
+    const badge = document.getElementById("heroStatusBadge");
+    if (lend.status === "partial") {
+      badge.textContent = "Partial";
+      badge.className   = "status-badge status-partial";
+    } else if (lend.status === "settled") {
+      badge.textContent = "Settled ✓";
+      badge.className   = "status-badge status-settled";
+    }
+  }
+
+  // ── Format amount with Indian number system ──
+  function formatAmount(amount) {
+    return new Intl.NumberFormat("en-IN").format(amount);
+  }
+
+  // ── Mark settled ──
+  function markSettled() {
+    if (confirm(`Mark ₹${formatAmount(lend.totalAmount)} lend to ${lend.name} as settled?`)) {
+      lend.paidAmount = lend.totalAmount;
+      lend.status     = "settled";
+
+      // Update badge
+      const badge       = document.getElementById("heroStatusBadge");
+      badge.textContent = "Settled ✓";
+      badge.className   = "status-badge status-settled";
+
+      // Animate bar to 100%
+      document.getElementById("progressPct").textContent   = "100%";
+      document.getElementById("progressFill").style.width  = "100%";
+      document.getElementById("progressFill").classList.add("settled");
+      document.getElementById("paidBack").textContent      = "₹" + formatAmount(lend.totalAmount);
+      document.getElementById("remaining").textContent     = "₹0";
+      document.getElementById("statOutstanding").textContent = "₹0";
+
+      // Show settled item in timeline
+      const today = new Date().toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+      document.getElementById("tlSettledItem").style.display = "flex";
+      document.getElementById("tlSettledDate").textContent   = today;
+      document.getElementById("tlDueDot").textContent        = "✓";
+      document.getElementById("tlDueDot").className          = "tl-dot done";
+
+      // Update chip
+      const chip       = document.getElementById("daysChip");
+      chip.textContent = "Settled ✓";
+      chip.className   = "days-chip done-chip";
+
+      alert("Lend marked as settled! 🎉");
+    }
+  }
+
+  // ── Edit lend ──
+  function editLend() {
+    alert("Edit functionality is handled in the SpendWise Android app.");
+  }
+
+  // ── Run ──
+  init();
+</script>
+</body>
+</html>

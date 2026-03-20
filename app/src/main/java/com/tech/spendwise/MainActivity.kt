@@ -148,6 +148,8 @@ class MainActivity : AppCompatActivity() {
                             navController.navigate(R.id.addLendFragment)
                         SelectionBottomSheet.SelectionOption.HISTORY -> 
                             navController.navigate(R.id.lendHistoryFragment)
+                        SelectionBottomSheet.SelectionOption.SPLITWISE ->
+                            navController.navigate(R.id.splitGroupsFragment)
                     }
                 }.show(supportFragmentManager, SelectionBottomSheet.TAG)
                 false // We handle the selection ourselves for this item
@@ -182,7 +184,7 @@ class MainActivity : AppCompatActivity() {
         // ── Deep link: spendwise://voice ────────────────────────────────────
         // Triggered by Google Assistant shortcut or adb:
         //   adb shell am start -a android.intent.action.VIEW -d "spendwise://voice" com.tech.spendwise
-        if (data?.scheme == "spendwise" && data.host == "voice") {
+        if (data?.scheme == "spendwise" && (data.host == "voice" || data.host == "add_transaction")) {
             Log.i(TAG, "Deep link received: $data — opening voice entry")
             findViewById<View>(android.R.id.content).post {
                 try {
@@ -190,7 +192,7 @@ class MainActivity : AppCompatActivity() {
                         .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
                     // Navigate using the deep link URI so NavController resolves it via nav-graph
                     val request = NavDeepLinkRequest.Builder
-                        .fromUri(Uri.parse("spendwise://voice"))
+                        .fromUri(Uri.parse("spendwise://${data.host}"))
                         .build()
                     navHostFragment.navController.navigate(request)
                 } catch (e: Exception) {
@@ -236,6 +238,16 @@ class MainActivity : AppCompatActivity() {
                 description = "Reminders for money return commitments"
             }
             notificationManager.createNotificationChannel(lendChannel)
+
+            // Create Daily Reminder channel
+            val dailyChannel = NotificationChannel(
+                "daily_reminders",
+                "Daily Reminders",
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = "Daily nudge to log your spending"
+            }
+            notificationManager.createNotificationChannel(dailyChannel)
         }
     }
 

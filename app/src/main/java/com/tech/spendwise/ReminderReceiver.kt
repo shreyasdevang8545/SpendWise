@@ -19,7 +19,17 @@ class ReminderReceiver : BroadcastReceiver() {
         val uid = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid ?: return
 
         if (isDaily) {
-            handleDailyReminder(context)
+            if (intent.action == ACTION_SNOOZE_DAILY) {
+                Log.d("ReminderReceiver", "Snoozing daily reminder")
+                val snoozeTime = System.currentTimeMillis() + (60 * 60 * 1000) // 1 hour
+                ReminderManager.scheduleSnooze(context, snoozeTime)
+                
+                // Dismiss the notification
+                val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                notificationManager.cancel(DAILY_REMINDER_ID)
+            } else {
+                handleDailyReminder(context)
+            }
             return
         }
 
@@ -106,6 +116,14 @@ class ReminderReceiver : BroadcastReceiver() {
             context, DAILY_REMINDER_ID, mainIntent, PendingIntent.FLAG_IMMUTABLE
         )
 
+        val snoozeIntent = Intent(context, ReminderReceiver::class.java).apply {
+            action = ACTION_SNOOZE_DAILY
+            putExtra("is_daily_reminder", true)
+        }
+        val snoozePendingIntent = PendingIntent.getBroadcast(
+            context, DAILY_REMINDER_ID + 1, snoozeIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
         val notification = NotificationCompat.Builder(context, DAILY_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_schedule)
             .setContentTitle("Add Your Expenses")
@@ -113,6 +131,7 @@ class ReminderReceiver : BroadcastReceiver() {
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .setContentIntent(mainPendingIntent)
+            .addAction(R.drawable.ic_timer, context.getString(R.string.action_snooze), snoozePendingIntent)
             .build()
 
         notificationManager.notify(DAILY_REMINDER_ID, notification)
@@ -130,5 +149,6 @@ class ReminderReceiver : BroadcastReceiver() {
         const val LEND_CHANNEL_ID = "lend_reminders"
         const val DAILY_CHANNEL_ID = "daily_reminders"
         private const val DAILY_REMINDER_ID = 1001
+        const val ACTION_SNOOZE_DAILY = "com.tech.spendwise.ACTION_SNOOZE_DAILY"
     }
 }

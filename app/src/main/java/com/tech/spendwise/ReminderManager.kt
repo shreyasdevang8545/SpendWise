@@ -137,4 +137,33 @@ object ReminderManager {
             alarmManager.cancel(pendingIntent)
         }
     }
+
+    fun scheduleSnooze(context: Context, timeInMillis: Long) {
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val intent = Intent(context, ReminderReceiver::class.java).apply {
+            putExtra("is_daily_reminder", true)
+        }
+
+        val pendingIntent = PendingIntent.getBroadcast(
+            context,
+            DAILY_REMINDER_REQUEST_CODE + 2, // Unique for snooze
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                if (alarmManager.canScheduleExactAlarms()) {
+                    alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, timeInMillis, pendingIntent)
+                } else {
+                    alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, timeInMillis, pendingIntent)
+                }
+            } else {
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, timeInMillis, pendingIntent)
+            }
+            Log.d(TAG, "Snooze scheduled for $timeInMillis")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to schedule snooze: ${e.message}")
+        }
+    }
 }

@@ -228,4 +228,60 @@
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     </fragment>
 
+    <!-- ── Splitwise ────────────────────────────────────────────────────── -->
+
+    <fragment
+        android:id="@+id/splitGroupsFragment"
+        android:name="com.tech.spendwise.splitwise.SplitGroupsFragment"
+        android:label="Split Expenses"
+        tools:layout="@layout/fragment_split_groups">
+        <action
+            android:id="@+id/action_splitGroups_to_createGroup"
+            app:destination="@id/createGroupFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_splitGroups_to_groupDetail"
+            app:destination="@id/groupDetailFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/createGroupFragment"
+        android:name="com.tech.spendwise.splitwise.CreateGroupFragment"
+        android:label="Create Group"
+        tools:layout="@layout/fragment_create_group" />
+
+    <fragment
+        android:id="@+id/groupDetailFragment"
+        android:name="com.tech.spendwise.splitwise.GroupDetailFragment"
+        android:label="Group Detail"
+        tools:layout="@layout/fragment_group_detail">
+        <argument
+            android:name="groupId"
+            app:argType="string" />
+        <action
+            android:id="@+id/action_groupDetail_to_addSplitExpense"
+            app:destination="@id/addSplitExpenseFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/addSplitExpenseFragment"
+        android:name="com.tech.spendwise.splitwise.AddSplitExpenseFragment"
+        android:label="Add Expense"
+        tools:layout="@layout/fragment_add_split_expense">
+        <argument
+            android:name="groupId"
+            app:argType="string" />
+    </fragment>
+
 </navigation>

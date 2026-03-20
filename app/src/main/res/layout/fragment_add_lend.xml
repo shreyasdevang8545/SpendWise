@@ -33,21 +33,55 @@
             android:padding="20dp">
 
             <!-- Name of Person -->
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/nameLayout"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:orientation="horizontal"
                 android:layout_marginBottom="16dp"
-                android:hint="Person's Name"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                android:gravity="center_vertical">
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etName"
-                    android:layout_width="match_parent"
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/nameLayout"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:inputType="textCapWords"
-                    android:textColor="@color/text_primary" />
-            </com.google.android.material.textfield.TextInputLayout>
+                    android:layout_weight="1"
+                    android:hint="Person\'s Name"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etName"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textCapWords"
+                        android:textColor="@color/text_primary" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnPickContact"
+                    style="@style/Widget.MaterialComponents.Button.TextButton.Icon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    app:icon="@drawable/ic_person"
+                    app:iconSize="28dp"
+                    app:iconTint="@color/primary_green"
+                    android:padding="0dp"
+                    android:insetLeft="0dp"
+                    android:insetTop="0dp"
+                    android:insetRight="0dp"
+                    android:insetBottom="0dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    android:contentDescription="Pick Person" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvSelectedContact"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:textColor="@color/primary_green"
+                android:textSize="12sp"
+                android:visibility="gone" />
 
             <!-- Amount -->
             <com.google.android.material.textfield.TextInputLayout
@@ -139,6 +173,15 @@
                     android:inputType="none"
                     android:textColor="@color/text_primary" />
             </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchSendSms"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="32dp"
+                android:text="Notify via SMS"
+                android:textColor="@color/text_primary"
+                android:visibility="visible" />
 
         </LinearLayout>
     </ScrollView>
