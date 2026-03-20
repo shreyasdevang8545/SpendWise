@@ -104,6 +104,8 @@ class FirestoreRepository {
             docRef.set(encryptedMap)
                 .addOnSuccessListener { 
                     Log.d(TAG, "Lend saved: ${docRef.id}")
+                    // Sync with public collection for the shared webpage
+                    savePublicLend(lend, docRef.id)
                     onResult(Result.success(docRef.id))
                 }
                 .addOnFailureListener { e ->
@@ -146,7 +148,11 @@ class FirestoreRepository {
             .collection("lends")
             .document(lendId)
             .update("is_returned", isReturned)
-            .addOnSuccessListener { onComplete() }
+            .addOnSuccessListener { 
+                // Also update public collection
+                db.collection("public_lends").document(lendId).update("isReturned", isReturned)
+                onComplete() 
+            }
     }
 
     /**
@@ -158,7 +164,11 @@ class FirestoreRepository {
             .collection("lends")
             .document(lendId)
             .update("return_date", newDate)
-            .addOnSuccessListener { onComplete() }
+            .addOnSuccessListener { 
+                // Also update public collection
+                db.collection("public_lends").document(lendId).update("returnDate", newDate)
+                onComplete() 
+            }
     }
 
     /**
@@ -231,7 +241,29 @@ class FirestoreRepository {
             .collection("lends")
             .document(lendId)
             .delete()
-            .addOnSuccessListener { onComplete() }
+            .addOnSuccessListener { 
+                // Also delete from public collection
+                db.collection("public_lends").document(lendId).delete()
+                onComplete() 
+            }
             .addOnFailureListener { Log.e(TAG, "Lend delete failed: ${it.message}") }
+    }
+
+    /**
+     * Saves a simplified, unencrypted version of the lend to a public collection.
+     * This is used for the shared lend details webpage.
+     */
+    private fun savePublicLend(lend: com.tech.spendwise.models.LendTransaction, lendId: String) {
+        val publicLend = mapOf(
+            "name" to lend.name,
+            "amount" to lend.amount,
+            "paymentMode" to lend.paymentMode,
+            "returnDate" to lend.returnDate,
+            "isReturned" to lend.isReturned,
+            "createdAt" to lend.createdAt,
+            "updatedAt" to System.currentTimeMillis()
+        )
+        db.collection("public_lends").document(lendId).set(publicLend)
+            .addOnFailureListener { e -> Log.e(TAG, "Public lend sync failed: ${e.message}") }
     }
 }

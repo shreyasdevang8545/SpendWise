@@ -754,47 +754,64 @@
 
 </div>
 
-<script>
-  // ── Read lend data from URL query parameters ──
-  const params = new URLSearchParams(window.location.search);
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
+<script>
+  // ── Firebase Configuration ──
+  const firebaseConfig = {
+    apiKey: "AIzaSyAKzRqFoJ1SuQWv2-FP-PB8qtAMfjPCs9SQY",
+    authDomain: "spendwise-d34f6.firebaseapp.com",
+    projectId: "spendwise-d34f6",
+    storageBucket: "spendwise-d34f6.firebasestorage.app",
+    messagingSenderId: "328976930978",
+    appId: "1:328976930978:android:bbd9bf879053696ddc1ffb"
+  };
+
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  // ── Data Handling ──
+  const params = new URLSearchParams(window.location.search);
   function p(key, fallback) { return params.get(key) || fallback; }
 
-  // Generate initials from name
-  function getInitials(name) {
-    return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-  }
-
-  // Pick a deterministic avatar colour from the name
-  function avatarColor(name) {
-    const colors = ['#2E7D32','#1565C0','#6A1B9A','#C62828','#E65100','#00838F','#4527A0'];
-    let hash = 0;
-    for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
-    return colors[Math.abs(hash) % colors.length];
-  }
-
-  const name = p('name', 'Unknown');
-
-  const lend = {
+  // Initial data from URL (fallback/instant load)
+  const name = p('name', 'User');
+  let lend = {
     name        : name,
     phone       : p('phone', ''),
-    initials    : getInitials(name),
-    avatarColor : avatarColor(name),
+    initials    : name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2),
+    avatarColor : (function(n) {
+      const colors = ['#2E7D32','#1565C0','#6A1B9A','#C62828','#E65100','#00838F','#4527A0'];
+      let hash = 0;
+      for (let i = 0; i < n.length; i++) hash = n.charCodeAt(i) + ((hash << 5) - hash);
+      return colors[Math.abs(hash) % colors.length];
+    })(name),
     totalAmount : parseFloat(p('amount', '0')),
-    paidAmount  : parseFloat(p('paid', '0')),
+    paidAmount  : p('status', '') === 'settled' ? parseFloat(p('amount', '0')) : parseFloat(p('paid', '0')),
     lentOn      : p('lentOn', new Date().toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'})),
-    returnDate  : p('date', ''),            // ISO format for calculations
+    returnDate  : p('date', ''),
     returnLabel : p('returnLabel', p('date', '')),
     paymentMode : p('mode', 'UPI'),
     note        : p('note', '—'),
-    status      : p('status', 'pending'),   // "pending" | "partial" | "settled" | "overdue"
+    status      : p('status', 'pending'),
   };
 
-  // Set page title dynamically
-  document.title = `SpendWise — Lend to ${lend.name}`;
+  function formatAmount(amount) {
+    return new Intl.NumberFormat("en-IN").format(amount);
+  }
 
-  // ── Initialise page with lend data ──
-  function init() {
+  function formatTs(ts) {
+    if (!ts) return "—";
+    return new Date(ts).toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'});
+  }
+
+  // ── UI Rendering ──
+  function renderLend() {
+    // Page Title
+    document.title = `SpendWise — Lend to ${lend.name}`;
+
     // Hero
     document.getElementById("heroName").textContent    = lend.name;
     document.getElementById("heroPhone").textContent   = "+" + lend.phone;
@@ -809,34 +826,30 @@
     document.getElementById("lendNote").textContent    = lend.note;
 
     // Progress
-    const pct  = lend.totalAmount > 0
-      ? Math.round((lend.paidAmount / lend.totalAmount) * 100)
-      : 0;
-    const remaining = lend.totalAmount - lend.paidAmount;
+    const pct  = lend.totalAmount > 0 ? Math.round((lend.paidAmount / lend.totalAmount) * 100) : 0;
+    const remaining = Math.max(0, lend.totalAmount - lend.paidAmount);
 
     document.getElementById("progressPct").textContent = pct + "%";
     document.getElementById("paidBack").textContent    = "₹" + formatAmount(lend.paidAmount);
     document.getElementById("remaining").textContent   = "₹" + formatAmount(remaining);
 
-    // Animate progress bar after short delay
-    setTimeout(() => {
-      const fill = document.getElementById("progressFill");
-      fill.style.width = pct + "%";
-      if (lend.status === "overdue") fill.classList.add("overdue");
-      else if (lend.status === "partial") fill.classList.add("partial");
-      else if (lend.status === "settled") fill.classList.add("settled");
-    }, 600);
+    const fill = document.getElementById("progressFill");
+    fill.style.width = pct + "%";
+    fill.className = "progress-fill"; // reset
+    if (lend.status === "overdue") fill.classList.add("overdue");
+    else if (lend.status === "partial") fill.classList.add("partial");
+    else if (lend.status === "settled") fill.classList.add("settled");
 
     // Stats
     document.getElementById("statTotal").textContent       = "₹" + formatAmount(lend.totalAmount);
     document.getElementById("statOutstanding").textContent = "₹" + formatAmount(remaining);
-    document.getElementById("statCount").textContent       = "3";
 
-    // Days chip & overdue
+    // Days chip
     const today      = new Date();
-    const returnDate = new Date(lend.returnDate);
+    const returnDate = lend.returnDate ? new Date(lend.returnDate) : new Date();
     const diffDays   = Math.ceil((returnDate - today) / (1000 * 60 * 60 * 24));
     const chip       = document.getElementById("daysChip");
+    chip.className   = "days-chip"; // reset
 
     if (lend.status === "settled") {
       chip.textContent = "Settled ✓";
@@ -844,6 +857,7 @@
       document.getElementById("statDays").textContent = "0";
       document.getElementById("statDays").style.color = "var(--green-dark)";
       document.getElementById("tlSettledItem").style.display = "flex";
+      document.getElementById("tlSettledDate").textContent = formatTs(new Date());
       document.getElementById("tlDueDot").textContent = "✓";
       document.getElementById("tlDueDot").className   = "tl-dot done";
     } else if (diffDays < 0) {
@@ -854,76 +868,61 @@
       document.getElementById("statDays").style.color = "var(--red)";
       document.getElementById("heroStatusBadge").textContent = "Overdue";
       document.getElementById("heroStatusBadge").className   = "status-badge status-overdue";
-    } else if (diffDays === 0) {
-      chip.textContent = "Due today!";
-      chip.classList.add("overdue-chip");
-      document.getElementById("statDays").textContent = "0";
     } else {
-      chip.textContent = diffDays + " days left";
+      chip.textContent = diffDays === 0 ? "Due today!" : diffDays + " days left";
+      if (diffDays === 0) chip.classList.add("overdue-chip");
       document.getElementById("statDays").textContent = "0";
     }
 
-    // Timeline dates
+    // Timeline
     document.getElementById("tlCreated").textContent  = lend.lentOn + " · Recorded";
     document.getElementById("tlReminder").textContent = lend.lentOn + " · Via WhatsApp";
     document.getElementById("tlDueDate").textContent  = lend.returnLabel;
 
-    // Update WhatsApp href
+    // WhatsApp Link
     const msg = encodeURIComponent(
       `Hi ${lend.name}! 👋\n\nJust a reminder — you owe me ₹${formatAmount(remaining)} (from a lend of ₹${formatAmount(lend.totalAmount)}).\n\n📅 Return date: *${lend.returnLabel}*\n\n— Sent via SpendWise 💚`
     );
-    document.querySelector(".btn-whatsapp").href =
-      `https://wa.me/${lend.phone}?text=${msg}`;
+    document.querySelector(".btn-whatsapp").href = `https://wa.me/${lend.phone}?text=${msg}`;
 
-    // Status badge
-    const badge = document.getElementById("heroStatusBadge");
-    if (lend.status === "partial") {
-      badge.textContent = "Partial";
-      badge.className   = "status-badge status-partial";
-    } else if (lend.status === "settled") {
-      badge.textContent = "Settled ✓";
-      badge.className   = "status-badge status-settled";
+    // Handle button visibility
+    document.querySelector(".btn-settle").style.display = lend.status === 'settled' ? 'none' : 'flex';
+  }
+
+  // ── Main Logic ──
+  function init() {
+    renderLend(); // Load initial URL data first
+
+    const lendId = p('id', '');
+    if (lendId) {
+      console.log("Listening for lend updates:", lendId);
+      db.collection("public_lends").doc(lendId)
+        .onSnapshot((doc) => {
+          if (doc.exists) {
+            const data = doc.data();
+            console.log("Live update received:", data);
+            
+            lend.name        = data.name;
+            lend.totalAmount = data.amount;
+            lend.status      = data.isReturned ? "settled" : "pending";
+            lend.paidAmount  = data.isReturned ? data.amount : 0;
+            lend.returnLabel = formatTs(data.returnDate);
+            lend.paymentMode = data.paymentMode;
+            lend.lentOn      = formatTs(data.createdAt);
+            lend.returnDate  = data.returnDate;
+
+            renderLend();
+          } else {
+            console.warn("Lend not found in public collection:", lendId);
+          }
+        }, (err) => {
+          console.error("Firestore listen error:", err);
+        });
     }
   }
 
-  // ── Format amount with Indian number system ──
-  function formatAmount(amount) {
-    return new Intl.NumberFormat("en-IN").format(amount);
-  }
-
-  // ── Mark settled ──
   function markSettled() {
-    if (confirm(`Mark ₹${formatAmount(lend.totalAmount)} lend to ${lend.name} as settled?`)) {
-      lend.paidAmount = lend.totalAmount;
-      lend.status     = "settled";
-
-      // Update badge
-      const badge       = document.getElementById("heroStatusBadge");
-      badge.textContent = "Settled ✓";
-      badge.className   = "status-badge status-settled";
-
-      // Animate bar to 100%
-      document.getElementById("progressPct").textContent   = "100%";
-      document.getElementById("progressFill").style.width  = "100%";
-      document.getElementById("progressFill").classList.add("settled");
-      document.getElementById("paidBack").textContent      = "₹" + formatAmount(lend.totalAmount);
-      document.getElementById("remaining").textContent     = "₹0";
-      document.getElementById("statOutstanding").textContent = "₹0";
-
-      // Show settled item in timeline
-      const today = new Date().toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
-      document.getElementById("tlSettledItem").style.display = "flex";
-      document.getElementById("tlSettledDate").textContent   = today;
-      document.getElementById("tlDueDot").textContent        = "✓";
-      document.getElementById("tlDueDot").className          = "tl-dot done";
-
-      // Update chip
-      const chip       = document.getElementById("daysChip");
-      chip.textContent = "Settled ✓";
-      chip.className   = "days-chip done-chip";
-
-      alert("Lend marked as settled! 🎉");
-    }
+    alert("Please mark the lend as settled within the SpendWise app to see the update here!");
   }
 
   // ── Edit lend ──
@@ -931,7 +930,6 @@
     alert("Edit functionality is handled in the SpendWise Android app.");
   }
 
-  // ── Run ──
   init();
 </script>
 </body>

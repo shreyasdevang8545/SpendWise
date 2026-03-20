@@ -352,7 +352,7 @@ class AddLendFragment : Fragment() {
             UIUtils.showSuccessSnackbar(binding.root, "$successMsg · Preparing link...")
 
             // Shorten URL on background thread, then open WhatsApp
-            val longUrl = buildLendPageUrl(contactPhoneNumber!!, name, formattedAmount, dateText)
+            val longUrl = buildLendPageUrl(lendId, contactPhoneNumber!!, name, formattedAmount, dateText)
 
             Thread {
                 val shortUrl = shortenUrl(longUrl)
@@ -445,7 +445,7 @@ class AddLendFragment : Fragment() {
     /**
      * Builds a lend details page URL with transaction data as query parameters.
      */
-    private fun buildLendPageUrl(phone: String, name: String, amount: String, date: String): String {
+    private fun buildLendPageUrl(lendId: String, phone: String, name: String, amount: String, date: String): String {
         val isoDate = if (selectedReturnDate > 0) {
             SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(selectedReturnDate))
         } else ""
@@ -463,6 +463,7 @@ class AddLendFragment : Fragment() {
             .scheme("https")
             .authority("shreyasdevang8545.github.io")
             .path("/SpendWise/lend.html")
+            .appendQueryParameter("id", lendId)
             .appendQueryParameter("name", name)
             .appendQueryParameter("phone", phone)
             .appendQueryParameter("amount", amount)
