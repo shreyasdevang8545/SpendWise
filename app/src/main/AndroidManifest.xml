@@ -61,6 +61,17 @@
                     android:host="voice" />
             </intent-filter>
 
+            <!-- ── Deep Link: GitHub Pages lend.html ────────────────────── -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="https"
+                    android:host="shreyasdevang8545.github.io"
+                    android:pathPrefix="/SpendWise/lend.html" />
+            </intent-filter>
+
             <!-- Let NavController resolve the deep link URI automatically -->
             <nav-graph android:value="@navigation/nav_graph" />
         </activity>

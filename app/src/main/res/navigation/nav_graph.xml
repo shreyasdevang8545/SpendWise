@@ -284,4 +284,27 @@
             app:argType="string" />
     </fragment>
 
+    <!-- ── View Lend (Deep link from WhatsApp) ──────────────────────────── -->
+
+    <fragment
+        android:id="@+id/viewLendFragment"
+        android:name="com.tech.spendwise.ViewLendFragment"
+        android:label="Lend Details"
+        tools:layout="@layout/fragment_view_lend">
+
+        <deepLink
+            android:id="@+id/deepLink_viewLend"
+            app:uri="https://shreyasdevang8545.github.io/SpendWise/lend.html?name={name}&amp;phone={phone}&amp;amount={amount}&amp;date={date}&amp;returnLabel={returnLabel}&amp;lentOn={lentOn}&amp;mode={mode}&amp;note={note}&amp;status={status}" />
+
+        <argument android:name="name"        app:argType="string" android:defaultValue="" />
+        <argument android:name="phone"       app:argType="string" android:defaultValue="" />
+        <argument android:name="amount"      app:argType="string" android:defaultValue="0" />
+        <argument android:name="date"        app:argType="string" android:defaultValue="" />
+        <argument android:name="returnLabel" app:argType="string" android:defaultValue="" />
+        <argument android:name="lentOn"      app:argType="string" android:defaultValue="" />
+        <argument android:name="mode"        app:argType="string" android:defaultValue="UPI" />
+        <argument android:name="note"        app:argType="string" android:defaultValue="" />
+        <argument android:name="status"      app:argType="string" android:defaultValue="pending" />
+    </fragment>
+
 </navigation>

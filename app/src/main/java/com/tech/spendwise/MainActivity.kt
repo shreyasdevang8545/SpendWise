@@ -202,6 +202,27 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
+        // ── Deep link: GitHub Pages lend details ─────────────────────────
+        if (data?.scheme == "https"
+            && data.host == "shreyasdevang8545.github.io"
+            && data.path?.startsWith("/SpendWise/lend.html") == true
+        ) {
+            Log.i(TAG, "Lend deep link received: $data")
+            findViewById<View>(android.R.id.content).post {
+                try {
+                    val navHostFragment = supportFragmentManager
+                        .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+                    val request = NavDeepLinkRequest.Builder
+                        .fromUri(data)
+                        .build()
+                    navHostFragment.navController.navigate(request)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to navigate to lend detail: ${e.message}")
+                }
+            }
+            return
+        }
+
         // ── SMS transaction from notification ───────────────────────────────
         val json = intent?.getStringExtra("transaction_json")
         if (json != null) {

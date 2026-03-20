@@ -349,21 +349,55 @@ class AddLendFragment : Fragment() {
             val formattedAmount = "%.0f".format(amount)
             val dateText        = binding.etReturnDate.text.toString()
 
-            // Show success first — WhatsApp will open on top
-            UIUtils.showSuccessSnackbar(binding.root, "$successMsg · Opening WhatsApp...")
+            UIUtils.showSuccessSnackbar(binding.root, "$successMsg · Preparing link...")
 
-            // Open WhatsApp — user taps Send
-            openWhatsApp(
-                phone   = contactPhoneNumber!!,
-                name    = name,
-                amount  = formattedAmount,
-                date    = dateText
-            )
+            // Shorten URL on background thread, then open WhatsApp
+            val longUrl = buildLendPageUrl(contactPhoneNumber!!, name, formattedAmount, dateText)
 
-            findNavController().popBackStack()
+            Thread {
+                val shortUrl = shortenUrl(longUrl)
+                activity?.runOnUiThread {
+                    openWhatsApp(
+                        phone  = contactPhoneNumber!!,
+                        name   = name,
+                        amount = formattedAmount,
+                        date   = dateText,
+                        lendPageUrl = shortUrl
+                    )
+                    findNavController().popBackStack()
+                }
+            }.start()
         } else {
             UIUtils.showSuccessSnackbar(binding.root, successMsg)
             findNavController().popBackStack()
+        }
+    }
+
+    // ─── URL Shortener ────────────────────────────────────────────────────────
+
+    /**
+     * Shortens a URL using TinyURL's free API (no API key required).
+     * Falls back to the original URL if the shortening service is unreachable.
+     */
+    private fun shortenUrl(longUrl: String): String {
+        return try {
+            val apiUrl = "https://tinyurl.com/api-create.php?url=${java.net.URLEncoder.encode(longUrl, "UTF-8")}"
+            val connection = java.net.URL(apiUrl).openConnection() as java.net.HttpURLConnection
+            connection.connectTimeout = 5000
+            connection.readTimeout = 5000
+            connection.requestMethod = "GET"
+
+            if (connection.responseCode == 200) {
+                val shortUrl = connection.inputStream.bufferedReader().readText().trim()
+                Log.d("AddLendFragment", "URL shortened: $shortUrl")
+                shortUrl
+            } else {
+                Log.w("AddLendFragment", "TinyURL returned ${connection.responseCode}, using long URL")
+                longUrl
+            }
+        } catch (e: Exception) {
+            Log.w("AddLendFragment", "URL shortening failed: ${e.message}, using long URL")
+            longUrl
         }
     }
 
@@ -371,16 +405,14 @@ class AddLendFragment : Fragment() {
 
     /**
      * Opens WhatsApp with a pre-filled lend reminder message.
-     * The user sees the chat screen with the message ready — they just tap Send.
      */
-    private fun openWhatsApp(phone: String, name: String, amount: String, date: String) {
-        val message = buildWhatsAppMessage(phone, name, amount, date)
+    private fun openWhatsApp(phone: String, name: String, amount: String, date: String, lendPageUrl: String) {
+        val message = buildWhatsAppMessage(name, amount, date, lendPageUrl)
 
         Log.d("AddLendFragment", "Opening WhatsApp")
         Log.d("AddLendFragment", "Phone  : $phone")
         Log.d("AddLendFragment", "Message: $message")
 
-        // wa.me deep link — most reliable method
         val url    = "https://wa.me/$phone?text=${Uri.encode(message)}"
         val uri    = Uri.parse(url)
         val intent = Intent(Intent.ACTION_VIEW, uri).apply {
@@ -389,24 +421,17 @@ class AddLendFragment : Fragment() {
 
         try {
             startActivity(intent)
-            Log.d("AddLendFragment", "WhatsApp opened successfully")
         } catch (e: ActivityNotFoundException) {
-            Log.w("AddLendFragment", "WhatsApp not installed — trying WhatsApp Business")
-
             intent.setPackage("com.whatsapp.w4b")
             try {
                 startActivity(intent)
-                Log.d("AddLendFragment", "WhatsApp Business opened successfully")
             } catch (e2: ActivityNotFoundException) {
-                Log.w("AddLendFragment", "WhatsApp Business not installed either — opening browser")
-
                 val browserIntent = Intent(Intent.ACTION_VIEW, uri).apply {
                     setPackage(null)
                 }
                 try {
                     startActivity(browserIntent)
                 } catch (e3: ActivityNotFoundException) {
-                    Log.e("AddLendFragment", "No app can handle WhatsApp link")
                     Toast.makeText(
                         requireContext(),
                         "WhatsApp is not installed on this device",
@@ -419,7 +444,6 @@ class AddLendFragment : Fragment() {
 
     /**
      * Builds a lend details page URL with transaction data as query parameters.
-     * Hosted on GitHub Pages — renders a beautiful lend summary.
      */
     private fun buildLendPageUrl(phone: String, name: String, amount: String, date: String): String {
         val isoDate = if (selectedReturnDate > 0) {
@@ -453,11 +477,9 @@ class AddLendFragment : Fragment() {
     }
 
     /**
-     * Builds the WhatsApp message text with a link to the lend details page.
+     * Builds the WhatsApp message with a (shortened) link to the lend details page.
      */
-    private fun buildWhatsAppMessage(phone: String, name: String, amount: String, date: String): String {
-        val lendPageUrl = buildLendPageUrl(phone, name, amount, date)
-
+    private fun buildWhatsAppMessage(name: String, amount: String, date: String, lendPageUrl: String): String {
         return """
             Hi $name! 👋
             
