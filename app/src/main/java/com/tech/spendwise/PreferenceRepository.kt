@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.tech.spendwise.security.EncryptionManager
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 private val Context.dataStore by preferencesDataStore(name = "settings")
@@ -21,6 +22,7 @@ class PreferenceRepository(private val context: Context) {
         private val PENDING_TRANSACTIONS_LIST_KEY = stringPreferencesKey("pending_transactions_list_encrypted")
         private val CONFIRMED_TRANSACTIONS_KEY = stringPreferencesKey("confirmed_transactions_encrypted")
         private val IS_VOICE_GUIDE_SHOWN_KEY = booleanPreferencesKey("is_voice_guide_shown")
+        private val SUPABASE_TOKENS_KEY = stringPreferencesKey("supabase_tokens_encrypted")
         private const val DELIMITER = "|_|"
         private const val MAX_CONFIRMED = 100
     }
@@ -223,5 +225,44 @@ class PreferenceRepository(private val context: Context) {
         context.dataStore.edit { preferences ->
             preferences.clear()
         }
+    }
+
+    /**
+     * Saves the Supabase session tokens securely using synchronous SharedPreferences.
+     */
+    fun saveSupabaseTokensSync(accessToken: String?, refreshToken: String?) {
+        if (accessToken.isNullOrEmpty() || refreshToken.isNullOrEmpty()) return
+        val prefs = context.getSharedPreferences("supabase_session", Context.MODE_PRIVATE)
+        val payload = "$accessToken$DELIMITER$refreshToken"
+        prefs.edit().putString(SUPABASE_TOKENS_KEY.name, encryptionManager.encrypt(payload)).apply()
+    }
+
+    /**
+     * Retrieves the saved Supabase session tokens synchronously.
+     * @return Pair of (accessToken, refreshToken) or null.
+     */
+    fun getSupabaseTokensSync(): Pair<String, String>? {
+        val prefs = context.getSharedPreferences("supabase_session", Context.MODE_PRIVATE)
+        val encrypted = prefs.getString(SUPABASE_TOKENS_KEY.name, "") ?: ""
+        if (encrypted.isNotEmpty()) {
+            try {
+                val decrypted = encryptionManager.decrypt(encrypted)
+                val parts = decrypted.split(DELIMITER)
+                if (parts.size == 2) {
+                    return Pair(parts[0], parts[1])
+                }
+            } catch (e: Exception) {
+                // Ignore
+            }
+        }
+        return null
+    }
+
+    /**
+     * Clears the saved Supabase session tokens synchronously.
+     */
+    fun clearSupabaseTokensSync() {
+        val prefs = context.getSharedPreferences("supabase_session", Context.MODE_PRIVATE)
+        prefs.edit().remove(SUPABASE_TOKENS_KEY.name).apply()
     }
 }

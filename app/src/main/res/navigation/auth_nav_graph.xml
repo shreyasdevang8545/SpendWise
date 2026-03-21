@@ -3,16 +3,16 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/auth_nav_graph"
-    app:startDestination="@id/phoneInputFragment">
+    app:startDestination="@id/loginFragment">
 
     <fragment
-        android:id="@+id/phoneInputFragment"
-        android:name="com.tech.spendwise.PhoneInputFragment"
-        android:label="Sign In"
-        tools:layout="@layout/fragment_phone_input">
+        android:id="@+id/loginFragment"
+        android:name="com.tech.spendwise.LoginFragment"
+        android:label="Login"
+        tools:layout="@layout/fragment_login">
         <action
-            android:id="@+id/action_phoneInput_to_otp"
-            app:destination="@id/otpFragment"
+            android:id="@+id/action_loginFragment_to_signUpFragment"
+            app:destination="@id/signUpFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
@@ -20,14 +20,9 @@
     </fragment>
 
     <fragment
-        android:id="@+id/otpFragment"
-        android:name="com.tech.spendwise.OtpFragment"
-        android:label="Verify OTP"
-        tools:layout="@layout/fragment_otp">
-        <argument
-            android:name="phoneNumber"
-            app:argType="string"
-            android:defaultValue="" />
-    </fragment>
+        android:id="@+id/signUpFragment"
+        android:name="com.tech.spendwise.SignUpFragment"
+        android:label="Sign Up"
+        tools:layout="@layout/fragment_sign_up" />
 
 </navigation>

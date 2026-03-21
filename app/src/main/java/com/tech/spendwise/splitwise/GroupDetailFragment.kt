@@ -13,7 +13,9 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.firebase.auth.FirebaseAuth
+import androidx.lifecycle.lifecycleScope
+import com.tech.spendwise.SupabaseInstance
+import kotlinx.coroutines.launch
 import com.tech.spendwise.R
 import com.tech.spendwise.databinding.FragmentGroupDetailBinding
 import com.tech.spendwise.models.Settlement
@@ -27,6 +29,7 @@ class GroupDetailFragment : Fragment() {
 
     private var _binding: FragmentGroupDetailBinding? = null
     private val binding get() = _binding!!
+    private val splitRepository = SupabaseSplitRepository()
 
     private val expenseAdapter = SplitExpenseAdapter()
     private var groupId = ""
@@ -68,38 +71,30 @@ class GroupDetailFragment : Fragment() {
     }
 
     private fun loadGroupAndData() {
-        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
-
-        // Load group info first
-        SplitRepository.fetchGroups(uid) { result ->
-            result.onSuccess { groups ->
-                val group = groups.find { it.id == groupId } ?: return@onSuccess
+        val uid = SupabaseInstance.currentUserId() ?: return
+        lifecycleScope.launch {
+            try {
+                val groups = splitRepository.fetchGroups()
+                val group = groups.find { it.id == groupId } ?: return@launch
                 groupName = group.name
                 members = group.members
-                activity?.runOnUiThread {
-                    binding.toolbar.title = groupName
-                }
+                binding.toolbar.title = groupName
                 // Now load expenses + settlements
-                loadExpensesAndBalances(uid)
+                loadExpensesAndBalances()
+            } catch (e: Exception) {
+                Log.e("GroupDetail", "Error loading group", e)
             }
         }
     }
 
-    private fun loadExpensesAndBalances(uid: String) {
-        SplitRepository.fetchExpenses(uid, groupId) { expResult ->
-            expResult.onSuccess { expenses ->
-                SplitRepository.fetchSettlements(uid, groupId) { setResult ->
-                    setResult.onSuccess { settlements ->
-                        activity?.runOnUiThread {
-                            updateUI(expenses, settlements)
-                        }
-                    }
-                }
-            }
-            expResult.onFailure {
-                activity?.runOnUiThread {
-                    UIUtils.showErrorSnackbar(binding.root, "Failed to load expenses")
-                }
+    private fun loadExpensesAndBalances() {
+        lifecycleScope.launch {
+            try {
+                val expenses = splitRepository.fetchExpenses(groupId)
+                val settlements = splitRepository.fetchSettlements(groupId)
+                updateUI(expenses, settlements)
+            } catch (e: Exception) {
+                UIUtils.showErrorSnackbar(binding.root, "Failed to load expenses")
             }
         }
     }
@@ -138,22 +133,20 @@ class GroupDetailFragment : Fragment() {
             .setTitle("Settle Debt")
             .setMessage("Mark ${debt.from} → ${debt.to} (${fmt.format(debt.amount)}) as settled?")
             .setPositiveButton("Settle") { _, _ ->
-                val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return@setPositiveButton
                 val settlement = Settlement(
-                    id = UUID.randomUUID().toString(),
+                    id = "", // Supabase will generate ID
                     groupId = groupId,
                     from = debt.from,
                     to = debt.to,
                     amount = debt.amount
                 )
-                SplitRepository.saveSettlement(uid, settlement) { result ->
-                    activity?.runOnUiThread {
-                        if (result.isSuccess) {
-                            UIUtils.showSuccessSnackbar(binding.root, "Settled!")
-                            loadGroupAndData()
-                        } else {
-                            UIUtils.showErrorSnackbar(binding.root, "Failed to settle")
-                        }
+                lifecycleScope.launch {
+                    val resultId = splitRepository.saveSettlement(settlement)
+                    if (resultId != null) {
+                        UIUtils.showSuccessSnackbar(binding.root, "Settled!")
+                        loadGroupAndData()
+                    } else {
+                        UIUtils.showErrorSnackbar(binding.root, "Failed to settle")
                     }
                 }
             }

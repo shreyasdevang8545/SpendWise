@@ -8,7 +8,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.auth.FirebaseAuth
+import com.tech.spendwise.SupabaseInstance
 import kotlinx.coroutines.launch
 
 /**
@@ -18,7 +18,8 @@ import kotlinx.coroutines.launch
 class TransactionViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository          = PreferenceRepository(application)
-    private val firestoreRepository = FirestoreRepository()
+    private val supabaseRepository = SupabaseRepository()
+    private val splitRepository    = com.tech.spendwise.splitwise.SupabaseSplitRepository()
 
     // All pending transactions
     val pendingTransactions: LiveData<List<String>> = repository.pendingTransactionsFlow.asLiveData()
@@ -59,22 +60,26 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
      * Persists a confirmed (reviewed and saved) transaction locally,
      * then syncs it to Firestore (encrypted) if the user is signed in.
      */
-    fun addConfirmedTransaction(json: String, retryCount: Int = 0) {
+    fun addConfirmedTransaction(json: String, syncToCloud: Boolean = true, retryCount: Int = 0) {
         viewModelScope.launch {
-            val uid = FirebaseAuth.getInstance().currentUser?.uid
+            if (!syncToCloud) {
+                repository.addConfirmedTransaction(json)
+                return@launch
+            }
+            
+            val uid = SupabaseInstance.currentUserId()
             if (uid != null) {
-                firestoreRepository.saveTransaction(uid, json) { result ->
-                    result.onSuccess {
-                        Log.d("TransactionVM", "Transaction synced successfully")
-                    }.onFailure { e ->
-                        Log.e("TransactionVM", "Sync failed: ${e.message}")
-                        if (retryCount < 3) {
-                            Log.d("TransactionVM", "Retrying sync... attempt ${retryCount + 1}")
-                            addConfirmedTransaction(json, retryCount + 1)
-                        } else {
-                            // Max retries reached or terminal error: Save locally for later
-                            viewModelScope.launch { repository.addConfirmedTransaction(json) }
-                        }
+                try {
+                    supabaseRepository.saveTransaction(json)
+                    Log.d("TransactionVM", "Transaction synced successfully")
+                } catch (e: Exception) {
+                    Log.e("TransactionVM", "Sync failed: ${e.message}")
+                    if (retryCount < 3) {
+                        Log.d("TransactionVM", "Retrying sync... attempt ${retryCount + 1}")
+                        addConfirmedTransaction(json, syncToCloud = true, retryCount = retryCount + 1)
+                    } else {
+                        // Max retries reached: Save locally for later
+                        repository.addConfirmedTransaction(json)
                     }
                 }
             } else {
@@ -85,20 +90,18 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     /**
-     * Retries uploading a locally saved transaction to Firestore.
+     * Retries uploading a locally saved transaction to Supabase.
      * Removes from local storage on success.
      */
     fun uploadOfflineTransaction(json: String) {
         viewModelScope.launch {
-            val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return@launch
-            firestoreRepository.saveTransaction(uid, json) { result ->
-                result.onSuccess {
-                    viewModelScope.launch {
-                        repository.removeConfirmedTransaction(json)
-                    }
-                }.onFailure { e ->
-                    Log.e("TransactionVM", "Offline upload failed: ${e.message}")
-                }
+            val uid = SupabaseInstance.currentUserId() ?: return@launch
+            try {
+                supabaseRepository.saveTransaction(json)
+                repository.removeConfirmedTransaction(json)
+                Log.d("TransactionVM", "Offline transaction synced and removed local copy")
+            } catch (e: Exception) {
+                Log.e("TransactionVM", "Offline upload failed: ${e.message}")
             }
         }
     }
@@ -107,27 +110,20 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
      * Fetches the [limit] most recent confirmed transactions from Firestore for the signed-in user.
      * Results are posted to [firestoreTransactions].
      */
-    fun fetchFromFirestore(limit: Long = 100) {
-        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+    fun fetchFromFirestore() {
+        val uid = SupabaseInstance.currentUserId() ?: return
         _isLoading.value = true
-        firestoreRepository.fetchRecentTransactions(
-            uid  = uid,
-            limit = limit,
-            onResult = { result -> 
-                result.onSuccess { list ->
-                    _firestoreTransactions.postValue(list)
-                }.onFailure { e ->
-                    Log.e("TransactionVM", "Fetch failed: ${e.message}")
-                }
+        viewModelScope.launch {
+            try {
+                val transactions = supabaseRepository.fetchRecentTransactions()
+                _firestoreTransactions.postValue(transactions)
+                
+                val lends = supabaseRepository.fetchLends()
+                _lends.postValue(lends)
+            } catch (e: Exception) {
+                Log.e("TransactionVM", "Fetch failed: ${e.message}")
+            } finally {
                 _isLoading.postValue(false)
-            }
-        )
-        // Also fetch lends for the summary
-        firestoreRepository.fetchLends(uid) { result ->
-            result.onSuccess { list ->
-                _lends.postValue(list)
-            }.onFailure { e ->
-                Log.e("TransactionVM", "Lend fetch failed: ${e.message}")
             }
         }
     }
@@ -135,30 +131,44 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
     /**
      * Deletes a transaction from Firestore and refreshes the list.
      */
-    fun deleteTransaction(docId: String) {
-        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
-        firestoreRepository.deleteTransaction(uid, docId) {
-            fetchFromFirestore() // Refresh after deletion
+    fun deleteTransaction(id: String) {
+        viewModelScope.launch {
+            supabaseRepository.deleteTransaction(id)
+            fetchFromFirestore()
+        }
+    }
+
+    fun deleteTransactionsBatch(ids: List<String>) {
+        viewModelScope.launch {
+            supabaseRepository.deleteTransactionsBatch(ids)
+            fetchFromFirestore()
         }
     }
 
     /**
-     * Deletes multiple transactions from Firestore and refreshes the list.
+     * Saves a lend transaction and its linked record.
      */
-    fun deleteTransactionsBatch(docIds: List<String>) {
-        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
-        firestoreRepository.deleteTransactionsBatch(uid, docIds) {
-            fetchFromFirestore() // Refresh after deletion
+    fun saveLend(lend: com.tech.spendwise.models.LendTransaction) {
+        viewModelScope.launch {
+            try {
+                _isLoading.postValue(true)
+                supabaseRepository.saveLend(lend)
+                fetchFromFirestore()
+            } catch (e: Exception) {
+                Log.e("TransactionVM", "Save lend failed: ${e.message}")
+            } finally {
+                _isLoading.postValue(false)
+            }
         }
     }
 
-    /**
-     * Updates a transaction in Firestore and refreshes the list.
-     */
-    fun updateTransaction(docId: String, json: String) {
-        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
-        firestoreRepository.updateTransaction(uid, docId, json) {
-            fetchFromFirestore() // Refresh after update
+    fun updateTransaction(id: String, json: String) {
+        viewModelScope.launch {
+            try {
+                supabaseRepository.updateTransaction(id, json)
+            } finally {
+                fetchFromFirestore()
+            }
         }
     }
 
@@ -176,7 +186,7 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
      */
     fun clearEverything(onComplete: () -> Unit) {
         viewModelScope.launch {
-            val uid = FirebaseAuth.getInstance().currentUser?.uid
+            val uid = SupabaseInstance.currentUserId()
             
             // 1. Clear Local Preferences & State
             repository.clearEverything()
@@ -188,13 +198,11 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
             _lends.postValue(emptyList())
 
             if (uid != null) {
-                // 3. Clear Firestore Data (Transactions, Lends, Public Lends)
-                firestoreRepository.clearAllUserData(uid) {
-                    // 4. Clear Splitwise Data
-                    com.tech.spendwise.splitwise.SplitRepository.clearAllSplitData(uid) {
-                        onComplete()
-                    }
-                }
+                // 3. Clear Supabase Data
+                supabaseRepository.clearAllUserData()
+                // 4. Clear Splitwise Data
+                // splitRepository.clearAllUserData() // If implemented
+                onComplete()
             } else {
                 onComplete()
             }

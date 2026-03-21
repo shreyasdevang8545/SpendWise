@@ -7,10 +7,13 @@ import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.util.Log
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.chip.Chip
-import com.google.firebase.auth.FirebaseAuth
+import androidx.lifecycle.lifecycleScope
+import com.tech.spendwise.SupabaseInstance
+import kotlinx.coroutines.launch
 import com.tech.spendwise.R
 import com.tech.spendwise.databinding.FragmentAddSplitExpenseBinding
 import com.tech.spendwise.models.SplitExpense
@@ -21,6 +24,7 @@ class AddSplitExpenseFragment : Fragment() {
 
     private var _binding: FragmentAddSplitExpenseBinding? = null
     private val binding get() = _binding!!
+    private val splitRepository = SupabaseSplitRepository()
 
     private var groupId = ""
     private var members = listOf<String>()
@@ -38,12 +42,15 @@ class AddSplitExpenseFragment : Fragment() {
         binding.toolbar.setNavigationOnClickListener { findNavController().popBackStack() }
 
         // Load group to get members
-        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
-        SplitRepository.fetchGroups(uid) { result ->
-            result.onSuccess { groups ->
-                val group = groups.find { it.id == groupId } ?: return@onSuccess
+        val uid = SupabaseInstance.currentUserId() ?: return
+        lifecycleScope.launch {
+            try {
+                val groups = splitRepository.fetchGroups()
+                val group = groups.find { it.id == groupId } ?: return@launch
                 members = group.members
-                activity?.runOnUiThread { setupPaidByChips() }
+                setupPaidByChips()
+            } catch (e: Exception) {
+                Log.e("AddSplitExpense", "Error loading group", e)
             }
         }
 
@@ -151,14 +158,14 @@ class AddSplitExpenseFragment : Fragment() {
             splitAmong = members.associateWith { perPerson }
         }
 
-        val uid = FirebaseAuth.getInstance().currentUser?.uid
+        val uid = SupabaseInstance.currentUserId()
         if (uid == null) {
             UIUtils.showErrorSnackbar(binding.root, "Please login first")
             return
         }
 
         val expense = SplitExpense(
-            id = UUID.randomUUID().toString(),
+            id = "", // Supabase will generate ID
             groupId = groupId,
             description = description,
             amount = amount,
@@ -166,14 +173,13 @@ class AddSplitExpenseFragment : Fragment() {
             splitAmong = splitAmong
         )
 
-        SplitRepository.saveExpense(uid, expense) { result ->
-            activity?.runOnUiThread {
-                if (result.isSuccess) {
-                    UIUtils.showSuccessSnackbar(binding.root, "Expense added!")
-                    findNavController().popBackStack()
-                } else {
-                    UIUtils.showErrorSnackbar(binding.root, "Failed to save expense")
-                }
+        lifecycleScope.launch {
+            val resultId = splitRepository.saveExpense(expense)
+            if (resultId != null) {
+                UIUtils.showSuccessSnackbar(binding.root, "Expense added!")
+                findNavController().popBackStack()
+            } else {
+                UIUtils.showErrorSnackbar(binding.root, "Failed to save expense")
             }
         }
     }

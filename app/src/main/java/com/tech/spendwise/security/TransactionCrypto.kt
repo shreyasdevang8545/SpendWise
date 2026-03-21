@@ -118,6 +118,7 @@ object TransactionCrypto {
         result["is_returned"] = lend.isReturned
         result["created_at"] = lend.createdAt
         result["uid"] = uid
+        result["transaction_id"] = lend.transactionId ?: ""
         return result
     }
 
@@ -139,7 +140,8 @@ object TransactionCrypto {
                 note = decryptField(map["note"]?.toString() ?: "", uid),
                 returnDate = (map["return_date"] as? Long) ?: 0L,
                 isReturned = (map["is_returned"] as? Boolean) ?: false,
-                createdAt = (map["created_at"] as? Long) ?: 0L
+                createdAt = (map["created_at"] as? Long) ?: 0L,
+                transactionId = map["transaction_id"]?.toString()?.takeIf { it.isNotEmpty() }
             )
         } catch (e: Exception) {
             null

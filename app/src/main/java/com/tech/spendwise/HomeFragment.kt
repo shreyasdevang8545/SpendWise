@@ -10,7 +10,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.firebase.auth.FirebaseAuth
+import com.tech.spendwise.SupabaseInstance
 import com.tech.spendwise.utils.UIUtils
 import com.tech.spendwise.databinding.FragmentHomeBinding
 import java.text.NumberFormat
@@ -227,10 +227,13 @@ class HomeFragment : Fragment() {
                 val amount  = data["amount"]?.toDoubleOrNull() ?: 0.0
 
                 if (isSameMonth(savedAt, currentYear, currentMonth)) {
+                    val isLend = data["is_lend"] == "true" || data["category"] == "Lend"
                     if (type.equals("CREDIT", ignoreCase = true)) {
                         totalIncome += amount
                     } else if (type.equals("DEBIT", ignoreCase = true)) {
-                        totalSpent += amount
+                        if (!isLend) {
+                            totalSpent += amount
+                        }
                     }
                 }
             }
@@ -272,9 +275,9 @@ class HomeFragment : Fragment() {
             binding.lentTotalText2.text   = formattedLent
             binding.headerMonthLabel.text = monthLabel(cal).uppercase()
             
-            // Set initials from User Name if available
-            val user = FirebaseAuth.getInstance().currentUser
-            binding.profileInitials.text = user?.displayName?.split(" ")?.let {
+            // Set initials from Supabase User Name if available
+            val name = SupabaseInstance.currentUserDisplayName()
+            binding.profileInitials.text = name?.split(" ")?.let {
                 if (it.size >= 2) "${it[0][0]}${it[1][0]}" else it[0].take(2).uppercase()
             } ?: "SD"
         }
@@ -442,16 +445,23 @@ class HomeFragment : Fragment() {
                 val savedAt = data["saved_at"] ?: ""
                 val amount = data["amount"]?.toDoubleOrNull() ?: 0.0
                 val type = data["type"] ?: ""
+                val isLend = data["is_lend"] == "true" || data["category"] == "Lend"
                 
                 if (isSameDay(savedAt, targetCal)) {
-                    if (type.equals("CREDIT", ignoreCase = true)) income += amount
-                    else if (type.equals("DEBIT", ignoreCase = true)) spent += amount
+                    if (type.equals("CREDIT", ignoreCase = true)) {
+                        income += amount
+                    } else if (type.equals("DEBIT", ignoreCase = true)) {
+                        if (!isLend) {
+                            spent += amount
+                        }
+                    }
                 }
             }
             
             lends.forEach { lend ->
                 if (isSameDay(lend.createdAt, targetCal)) {
-                    spent += lend.amount // Lending is an outflow
+                    spent += lend.amount // Lending is an outflow, but now handled separately if we wanted, 
+                                       // for now we keep it in "spent" for the graph color but avoid double counting
                 }
             }
             

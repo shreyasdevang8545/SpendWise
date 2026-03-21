@@ -15,7 +15,9 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.chip.Chip
-import com.google.firebase.auth.FirebaseAuth
+import androidx.lifecycle.lifecycleScope
+import com.tech.spendwise.SupabaseInstance
+import kotlinx.coroutines.launch
 import com.tech.spendwise.databinding.FragmentAddLendBinding
 import com.tech.spendwise.models.LendTransaction
 import com.tech.spendwise.utils.UIUtils
@@ -35,7 +37,7 @@ class AddLendFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val viewModel: TransactionViewModel by activityViewModels()
-    private val firestoreRepository = FirestoreRepository()
+    private val supabaseRepository = SupabaseRepository()
 
     private var selectedReturnDate: Long = 0
     private var contactPhoneNumber: String? = null
@@ -53,12 +55,29 @@ class AddLendFragment : Fragment() {
             if (isGranted) {
                 pickContactLauncher.launch(null)
             } else {
-                UIUtils.showErrorSnackbar(
-                    binding.root,
-                    "Contacts permission needed to pick a person"
-                )
+                if (!shouldShowRequestPermissionRationale(Manifest.permission.READ_CONTACTS)) {
+                    // Permanently denied
+                    com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+                        .setTitle("Contacts Permission Required")
+                        .setMessage("You have denied contacts access. This is required to pick people directly from your phonebook. Please enable it in app settings.")
+                        .setPositiveButton("Go to Settings") { _, _ -> openAppSettings() }
+                        .setNegativeButton("Cancel", null)
+                        .show()
+                } else {
+                    UIUtils.showErrorSnackbar(
+                        binding.root,
+                        "Contacts permission needed to pick a person"
+                    )
+                }
             }
         }
+
+    private fun openAppSettings() {
+        val intent = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+            data = Uri.fromParts("package", requireContext().packageName, null)
+        }
+        startActivity(intent)
+    }
 
     // ─── Lifecycle ────────────────────────────────────────────────────────────
 
@@ -107,9 +126,10 @@ class AddLendFragment : Fragment() {
     // ─── Load lend (edit mode) ────────────────────────────────────────────────
 
     private fun loadLend(lendId: String) {
-        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
-        firestoreRepository.getLendById(uid, lendId) { lend ->
-            lend ?: return@getLendById
+        val uid = SupabaseInstance.currentUserId() ?: return
+        lifecycleScope.launch {
+            val lend = supabaseRepository.getLendById(lendId)
+            lend ?: return@launch
             binding.etName.setText(lend.name)
             binding.etAmount.setText(lend.amount.toString())
             updateDate(lend.returnDate)
@@ -154,14 +174,24 @@ class AddLendFragment : Fragment() {
     // ─── Contact picker ───────────────────────────────────────────────────────
 
     private fun checkContactsPermissionAndPick() {
-        if (ContextCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.READ_CONTACTS
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
-            pickContactLauncher.launch(null)
-        } else {
-            requestContactsPermissionLauncher.launch(Manifest.permission.READ_CONTACTS)
+        val permission = Manifest.permission.READ_CONTACTS
+        when {
+            ContextCompat.checkSelfPermission(requireContext(), permission) == PackageManager.PERMISSION_GRANTED -> {
+                pickContactLauncher.launch(null)
+            }
+            shouldShowRequestPermissionRationale(permission) -> {
+                com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+                    .setTitle("Contacts Access")
+                    .setMessage("SpendWise needs contacts access to let you pick a person directly from your phonebook and get their phone number for WhatsApp reminders.")
+                    .setPositiveButton("Grant Access") { _, _ ->
+                        requestContactsPermissionLauncher.launch(permission)
+                    }
+                    .setNegativeButton("Not Now", null)
+                    .show()
+            }
+            else -> {
+                requestContactsPermissionLauncher.launch(permission)
+            }
         }
     }
 
@@ -283,7 +313,7 @@ class AddLendFragment : Fragment() {
         }
 
         // ── Auth check ──
-        val uid = FirebaseAuth.getInstance().currentUser?.uid
+        val uid = SupabaseInstance.currentUserId()
         if (uid == null) {
             UIUtils.showErrorSnackbar(binding.root, "Please login to save")
             return
@@ -307,17 +337,10 @@ class AddLendFragment : Fragment() {
             note        = "" // Default empty note for now, as there's no input field
         )
 
-        // ── Save to Firestore ──
-        firestoreRepository.saveLend(uid, lend) { result ->
-            if (result.isFailure) {
-                Log.e(
-                    "AddLendFragment",
-                    "Firestore sync failed: ${result.exceptionOrNull()?.message}"
-                )
-            }
-        }
+        // ── Save to Supabase (and linked transaction) ──
+        viewModel.saveLend(lend)
 
-        // ── Add transaction to home screen list ──
+        // ── Add to local UI flow without triggering another cloud sync ──
         val timestamp = SimpleDateFormat(
             "yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()
         ).format(Date())
@@ -337,7 +360,7 @@ class AddLendFragment : Fragment() {
               "lend_name": "${name.esc()}"
             }
         """.trimIndent()
-        viewModel.addConfirmedTransaction(lendJson)
+        viewModel.addConfirmedTransaction(lendJson, syncToCloud = false)
 
         // ── Schedule return date reminder notification ──
         ReminderManager.scheduleReminder(

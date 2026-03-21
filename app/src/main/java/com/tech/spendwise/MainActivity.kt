@@ -1,5 +1,7 @@
 package com.tech.spendwise
 
+import com.tech.spendwise.SupabaseInstance
+
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
@@ -17,15 +19,17 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import android.app.NotificationChannel
-import android.app.NotificationManager
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import androidx.appcompat.app.AlertDialog
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import android.view.View
+import android.app.NotificationManager
+import android.app.NotificationChannel
+import androidx.core.view.WindowInsetsCompat
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import android.text.Editable
@@ -39,7 +43,6 @@ import com.tech.spendwise.utils.UIUtils
 import androidx.navigation.NavDeepLinkRequest
 import android.net.Uri
 import androidx.navigation.fragment.NavHostFragment
-import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 
@@ -57,6 +60,19 @@ class MainActivity : AppCompatActivity() {
 
     private val smsReceiver = SmsReceiver()
     private val viewModel: TransactionViewModel by viewModels()
+
+    private val requestNotificationPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+            if (isGranted) {
+                Log.i(TAG, "Notification permission granted")
+            } else {
+                Log.w(TAG, "Notification permission denied")
+                if (!shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)) {
+                    // Permanently denied
+                    showPermanentDenialDialog("Notifications", "reminders and alerts")
+                }
+            }
+        }
     
     /**
      * Receiver for transaction data sent from SmsReceiver when app is in foreground.
@@ -94,9 +110,12 @@ class MainActivity : AppCompatActivity() {
             if (allGranted) {
                 Log.i(TAG, "All SMS permissions granted!")
             } else {
-                Log.w(TAG, "Some permissions were denied:")
-                permissions.forEach { (permission, granted) ->
-                    Log.w(TAG, "  $permission: $granted")
+                Log.w(TAG, "Some permissions were denied")
+                val deniedAnyPermanently = permissions.any { (perm, granted) ->
+                    !granted && !shouldShowRequestPermissionRationale(perm)
+                }
+                if (deniedAnyPermanently) {
+                    showPermanentDenialDialog("SMS", "automatic transaction detection")
                 }
             }
         }
@@ -106,12 +125,17 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         Log.e(TAG, "ONCREATE STARTED - DEBUGGING")
 
-        // ── Auth guard: redirect to AuthActivity if not signed in ────────
-        if (FirebaseAuth.getInstance().currentUser == null) {
-            startActivity(Intent(this, AuthActivity::class.java))
-            finish()
-            return
+        // ── Auth restoration & guard ────────
+        lifecycleScope.launch {
+            SupabaseInstance.restoreSession(this@MainActivity)
+            
+            if (!SupabaseInstance.isLoggedIn()) {
+                // If still not logged in, redirect
+                startActivity(Intent(this@MainActivity, AuthActivity::class.java))
+                finish()
+            }
         }
+
 
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
@@ -269,13 +293,35 @@ class MainActivity : AppCompatActivity() {
                 description = "Daily nudge to log your spending"
             }
             notificationManager.createNotificationChannel(dailyChannel)
+            // 4. Budget Alerts channel
+            val budgetChannel = NotificationChannel(
+                "budget_alerts_channel",
+                "Budget Alerts",
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = "Notifications when you exceed your set budget limits."
+            }
+            notificationManager.createNotificationChannel(budgetChannel)
         }
     }
 
     private fun requestNotificationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                registerForActivityResult(ActivityResultContracts.RequestPermission()) {}.launch(Manifest.permission.POST_NOTIFICATIONS)
+            val permission = Manifest.permission.POST_NOTIFICATIONS
+            when {
+                ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED -> {
+                    // Already granted
+                }
+                shouldShowRequestPermissionRationale(permission) -> {
+                    showPermissionRationaleDialog(
+                        title = "Notifications Permission",
+                        message = "SpendWise needs notification access to send you daily reminders, lend return alerts, and budget warnings.",
+                        onConfirm = { requestNotificationPermissionLauncher.launch(permission) }
+                    )
+                }
+                else -> {
+                    requestNotificationPermissionLauncher.launch(permission)
+                }
             }
         }
     }
@@ -348,32 +394,60 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Signs the user out of Firebase and returns them to the AuthActivity.
+     * Signs the user out of Supabase and returns them to the AuthActivity.
      */
     fun signOut() {
-        FirebaseAuth.getInstance().signOut()
-        val intent = Intent(this, AuthActivity::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        startActivity(intent)
-        finish()
+        lifecycleScope.launch {
+            SupabaseInstance.signOut()
+            val intent = Intent(this@MainActivity, AuthActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(intent)
+            finish()
+        }
     }
 
     private fun requestSmsPermissions() {
-        val permissionsToRequest = mutableListOf<String>()
-
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECEIVE_SMS) != PackageManager.PERMISSION_GRANTED) {
-            permissionsToRequest.add(Manifest.permission.RECEIVE_SMS)
+        val permissions = arrayOf(Manifest.permission.RECEIVE_SMS, Manifest.permission.READ_SMS)
+        val missingPermissions = permissions.filter {
+            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
         }
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED) {
-            permissionsToRequest.add(Manifest.permission.READ_SMS)
+        if (missingPermissions.isNotEmpty()) {
+            val shouldShowRationale = missingPermissions.any { shouldShowRequestPermissionRationale(it) }
+            if (shouldShowRationale) {
+                showPermissionRationaleDialog(
+                    title = "SMS Access",
+                    message = "SMS permission allows SpendWise to automatically detect bank transactions from your messages, saving you time on manual logging.",
+                    onConfirm = { requestSmsPermissionsLauncher.launch(missingPermissions.toTypedArray()) }
+                )
+            } else {
+                requestSmsPermissionsLauncher.launch(missingPermissions.toTypedArray())
+            }
         }
+    }
 
-        if (permissionsToRequest.isNotEmpty()) {
-            Log.i(TAG, "Requesting SMS permissions: $permissionsToRequest")
-            requestSmsPermissionsLauncher.launch(permissionsToRequest.toTypedArray())
-        } else {
-            Log.d(TAG, "SMS permissions already granted.")
+    private fun showPermissionRationaleDialog(title: String, message: String, onConfirm: () -> Unit) {
+        AlertDialog.Builder(this)
+            .setTitle(title)
+            .setMessage(message)
+            .setPositiveButton("Grant Access") { _, _ -> onConfirm() }
+            .setNegativeButton("Not Now", null)
+            .show()
+    }
+
+    private fun showPermanentDenialDialog(featureName: String, reason: String) {
+        AlertDialog.Builder(this)
+            .setTitle("$featureName Permission Required")
+            .setMessage("You have denied $featureName access. This is required for $reason. Please enable it in app settings.")
+            .setPositiveButton("Go to Settings") { _, _ -> openAppSettings() }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun openAppSettings() {
+        val intent = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+            data = Uri.fromParts("package", packageName, null)
         }
+        startActivity(intent)
     }
 }

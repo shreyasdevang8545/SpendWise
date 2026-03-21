@@ -20,42 +20,39 @@
             app:title="Split Expenses" />
     </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- Empty state -->
     <LinearLayout
         android:id="@+id/emptyState"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
         android:orientation="vertical"
+        android:paddingHorizontal="32dp"
+        android:paddingVertical="48dp"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/appBarLayout">
 
-        <ImageView
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:src="@drawable/ic_split"
-            android:alpha="0.4"
-            app:tint="@color/text_secondary" />
-
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="No groups yet"
+            android:text="No Groups Yet"
             android:textColor="@color/text_primary"
-            android:textSize="18sp"
+            android:fontFamily="@font/nunito_sans"
+            android:textSize="22sp"
             android:textStyle="bold" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="Create a group to start splitting expenses"
+            android:layout_marginTop="12dp"
+            android:gravity="center"
+            android:text="Create a split group to start tracking shared expenses with friends and roommates."
             android:textColor="@color/text_secondary"
-            android:textSize="14sp" />
+            android:fontFamily="@font/nunito_sans"
+            android:lineSpacingExtra="4dp"
+            android:textSize="15sp" />
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView

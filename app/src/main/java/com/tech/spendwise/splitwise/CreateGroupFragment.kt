@@ -9,7 +9,9 @@ import android.widget.ImageButton
 import android.widget.LinearLayout
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
-import com.google.firebase.auth.FirebaseAuth
+import androidx.lifecycle.lifecycleScope
+import com.tech.spendwise.SupabaseInstance
+import kotlinx.coroutines.launch
 import com.tech.spendwise.R
 import com.tech.spendwise.databinding.FragmentCreateGroupBinding
 import com.tech.spendwise.models.SplitGroup
@@ -20,6 +22,7 @@ class CreateGroupFragment : Fragment() {
 
     private var _binding: FragmentCreateGroupBinding? = null
     private val binding get() = _binding!!
+    private val splitRepository = SupabaseSplitRepository()
 
     private val memberInputs = mutableListOf<EditText>()
 
@@ -98,26 +101,25 @@ class CreateGroupFragment : Fragment() {
             return
         }
 
-        val uid = FirebaseAuth.getInstance().currentUser?.uid
+        val uid = SupabaseInstance.currentUserId()
         if (uid == null) {
             UIUtils.showErrorSnackbar(binding.root, "Please login first")
             return
         }
 
         val group = SplitGroup(
-            id = UUID.randomUUID().toString(),
+            id = "", // Supabase will generate ID
             name = name,
             members = members
         )
 
-        SplitRepository.saveGroup(uid, group) { result ->
-            activity?.runOnUiThread {
-                if (result.isSuccess) {
-                    UIUtils.showSuccessSnackbar(binding.root, "Group \"$name\" created!")
-                    findNavController().popBackStack()
-                } else {
-                    UIUtils.showErrorSnackbar(binding.root, "Failed to create group")
-                }
+        lifecycleScope.launch {
+            val resultId = splitRepository.saveGroup(group)
+            if (resultId != null) {
+                UIUtils.showSuccessSnackbar(binding.root, "Group \"$name\" created!")
+                findNavController().popBackStack()
+            } else {
+                UIUtils.showErrorSnackbar(binding.root, "Failed to create group")
             }
         }
     }

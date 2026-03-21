@@ -9,14 +9,15 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.first
+import kotlin.text.toDoubleOrNull
 
 class ReminderReceiver : BroadcastReceiver() {
-    private val repository = FirestoreRepository()
+    private val repository = SupabaseRepository()
 
     override fun onReceive(context: Context, intent: Intent) {
         val isDaily = intent.getBooleanExtra("is_daily_reminder", false)
         val lendId = intent.getStringExtra("lend_id")
-        val uid = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid ?: return
+        val uid = SupabaseInstance.currentUserId() ?: return
 
         if (isDaily) {
             if (intent.action == ACTION_SNOOZE_DAILY) {
@@ -37,11 +38,14 @@ class ReminderReceiver : BroadcastReceiver() {
 
         Log.d("ReminderReceiver", "Alarm fired for lend: $lendId")
 
-        // Fetch latest status from Firestore
-        repository.getLendById(uid, lendId) { lend ->
+        // Fetch latest status from Supabase
+        GlobalScope.launch(Dispatchers.IO) {
+            val lend = repository.getLendById(lendId)
             if (lend != null && !lend.isReturned) {
-                // Show notification with actions
-                showNotification(context, lend)
+                withContext(Dispatchers.Main) {
+                    // Show notification with actions
+                    showNotification(context, lend)
+                }
                 
                 // Reschedule for 24 hours later (persistent daily reminder)
                 val cal = java.util.Calendar.getInstance()
