@@ -26,27 +26,43 @@ class LendListAdapter : ListAdapter<LendTransaction, LendListAdapter.LendViewHol
         private val dateFormatter = SimpleDateFormat("dd MMM", Locale.getDefault())
 
         fun bind(lend: LendTransaction) {
+            val context = binding.root.context
             binding.textName.text = lend.name
             binding.textAmount.text = "₹${lend.amount}"
+            binding.textAmountIncoming.text = "₹${lend.amount}"
             
             val status = if (lend.isReturned) "Returned" else "via ${lend.paymentMode} • Due ${dateFormatter.format(lend.returnDate)}"
             binding.textDetails.text = status
 
             val color = if (lend.isReturned) {
-                ContextCompat.getColor(binding.root.context, R.color.primary_green)
+                ContextCompat.getColor(context, R.color.primary_green)
             } else {
-                ContextCompat.getColor(binding.root.context, R.color.error_red)
+                ContextCompat.getColor(context, R.color.error_red)
             }
             binding.statusIndicator.setBackgroundColor(color)
             
             if (lend.isReturned) {
-                binding.textName.alpha = 0.5f
+                binding.textName.alpha = 0.6f
+                binding.textDetails.alpha = 0.6f
+                
+                // Strikethrough for original amount
+                binding.textAmount.paintFlags = binding.textAmount.paintFlags or android.graphics.Paint.STRIKE_THRU_TEXT_FLAG
+                binding.textAmount.setTextColor(ContextCompat.getColor(context, R.color.text_secondary))
                 binding.textAmount.alpha = 0.5f
-                binding.textDetails.alpha = 0.5f
+                
+                // Show incoming amount next to it
+                binding.textAmountIncoming.visibility = android.view.View.VISIBLE
             } else {
                 binding.textName.alpha = 1.0f
-                binding.textAmount.alpha = 1.0f
                 binding.textDetails.alpha = 1.0f
+                
+                // Normal amount
+                binding.textAmount.paintFlags = binding.textAmount.paintFlags and android.graphics.Paint.STRIKE_THRU_TEXT_FLAG.inv()
+                binding.textAmount.setTextColor(ContextCompat.getColor(context, R.color.text_primary))
+                binding.textAmount.alpha = 1.0f
+                
+                // Hide incoming amount
+                binding.textAmountIncoming.visibility = android.view.View.GONE
             }
         }
     }

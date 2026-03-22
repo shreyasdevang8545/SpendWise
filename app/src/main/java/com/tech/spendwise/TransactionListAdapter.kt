@@ -38,6 +38,7 @@ class TransactionListAdapter :
         val merchant : TextView = view.findViewById(R.id.txMerchant)
         val meta     : TextView = view.findViewById(R.id.txMeta)
         val amount   : TextView = view.findViewById(R.id.txAmount)
+        val amountIncoming : TextView = view.findViewById(R.id.txAmountIncoming)
         val checkbox : android.widget.CheckBox = view.findViewById(R.id.txSelectionCheckbox)
     }
 
@@ -83,9 +84,23 @@ class TransactionListAdapter :
         val isCredit = type.equals("CREDIT", ignoreCase = true)
         val sign = if (isCredit) "+" else "-"
         holder.amount.text = "$sign$currencySymbol%.2f".format(amountVal)
+        holder.amountIncoming.text = "+$currencySymbol%.2f".format(amountVal)
 
-        val colorRes = if (isCredit) R.color.primary_green else R.color.error_red
-        holder.amount.setTextColor(ContextCompat.getColor(holder.itemView.context, colorRes))
+        val isLend      = data["is_lend"]?.toBoolean() ?: false
+        val isReturned  = data["is_returned"]?.toBoolean() ?: false
+
+        if (isLend && isReturned) {
+            holder.amount.paintFlags = holder.amount.paintFlags or android.graphics.Paint.STRIKE_THRU_TEXT_FLAG
+            holder.amount.setTextColor(ContextCompat.getColor(holder.itemView.context, R.color.text_secondary))
+            holder.amount.alpha = 0.5f
+            holder.amountIncoming.visibility = View.VISIBLE
+        } else {
+            holder.amount.paintFlags = holder.amount.paintFlags and android.graphics.Paint.STRIKE_THRU_TEXT_FLAG.inv()
+            val colorRes = if (isCredit) R.color.primary_green else R.color.error_red
+            holder.amount.setTextColor(ContextCompat.getColor(holder.itemView.context, colorRes))
+            holder.amount.alpha = 1.0f
+            holder.amountIncoming.visibility = View.GONE
+        }
         
         if (isOffline) {
             holder.merchant.setTextColor(ContextCompat.getColor(holder.itemView.context, R.color.text_secondary))

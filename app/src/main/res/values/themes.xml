@@ -101,8 +101,20 @@
     </style>
 
     <style name="CustomAlertDialog" parent="Theme.Material3.DayNight.Dialog.Alert">
-        <item name="android:textAllCaps">false</item>
+        <item name="android:windowBackground">@color/card_surface</item>
+        <item name="android:textColorPrimary">@color/text_primary</item>
+        <item name="android:textColorSecondary">@color/text_secondary</item>
         <item name="android:fontFamily">@font/nunito_sans</item>
+        <item name="fontFamily">@font/nunito_sans</item>
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearance.SpendWise.Medium</item>
+        <item name="buttonBarPositiveButtonStyle">@style/Widget.SpendWise.Button.Text</item>
+        <item name="buttonBarNegativeButtonStyle">@style/Widget.SpendWise.Button.Text</item>
+    </style>
+
+    <style name="Widget.SpendWise.Button.Text" parent="Widget.Material3.Button.TextButton">
+        <item name="android:textColor">@color/primary_green</item>
+        <item name="fontFamily">@font/nunito_sans</item>
+        <item name="android:textStyle">bold</item>
     </style>
     <style name="SettingsDivider">
         <item name="android:layout_width">match_parent</item>

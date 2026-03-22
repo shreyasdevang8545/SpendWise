@@ -154,6 +154,45 @@ class HomeFragment : Fragment() {
             }
             false // Continue handling touch
         }
+
+        showGreeting()
+    }
+
+    private fun showGreeting() {
+        val name = SupabaseInstance.currentUserDisplayName()
+        val calendar = Calendar.getInstance()
+        val hour = calendar.get(Calendar.HOUR_OF_DAY)
+        
+        val greeting = when (hour) {
+            in 0..11 -> getString(R.string.greeting_morning)
+            in 12..15 -> getString(R.string.greeting_afternoon)
+            in 16..20 -> getString(R.string.greeting_evening)
+            else -> getString(R.string.greeting_night)
+        }
+        
+        val message = if (!name.isNullOrBlank()) {
+            "$greeting, ${name.split(" ")[0]}!"
+        } else {
+            "$greeting!"
+        }
+        
+        binding.greetingText.text = message
+        binding.greetingText.visibility = View.VISIBLE
+        binding.greetingText.animate()
+            .alpha(1f)
+            .setDuration(500)
+            .setListener(null)
+        
+        Handler(Looper.getMainLooper()).postDelayed({
+            if (_binding != null) {
+                binding.greetingText.animate()
+                    .alpha(0f)
+                    .setDuration(500)
+                    .withEndAction {
+                        binding.greetingText.visibility = View.GONE
+                    }
+            }
+        }, 5000)
     }
 
     private fun refreshSummary() {
@@ -186,7 +225,10 @@ class HomeFragment : Fragment() {
             if (seen.add(savedAt)) merged.add(json)
         }
 
-        if (merged.isEmpty()) {
+        val currentMonthLends = viewModel.lends.value ?: emptyList()
+        val hasData = merged.isNotEmpty() || currentMonthLends.isNotEmpty()
+
+        if (!hasData) {
             binding.headerLayout.visibility       = View.VISIBLE
             binding.emptyStateContainer.visibility = View.VISIBLE
             binding.transactionsContainer.visibility = View.GONE
@@ -238,23 +280,20 @@ class HomeFragment : Fragment() {
                 }
             }
 
-            // Calculate total lent from lends list
+            // Calculate total lent from ALL unreturned lends (not just this month)
             val currentLends = viewModel.lends.value ?: emptyList()
             currentLends.forEach { lend ->
-                // LendTransaction uses createdAt timestamp
-                val calLend = Calendar.getInstance().apply { timeInMillis = lend.createdAt }
-                if (calLend.get(Calendar.YEAR) == currentYear && (calLend.get(Calendar.MONTH) + 1) == currentMonth) {
-                    if (!lend.isReturned) {
-                       totalLent += lend.amount
-                    }
+                if (!lend.isReturned) {
+                    totalLent += lend.amount
                 }
             }
 
-            val mainBalance = totalIncome - totalSpent
+            val totalOutflow = totalSpent + totalLent
+            val mainBalance  = totalIncome - totalOutflow
             
-            if (totalIncome == 0.0 && totalSpent > 0.0) {
+            if (totalIncome == 0.0 && totalOutflow > 0.0) {
                 binding.mainBalanceLabel.text = "TOTAL SPENDING"
-                binding.mainBalanceText.text = formatAmount(totalSpent, merged.firstOrNull())
+                binding.mainBalanceText.text = formatAmount(Math.abs(totalOutflow), merged.firstOrNull())
             } else {
                 binding.mainBalanceLabel.text = "MAIN BALANCE"
                 binding.mainBalanceText.text = formatAmount(mainBalance, merged.firstOrNull())

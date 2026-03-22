@@ -131,6 +131,9 @@ class ProfileFragment : Fragment() {
         binding.editNameBtn.setOnClickListener {
             showEditNameDialog()
         }
+        binding.userName.setOnClickListener {
+            showEditNameDialog()
+        }
     }
 
     private fun showEditNameDialog() {
