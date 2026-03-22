@@ -30,6 +30,8 @@ class AddSplitExpenseFragment : Fragment() {
     private var expenseId: String? = null
     private var existingExpense: SplitExpense? = null
     private var members = listOf<String>()
+    private var memberMappings = mapOf<String, String>()
+    private var currentUserMappedName: String? = null
     private val customInputs = mutableMapOf<String, EditText>()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -56,6 +58,8 @@ class AddSplitExpenseFragment : Fragment() {
                 val groups = splitRepository.fetchGroups()
                 val group = groups.find { it.id == groupId } ?: return@launch
                 members = group.members
+                memberMappings = group.memberMappings
+                currentUserMappedName = memberMappings[uid]?.split("|")?.firstOrNull()
                 
                 if (expenseId != null) {
                     val expenses = splitRepository.fetchExpenses(groupId)
@@ -81,7 +85,9 @@ class AddSplitExpenseFragment : Fragment() {
     private fun setupPaidByChips() {
         binding.chipGroupPaidBy.removeAllViews()
         for ((index, member) in members.withIndex()) {
-            val displayName = member.split("|").firstOrNull() ?: member
+            val originalName = member.split("|").firstOrNull() ?: member
+            val displayName = if (originalName == currentUserMappedName) "You" else originalName
+            
             val chip = Chip(requireContext()).apply {
                 text = displayName
                 tag = member // Store full string in tag
@@ -106,7 +112,9 @@ class AddSplitExpenseFragment : Fragment() {
                 ).apply { bottomMargin = 12 }
             }
 
-            val displayName = member.split("|").firstOrNull() ?: member
+            val originalName = member.split("|").firstOrNull() ?: member
+            val displayName = if (originalName == currentUserMappedName) "You" else originalName
+            
             val label = TextView(requireContext()).apply {
                 text = displayName
                 setTextColor(resources.getColor(R.color.text_primary, null))

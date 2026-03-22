@@ -51,17 +51,17 @@
             android:exported="true"
             android:launchMode="singleTop">
 
-            <!-- ── Deep Link: spendwise://voice ──────────────────────────── -->
+            <!-- ── Deep Link: spendwise:// voice | join | add_transaction ── -->
             <intent-filter android:autoVerify="false">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data
-                    android:scheme="spendwise"
-                    android:host="voice" />
+                <data android:scheme="spendwise" android:host="voice" />
+                <data android:scheme="spendwise" android:host="join" />
+                <data android:scheme="spendwise" android:host="add_transaction" />
             </intent-filter>
 
-            <!-- ── Deep Link: GitHub Pages lend.html ────────────────────── -->
+            <!-- ── Deep Link: GitHub Pages lend.html & join.html ────────── -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -70,6 +70,10 @@
                     android:scheme="https"
                     android:host="shreyasdevang8545.github.io"
                     android:pathPrefix="/SpendWise/lend.html" />
+                <data
+                    android:scheme="https"
+                    android:host="shreyasdevang8545.github.io"
+                    android:pathPrefix="/SpendWise/join.html" />
             </intent-filter>
 
             <!-- Let NavController resolve the deep link URI automatically -->

@@ -184,7 +184,8 @@ class CreateGroupFragment : Fragment() {
         }
         binding.groupNameLayout.error = null
 
-        val members = mutableListOf("You|")
+        val myName = SupabaseInstance.currentUserDisplayName() ?: "Me"
+        val members = mutableListOf("$myName|")
         for (entry in memberEntries) {
             val memberName = entry.et.text.toString().trim()
             if (memberName.isNotEmpty()) {

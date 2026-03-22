@@ -36,6 +36,11 @@ class SupabaseSplitRepository {
                 put("name", group.name)
                 put("members", JsonArray(group.members.map { JsonPrimitive(it) }))
                 put("participants", JsonArray(listOf(JsonPrimitive(uid))))
+                // Map the creator to the first member (usually "You")
+                val firstMember = group.members.firstOrNull() ?: "You"
+                put("member_mappings", buildJsonObject {
+                    put(uid, firstMember)
+                })
                 put("created_at", group.createdAt)
             }
             
@@ -72,10 +77,16 @@ class SupabaseSplitRepository {
                 }.decodeList<JsonObject>()
             
             result.map { obj ->
+                val members = obj["members"]?.jsonArray?.map { it.jsonPrimitive.content } ?: emptyList()
+                val mappingObj = obj["member_mappings"]?.jsonObject
+                val mappings = mappingObj?.mapValues { it.value.jsonPrimitive.content } ?: emptyMap()
+
                 SplitGroup(
                     id = obj["id"]?.jsonPrimitive?.content ?: "",
                     name = obj["name"]?.jsonPrimitive?.content ?: "",
-                    members = obj["members"]?.jsonArray?.map { it.jsonPrimitive.content } ?: emptyList(),
+                    uid = obj["uid"]?.jsonPrimitive?.content ?: "",
+                    members = members,
+                    memberMappings = mappings,
                     createdAt = obj["created_at"]?.jsonPrimitive?.long ?: 0L
                 )
             }
@@ -93,25 +104,26 @@ class SupabaseSplitRepository {
         }
     }
 
-    suspend fun joinGroup(groupId: String) = withContext(Dispatchers.IO) {
+    suspend fun joinGroup(groupId: String, selectedMemberName: String) = withContext(Dispatchers.IO) {
         val uid = SupabaseInstance.currentUserId() ?: return@withContext
-        try {
-            // First fetch the group to get current participants
-            val response = postgrest.from("split_groups").select {
+        // First fetch the group to get current participants and mappings
+        val response = postgrest.from("split_groups").select {
+            filter { eq("id", groupId) }
+        }.decodeSingle<JsonObject>()
+        
+        val participants = response["participants"]?.jsonArray?.map { it.jsonPrimitive.content } ?: emptyList()
+        val currentMappings = response["member_mappings"]?.jsonObject?.toMutableMap() ?: mutableMapOf()
+
+        if (!participants.contains(uid)) {
+            val newParticipants = participants + uid
+            currentMappings[uid] = JsonPrimitive(selectedMemberName)
+
+            postgrest.from("split_groups").update(buildJsonObject {
+                put("participants", JsonArray(newParticipants.map { JsonPrimitive(it) }))
+                put("member_mappings", JsonObject(currentMappings))
+            }) {
                 filter { eq("id", groupId) }
-            }.decodeSingle<JsonObject>()
-            
-            val participants = response["participants"]?.jsonArray?.map { it.jsonPrimitive.content } ?: emptyList()
-            if (!participants.contains(uid)) {
-                val newParticipants = participants + uid
-                postgrest.from("split_groups").update(buildJsonObject {
-                    put("participants", JsonArray(newParticipants.map { JsonPrimitive(it) }))
-                }) {
-                    filter { eq("id", groupId) }
-                }
             }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error joining group", e)
         }
     }
 
@@ -121,15 +133,47 @@ class SupabaseSplitRepository {
                 filter { eq("id", groupId) }
             }.decodeSingle<JsonObject>()
             
+            val members = obj["members"]?.jsonArray?.map { it.jsonPrimitive.content } ?: emptyList()
+            val mappingObj = obj["member_mappings"]?.jsonObject
+            val mappings = mappingObj?.mapValues { it.value.jsonPrimitive.content } ?: emptyMap()
+
             SplitGroup(
                 id = obj["id"]?.jsonPrimitive?.content ?: "",
                 name = obj["name"]?.jsonPrimitive?.content ?: "",
-                members = obj["members"]?.jsonArray?.map { it.jsonPrimitive.content } ?: emptyList(),
+                uid = obj["uid"]?.jsonPrimitive?.content ?: "",
+                members = members,
+                memberMappings = mappings,
                 createdAt = obj["created_at"]?.jsonPrimitive?.long ?: 0L
             )
         } catch (e: Exception) {
-            Log.e(TAG, "Error fetching group by id", e)
+            Log.e(TAG, "Error fetching group by id ($groupId): ${e.message}", e)
             null
+        }
+    }
+
+    suspend fun exitGroup(groupId: String) = withContext(Dispatchers.IO) {
+        val uid = SupabaseInstance.currentUserId() ?: return@withContext
+        try {
+            val response = postgrest.from("split_groups").select {
+                filter { eq("id", groupId) }
+            }.decodeSingle<JsonObject>()
+            
+            val participants = response["participants"]?.jsonArray?.map { it.jsonPrimitive.content }?.toMutableList() ?: mutableListOf()
+            val mappingObj = response["member_mappings"]?.jsonObject
+            val currentMappings = mappingObj?.toMutableMap() ?: mutableMapOf()
+            
+            participants.remove(uid)
+            currentMappings.remove(uid)
+            
+            postgrest.from("split_groups").update(buildJsonObject {
+                put("participants", JsonArray(participants.map { JsonPrimitive(it) }))
+                put("member_mappings", JsonObject(currentMappings))
+            }) {
+                filter { eq("id", groupId) }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error exiting group", e)
+            throw e
         }
     }
 

@@ -39,6 +39,8 @@ class GroupDetailFragment : Fragment() {
 
     // Cached data for share/settle
     private var currentDebts = listOf<BalanceCalculator.Debt>()
+    private var memberMappings = mapOf<String, String>()
+    private var currentUserMappedName: String? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentGroupDetailBinding.inflate(inflater, container, false)
@@ -54,6 +56,7 @@ class GroupDetailFragment : Fragment() {
         val uid = SupabaseInstance.currentUserId() ?: ""
         expenseAdapter = SplitExpenseAdapter(
             currentUserId = uid,
+            memberMappings = emptyMap(),
             onEdit = { expense ->
                 val bundle = Bundle().apply {
                     putString("groupId", groupId)
@@ -68,7 +71,8 @@ class GroupDetailFragment : Fragment() {
         binding.rvExpenses.layoutManager = LinearLayoutManager(requireContext())
         binding.rvExpenses.adapter = expenseAdapter
 
-        binding.btnInviteGroup.setOnClickListener { inviteOthers() }
+        // Move invite to toolbar menu, so we hide the button
+        binding.btnInviteGroup.visibility = View.GONE
 
         binding.fabAddExpense.setOnClickListener {
             val bundle = Bundle().apply { putString("groupId", groupId) }
@@ -77,6 +81,21 @@ class GroupDetailFragment : Fragment() {
 
         binding.btnSettleUp.setOnClickListener { showSettleDialog() }
         binding.btnShareSummary.setOnClickListener { shareSummary() }
+
+        binding.toolbar.inflateMenu(R.menu.menu_group_detail)
+        binding.toolbar.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                R.id.action_invite_group -> {
+                    inviteOthers()
+                    true
+                }
+                R.id.action_exit_group -> {
+                    showExitGroupDialog()
+                    true
+                }
+                else -> false
+            }
+        }
 
         loadGroupAndData()
     }
@@ -94,7 +113,12 @@ class GroupDetailFragment : Fragment() {
                 val group = groups.find { it.id == groupId } ?: return@launch
                 groupName = group.name
                 members = group.members
+                memberMappings = group.memberMappings
+                val uid = SupabaseInstance.currentUserId() ?: ""
+                currentUserMappedName = memberMappings[uid]?.split("|")?.firstOrNull()
+                
                 binding.toolbar.title = groupName
+                expenseAdapter.updateMappings(group.memberMappings)
                 // Now load expenses + settlements
                 loadExpensesAndBalances()
             } catch (e: Exception) {
@@ -132,8 +156,8 @@ class GroupDetailFragment : Fragment() {
                 val itemView = LayoutInflater.from(requireContext())
                     .inflate(R.layout.item_balance, binding.balancesContainer, false)
 
-                val fromName = debt.from.split("|").firstOrNull() ?: debt.from
-                val toName = debt.to.split("|").firstOrNull() ?: debt.to
+                val fromName = getRelativeName(debt.from)
+                val toName = getRelativeName(debt.to)
 
                 itemView.findViewById<TextView>(R.id.tvBalanceText).text =
                     "$fromName owes $toName ${fmt.format(debt.amount)}"
@@ -147,9 +171,14 @@ class GroupDetailFragment : Fragment() {
         }
     }
 
+    private fun getRelativeName(originalName: String): String {
+        val cleanName = originalName.split("|").firstOrNull() ?: originalName
+        return if (cleanName == currentUserMappedName) "You" else cleanName
+    }
+
     private fun settleDebt(debt: BalanceCalculator.Debt) {
-        val fromName = debt.from.split("|").firstOrNull() ?: debt.from
-        val toName = debt.to.split("|").firstOrNull() ?: debt.to
+        val fromName = getRelativeName(debt.from)
+        val toName = getRelativeName(debt.to)
         MaterialAlertDialogBuilder(requireContext())
             .setTitle("Settle Debt")
             .setMessage("Mark $fromName → $toName (${fmt.format(debt.amount)}) as settled?")
@@ -182,8 +211,8 @@ class GroupDetailFragment : Fragment() {
         }
         // Show all debts for quick settle
         val items = currentDebts.map {
-            val fromName = it.from.split("|").firstOrNull() ?: it.from
-            val toName = it.to.split("|").firstOrNull() ?: it.to
+            val fromName = getRelativeName(it.from)
+            val toName = getRelativeName(it.to)
             "$fromName  →  $toName  ${fmt.format(it.amount)}"
         }.toTypedArray()
 
@@ -217,8 +246,8 @@ class GroupDetailFragment : Fragment() {
         } else {
             sb.appendLine("*Outstanding:*")
             for (debt in currentDebts) {
-                val fromName = debt.from.split("|").firstOrNull() ?: debt.from
-                val toName = debt.to.split("|").firstOrNull() ?: debt.to
+                val fromName = getRelativeName(debt.from)
+                val toName = getRelativeName(debt.to)
                 sb.appendLine("  • $fromName owes $toName: ₹${"%.0f".format(debt.amount)}")
             }
         }
@@ -229,6 +258,29 @@ class GroupDetailFragment : Fragment() {
             putExtra(Intent.EXTRA_TEXT, sb.toString())
         }
         startActivity(Intent.createChooser(intent, "Share Summary"))
+    }
+
+    private fun showExitGroupDialog() {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Exit Group")
+            .setMessage("Are you sure you want to leave this group? You will no longer be able to see its expenses or balances.")
+            .setPositiveButton("Exit") { _, _ ->
+                performExitGroup()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun performExitGroup() {
+        lifecycleScope.launch {
+            try {
+                splitRepository.exitGroup(groupId)
+                UIUtils.showSuccessSnackbar(binding.root, "You have left the group")
+                findNavController().popBackStack()
+            } catch (e: Exception) {
+                UIUtils.showErrorSnackbar(binding.root, "Failed to exit group")
+            }
+        }
     }
 
     override fun onDestroyView() {

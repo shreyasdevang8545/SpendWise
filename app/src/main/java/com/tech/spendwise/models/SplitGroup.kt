@@ -6,6 +6,8 @@ package com.tech.spendwise.models
 data class SplitGroup(
     val id: String = "",
     val name: String = "",
-    val members: List<String> = emptyList(), // includes "You"
+    val uid: String = "",
+    val members: List<String> = emptyList(),
+    val memberMappings: Map<String, String> = emptyMap(), // UID -> Name
     val createdAt: Long = System.currentTimeMillis()
 )

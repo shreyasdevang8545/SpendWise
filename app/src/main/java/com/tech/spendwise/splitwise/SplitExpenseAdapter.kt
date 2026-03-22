@@ -14,9 +14,18 @@ import com.tech.spendwise.R
 
 class SplitExpenseAdapter(
     private val currentUserId: String,
+    private var memberMappings: Map<String, String>,
     private val onEdit: (SplitExpense) -> Unit,
     private val onDelete: (SplitExpense) -> Unit
 ) : ListAdapter<SplitExpense, SplitExpenseAdapter.ViewHolder>(DIFF) {
+
+    private var currentUserMappedName = memberMappings[currentUserId]?.split("|")?.firstOrNull()
+
+    fun updateMappings(newMappings: Map<String, String>) {
+        memberMappings = newMappings
+        currentUserMappedName = memberMappings[currentUserId]?.split("|")?.firstOrNull()
+        notifyDataSetChanged()
+    }
 
     companion object {
         private val DIFF = object : DiffUtil.ItemCallback<SplitExpense>() {
@@ -31,7 +40,9 @@ class SplitExpenseAdapter(
         RecyclerView.ViewHolder(b.root) {
         fun bind(e: SplitExpense) {
             b.tvExpenseDescription.text = e.description
-            val displayName = e.paidBy.split("|").firstOrNull() ?: e.paidBy
+            val originalName = e.paidBy.split("|").firstOrNull() ?: e.paidBy
+            val displayName = if (originalName == currentUserMappedName) "You" else originalName
+            
             b.tvExpensePaidBy.text = "Paid by $displayName"
             b.tvExpenseAmount.text = fmt.format(e.amount)
 

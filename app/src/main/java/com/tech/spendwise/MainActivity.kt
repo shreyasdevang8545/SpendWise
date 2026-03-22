@@ -205,33 +205,9 @@ class MainActivity : AppCompatActivity() {
     private fun handleIntent(intent: Intent?) {
         val data = intent?.data
 
-        // ── Deep link: spendwise://voice ────────────────────────────────────
-        // Triggered by Google Assistant shortcut or adb:
-        //   adb shell am start -a android.intent.action.VIEW -d "spendwise://voice" com.tech.spendwise
-        if (data?.scheme == "spendwise" && (data.host == "voice" || data.host == "add_transaction")) {
-            Log.i(TAG, "Deep link received: $data — opening voice entry")
-            findViewById<View>(android.R.id.content).post {
-                try {
-                    val navHostFragment = supportFragmentManager
-                        .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
-                    // Navigate using the deep link URI so NavController resolves it via nav-graph
-                    val request = NavDeepLinkRequest.Builder
-                        .fromUri(Uri.parse("spendwise://${data.host}"))
-                        .build()
-                    navHostFragment.navController.navigate(request)
-                } catch (e: Exception) {
-                    Log.e(TAG, "Failed to navigate to voice: ${e.message}")
-                }
-            }
-            return
-        }
-
-        // ── Deep link: GitHub Pages lend details ─────────────────────────
-        if (data?.scheme == "https"
-            && data.host == "shreyasdevang8545.github.io"
-            && data.path?.startsWith("/SpendWise/lend.html") == true
-        ) {
-            Log.i(TAG, "Lend deep link received: $data")
+        // ── Deep link: spendwise:// voice | join | add_transaction ──
+        if (data?.scheme == "spendwise" && (data.host == "voice" || data.host == "join" || data.host == "add_transaction")) {
+            Log.i(TAG, "Deep link received: $data")
             findViewById<View>(android.R.id.content).post {
                 try {
                     val navHostFragment = supportFragmentManager
@@ -241,7 +217,28 @@ class MainActivity : AppCompatActivity() {
                         .build()
                     navHostFragment.navController.navigate(request)
                 } catch (e: Exception) {
-                    Log.e(TAG, "Failed to navigate to lend detail: ${e.message}")
+                    Log.e(TAG, "Failed to navigate: ${e.message}")
+                }
+            }
+            return
+        }
+
+        // ── Deep link: GitHub Pages lend.html & join.html ─────────
+        if (data?.scheme == "https"
+            && data.host == "shreyasdevang8545.github.io"
+            && (data.path?.startsWith("/SpendWise/lend.html") == true || data.path?.startsWith("/SpendWise/join.html") == true)
+        ) {
+            Log.i(TAG, "HTTPS deep link received: $data")
+            findViewById<View>(android.R.id.content).post {
+                try {
+                    val navHostFragment = supportFragmentManager
+                        .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+                    val request = NavDeepLinkRequest.Builder
+                        .fromUri(data)
+                        .build()
+                    navHostFragment.navController.navigate(request)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to navigate: ${e.message}")
                 }
             }
             return
@@ -254,12 +251,15 @@ class MainActivity : AppCompatActivity() {
             viewModel.addTransaction(json)
 
             // Navigate to Review screen if app was opened via notification
-            // We use post to ensure NavController is ready
             findViewById<View>(android.R.id.content).post {
                 val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
                 navHostFragment.navController.navigate(R.id.reviewTransactionFragment)
             }
         }
+
+        // Clear intent to prevent re-processing on rotation or return
+        intent?.data = null
+        intent?.removeExtra("transaction_json")
     }
 
     private fun createNotificationChannel() {
