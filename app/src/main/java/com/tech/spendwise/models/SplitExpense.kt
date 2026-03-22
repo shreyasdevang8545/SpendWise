@@ -11,5 +11,6 @@ data class SplitExpense(
     val amount: Double = 0.0,
     val paidBy: String = "",
     val splitAmong: Map<String, Double> = emptyMap(),
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
+    val uid: String = ""
 )

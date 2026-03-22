@@ -35,6 +35,7 @@ class SupabaseSplitRepository {
                 put("uid", uid)
                 put("name", group.name)
                 put("members", JsonArray(group.members.map { JsonPrimitive(it) }))
+                put("participants", JsonArray(listOf(JsonPrimitive(uid))))
                 put("created_at", group.createdAt)
             }
             
@@ -60,7 +61,13 @@ class SupabaseSplitRepository {
         try {
             val result = postgrest.from("split_groups")
                 .select {
-                    filter { eq("uid", uid) }
+                    filter {
+                        or {
+                            eq("uid", uid)
+                            // Using cs for array contains
+                            cs("participants", listOf(uid))
+                        }
+                    }
                     order("created_at", Order.DESCENDING)
                 }.decodeList<JsonObject>()
             
@@ -86,13 +93,53 @@ class SupabaseSplitRepository {
         }
     }
 
+    suspend fun joinGroup(groupId: String) = withContext(Dispatchers.IO) {
+        val uid = SupabaseInstance.currentUserId() ?: return@withContext
+        try {
+            // First fetch the group to get current participants
+            val response = postgrest.from("split_groups").select {
+                filter { eq("id", groupId) }
+            }.decodeSingle<JsonObject>()
+            
+            val participants = response["participants"]?.jsonArray?.map { it.jsonPrimitive.content } ?: emptyList()
+            if (!participants.contains(uid)) {
+                val newParticipants = participants + uid
+                postgrest.from("split_groups").update(buildJsonObject {
+                    put("participants", JsonArray(newParticipants.map { JsonPrimitive(it) }))
+                }) {
+                    filter { eq("id", groupId) }
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error joining group", e)
+        }
+    }
+
+    suspend fun fetchGroupById(groupId: String): SplitGroup? = withContext(Dispatchers.IO) {
+        try {
+            val obj = postgrest.from("split_groups").select {
+                filter { eq("id", groupId) }
+            }.decodeSingle<JsonObject>()
+            
+            SplitGroup(
+                id = obj["id"]?.jsonPrimitive?.content ?: "",
+                name = obj["name"]?.jsonPrimitive?.content ?: "",
+                members = obj["members"]?.jsonArray?.map { it.jsonPrimitive.content } ?: emptyList(),
+                createdAt = obj["created_at"]?.jsonPrimitive?.long ?: 0L
+            )
+        } catch (e: Exception) {
+            Log.e(TAG, "Error fetching group by id", e)
+            null
+        }
+    }
+
     // ── Expenses ────────────────────────────────────────────────────────────
 
     suspend fun saveExpense(expense: SplitExpense): String? = withContext(Dispatchers.IO) {
         val uid = SupabaseInstance.currentUserId() ?: return@withContext null
         try {
             val json = buildJsonObject {
-                put("uid", uid)
+                put("uid", if (expense.uid.isNotEmpty()) expense.uid else uid)
                 put("group_id", expense.groupId)
                 put("description", expense.description)
                 put("amount", expense.amount)
@@ -123,14 +170,10 @@ class SupabaseSplitRepository {
     }
 
     suspend fun fetchExpenses(groupId: String): List<SplitExpense> = withContext(Dispatchers.IO) {
-        val uid = SupabaseInstance.currentUserId() ?: return@withContext emptyList()
         try {
             val result = postgrest.from("split_expenses")
                 .select {
-                    filter { 
-                        eq("uid", uid) 
-                        eq("group_id", groupId)
-                    }
+                    filter { eq("group_id", groupId) }
                     order("created_at", Order.DESCENDING)
                 }.decodeList<JsonObject>()
             
@@ -142,7 +185,8 @@ class SupabaseSplitRepository {
                     amount = obj["amount"]?.jsonPrimitive?.double ?: 0.0,
                     paidBy = obj["paid_by"]?.jsonPrimitive?.content ?: "",
                     splitAmong = obj["split_among"]?.jsonObject?.mapValues { it.value.jsonPrimitive.double } ?: emptyMap(),
-                    createdAt = obj["created_at"]?.jsonPrimitive?.long ?: 0L
+                    createdAt = obj["created_at"]?.jsonPrimitive?.long ?: 0L,
+                    uid = obj["uid"]?.jsonPrimitive?.content ?: ""
                 )
             }
         } catch (e: Exception) {
@@ -183,14 +227,10 @@ class SupabaseSplitRepository {
     }
 
     suspend fun fetchSettlements(groupId: String): List<Settlement> = withContext(Dispatchers.IO) {
-        val uid = SupabaseInstance.currentUserId() ?: return@withContext emptyList()
         try {
             val result = postgrest.from("settlements")
                 .select {
-                    filter { 
-                        eq("uid", uid)
-                        eq("group_id", groupId)
-                    }
+                    filter { eq("group_id", groupId) }
                     order("settled_at", Order.DESCENDING)
                 }.decodeList<JsonObject>()
             

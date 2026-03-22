@@ -27,6 +27,8 @@ class AddSplitExpenseFragment : Fragment() {
     private val splitRepository = SupabaseSplitRepository()
 
     private var groupId = ""
+    private var expenseId: String? = null
+    private var existingExpense: SplitExpense? = null
     private var members = listOf<String>()
     private val customInputs = mutableMapOf<String, EditText>()
 
@@ -39,7 +41,13 @@ class AddSplitExpenseFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         groupId = arguments?.getString("groupId") ?: ""
+        expenseId = arguments?.getString("expenseId")
         binding.toolbar.setNavigationOnClickListener { findNavController().popBackStack() }
+
+        if (expenseId != null) {
+            binding.toolbar.title = "Edit Expense"
+            binding.btnSaveExpense.text = "Update Expense"
+        }
 
         // Load group to get members
         val uid = SupabaseInstance.currentUserId() ?: return
@@ -48,9 +56,16 @@ class AddSplitExpenseFragment : Fragment() {
                 val groups = splitRepository.fetchGroups()
                 val group = groups.find { it.id == groupId } ?: return@launch
                 members = group.members
+                
+                if (expenseId != null) {
+                    val expenses = splitRepository.fetchExpenses(groupId)
+                    existingExpense = expenses.find { it.id == expenseId }
+                }
+                
                 setupPaidByChips()
+                existingExpense?.let { preFillUI(it) }
             } catch (e: Exception) {
-                Log.e("AddSplitExpense", "Error loading group", e)
+                Log.e("AddSplitExpense", "Error loading group/expense", e)
             }
         }
 
@@ -66,8 +81,10 @@ class AddSplitExpenseFragment : Fragment() {
     private fun setupPaidByChips() {
         binding.chipGroupPaidBy.removeAllViews()
         for ((index, member) in members.withIndex()) {
+            val displayName = member.split("|").firstOrNull() ?: member
             val chip = Chip(requireContext()).apply {
-                text = member
+                text = displayName
+                tag = member // Store full string in tag
                 isCheckable = true
                 isChecked = index == 0
                 setChipBackgroundColorResource(R.color.chip_background)
@@ -89,8 +106,9 @@ class AddSplitExpenseFragment : Fragment() {
                 ).apply { bottomMargin = 12 }
             }
 
+            val displayName = member.split("|").firstOrNull() ?: member
             val label = TextView(requireContext()).apply {
-                text = member
+                text = displayName
                 setTextColor(resources.getColor(R.color.text_primary, null))
                 textSize = 14f
                 layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
@@ -114,6 +132,34 @@ class AddSplitExpenseFragment : Fragment() {
         }
     }
 
+    private fun preFillUI(expense: SplitExpense) {
+        binding.etDescription.setText(expense.description)
+        binding.etAmount.setText(expense.amount.toString())
+
+        // Set paid by chip
+        for (i in 0 until binding.chipGroupPaidBy.childCount) {
+            val chip = binding.chipGroupPaidBy.getChildAt(i) as Chip
+            if (chip.tag == expense.paidBy) {
+                chip.isChecked = true
+                break
+            }
+        }
+
+        // Set split values if custom
+        if (expense.splitAmong.size == members.size) {
+            // Check if equal split (optional optimization)
+        }
+        
+        // Populate custom inputs anyway
+        for ((member, share) in expense.splitAmong) {
+            customInputs[member]?.setText(share.toString())
+        }
+        
+        // Show custom container if needed
+        // Assuming user might want to see custom split if it was saved that way
+        // But for now let's just leave it to the user to toggle if they want to edit specific values
+    }
+
     private fun saveExpense() {
         val description = binding.etDescription.text.toString().trim()
         if (description.isEmpty()) {
@@ -135,7 +181,8 @@ class AddSplitExpenseFragment : Fragment() {
             UIUtils.showErrorSnackbar(binding.root, "Select who paid")
             return
         }
-        val paidBy = binding.chipGroupPaidBy.findViewById<Chip>(paidByChipId).text.toString()
+        val paidByChip = binding.chipGroupPaidBy.findViewById<Chip>(paidByChipId)
+        val paidBy = paidByChip.tag as String // Use full string from tag
 
         // Calculate split
         val splitAmong: Map<String, Double>
@@ -165,12 +212,14 @@ class AddSplitExpenseFragment : Fragment() {
         }
 
         val expense = SplitExpense(
-            id = "", // Supabase will generate ID
+            id = expenseId ?: "", // Use existing ID if editing
             groupId = groupId,
             description = description,
             amount = amount,
             paidBy = paidBy,
-            splitAmong = splitAmong
+            splitAmong = splitAmong,
+            createdAt = existingExpense?.createdAt ?: System.currentTimeMillis(),
+            uid = existingExpense?.uid ?: (SupabaseInstance.currentUserId() ?: "")
         )
 
         lifecycleScope.launch {

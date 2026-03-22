@@ -31,7 +31,7 @@ class GroupDetailFragment : Fragment() {
     private val binding get() = _binding!!
     private val splitRepository = SupabaseSplitRepository()
 
-    private val expenseAdapter = SplitExpenseAdapter()
+    private lateinit var expenseAdapter: SplitExpenseAdapter
     private var groupId = ""
     private var groupName = ""
     private var members = listOf<String>()
@@ -51,8 +51,24 @@ class GroupDetailFragment : Fragment() {
         groupId = arguments?.getString("groupId") ?: ""
         binding.toolbar.setNavigationOnClickListener { findNavController().popBackStack() }
 
+        val uid = SupabaseInstance.currentUserId() ?: ""
+        expenseAdapter = SplitExpenseAdapter(
+            currentUserId = uid,
+            onEdit = { expense ->
+                val bundle = Bundle().apply {
+                    putString("groupId", groupId)
+                    putString("expenseId", expense.id)
+                }
+                findNavController().navigate(R.id.action_groupDetail_to_addSplitExpense, bundle)
+            },
+            onDelete = { expense ->
+                showDeleteExpenseDialog(expense)
+            }
+        )
         binding.rvExpenses.layoutManager = LinearLayoutManager(requireContext())
         binding.rvExpenses.adapter = expenseAdapter
+
+        binding.btnInviteGroup.setOnClickListener { inviteOthers() }
 
         binding.fabAddExpense.setOnClickListener {
             val bundle = Bundle().apply { putString("groupId", groupId) }
@@ -116,8 +132,11 @@ class GroupDetailFragment : Fragment() {
                 val itemView = LayoutInflater.from(requireContext())
                     .inflate(R.layout.item_balance, binding.balancesContainer, false)
 
+                val fromName = debt.from.split("|").firstOrNull() ?: debt.from
+                val toName = debt.to.split("|").firstOrNull() ?: debt.to
+
                 itemView.findViewById<TextView>(R.id.tvBalanceText).text =
-                    "${debt.from} owes ${debt.to} ${fmt.format(debt.amount)}"
+                    "$fromName owes $toName ${fmt.format(debt.amount)}"
 
                 itemView.findViewById<MaterialButton>(R.id.btnSettle).setOnClickListener {
                     settleDebt(debt)
@@ -129,9 +148,11 @@ class GroupDetailFragment : Fragment() {
     }
 
     private fun settleDebt(debt: BalanceCalculator.Debt) {
+        val fromName = debt.from.split("|").firstOrNull() ?: debt.from
+        val toName = debt.to.split("|").firstOrNull() ?: debt.to
         MaterialAlertDialogBuilder(requireContext())
             .setTitle("Settle Debt")
-            .setMessage("Mark ${debt.from} → ${debt.to} (${fmt.format(debt.amount)}) as settled?")
+            .setMessage("Mark $fromName → $toName (${fmt.format(debt.amount)}) as settled?")
             .setPositiveButton("Settle") { _, _ ->
                 val settlement = Settlement(
                     id = "", // Supabase will generate ID
@@ -161,12 +182,28 @@ class GroupDetailFragment : Fragment() {
         }
         // Show all debts for quick settle
         val items = currentDebts.map {
-            "${it.from}  →  ${it.to}  ${fmt.format(it.amount)}"
+            val fromName = it.from.split("|").firstOrNull() ?: it.from
+            val toName = it.to.split("|").firstOrNull() ?: it.to
+            "$fromName  →  $toName  ${fmt.format(it.amount)}"
         }.toTypedArray()
 
         MaterialAlertDialogBuilder(requireContext())
             .setTitle("Settle Up")
             .setItems(items) { _, which -> settleDebt(currentDebts[which]) }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun showDeleteExpenseDialog(expense: SplitExpense) {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Delete Expense")
+            .setMessage("Are you sure you want to delete \"${expense.description}\"?")
+            .setPositiveButton("Delete") { _, _ ->
+                lifecycleScope.launch {
+                    splitRepository.deleteExpense(expense.id)
+                    loadGroupAndData()
+                }
+            }
             .setNegativeButton("Cancel", null)
             .show()
     }
@@ -180,7 +217,9 @@ class GroupDetailFragment : Fragment() {
         } else {
             sb.appendLine("*Outstanding:*")
             for (debt in currentDebts) {
-                sb.appendLine("  • ${debt.from} owes ${debt.to}: ₹${"%.0f".format(debt.amount)}")
+                val fromName = debt.from.split("|").firstOrNull() ?: debt.from
+                val toName = debt.to.split("|").firstOrNull() ?: debt.to
+                sb.appendLine("  • $fromName owes $toName: ₹${"%.0f".format(debt.amount)}")
             }
         }
         sb.appendLine("\n— Sent via SpendWise 💚")
@@ -195,5 +234,15 @@ class GroupDetailFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    private fun inviteOthers() {
+        val inviteLink = "https://shreyasdevang8545.github.io/SpendWise/join.html?id=$groupId"
+        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_SUBJECT, "Join my Splitwise group: $groupName")
+            putExtra(Intent.EXTRA_TEXT, "Hey! Join my Splitwise group '$groupName' on SpendWise to track our expenses together: $inviteLink")
+        }
+        startActivity(Intent.createChooser(shareIntent, "Invite via"))
     }
 }
