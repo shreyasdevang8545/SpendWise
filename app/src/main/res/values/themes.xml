@@ -156,4 +156,11 @@
     <style name="ShapeAppearance.SpendWise.Chip" parent="">
         <item name="cornerSize">10dp</item>
     </style>
+
+    <!-- Splash Screen Theme -->
+    <style name="Theme.SpendWise.Splash" parent="Theme.Material3.Light.NoActionBar">
+        <item name="android:windowBackground">@drawable/splash_background</item>
+        <item name="android:statusBarColor">@color/background_light</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
 </resources>

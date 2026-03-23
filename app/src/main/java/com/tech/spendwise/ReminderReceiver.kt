@@ -95,7 +95,7 @@ class ReminderReceiver : BroadcastReceiver() {
         )
 
         val notification = NotificationCompat.Builder(context, LEND_CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setSmallIcon(R.drawable.ic_account_balance)
             .setContentTitle("Money Return Reminder")
             .setContentText("${lend.name} was supposed to return ₹${lend.amount}.")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -129,7 +129,7 @@ class ReminderReceiver : BroadcastReceiver() {
         )
 
         val notification = NotificationCompat.Builder(context, DAILY_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_schedule)
+            .setSmallIcon(R.drawable.ic_account_balance)
             .setContentTitle("Add Your Expenses")
             .setContentText("Don't forget to log your spending for today!")
             .setPriority(NotificationCompat.PRIORITY_HIGH)

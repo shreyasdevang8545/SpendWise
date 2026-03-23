@@ -123,7 +123,7 @@
                         android:textColor="@color/white"
                         android:textSize="14sp"
                         android:textStyle="bold"
-                        tools:text="@shreyasdevang · SpendWise" />
+                        tools:text="@shreyasdevang · SpendWise SMART MONEY" />
 
                     <View
                         android:layout_width="match_parent"

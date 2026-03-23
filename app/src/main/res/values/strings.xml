@@ -34,10 +34,10 @@
     <!-- Notifications Section -->
     <string name="title_transaction_alerts">Transaction alerts</string>
     <string name="subtitle_transaction_alerts">Notify when SMS transaction detected</string>
-    <string name="title_budget_alerts">Budget alerts</string>
-    <string name="subtitle_budget_alerts" formatted="false">Warn at 75%, 90%, 100% of limit</string>
     <string name="title_monthly_summary">Monthly summary</string>
     <string name="subtitle_monthly_summary">Send report on 1st of each month</string>
+    <string name="title_monthly_report">Monthly Reports</string>
+    <string name="subtitle_monthly_report">View and export financial summaries</string>
     <string name="title_daily_reminder">Daily spending reminder</string>
     <string name="subtitle_daily_reminder">Evening nudge to log expenses</string>
     <string name="set_reminder_time">Select Reminder Time</string>
@@ -137,7 +137,10 @@
     <string name="lock_use_pin">Use PIN</string>
     <string name="lock_biometric_failed">Authentication failed</string>
 
-    <!-- Budget Alerts -->
+
+    <!-- Budget Alerts (Restored for resource consistency) -->
+    <string name="title_budget_alerts">Budget Alerts</string>
+    <string name="subtitle_budget_alerts">Notify at 75%, 90%, 100% of limit</string>
     <string name="budget_info">Set budget limits to receive notifications when you exceed your spending targets.</string>
     <string name="overall_monthly_budget">Overall Monthly Budget</string>
     <string name="category_budgets">Category Budgets</string>

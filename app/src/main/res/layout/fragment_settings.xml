@@ -129,17 +129,18 @@
                         android:id="@+id/itemTransactionAlerts"
                         layout="@layout/layout_settings_row_toggle" />
 
-                    <View style="@style/SettingsDivider" />
-
-                    <include
-                        android:id="@+id/itemBudgetAlerts"
-                        layout="@layout/layout_settings_row" />
 
                     <View style="@style/SettingsDivider" />
 
                     <include
                         android:id="@+id/itemMonthlySummary"
                         layout="@layout/layout_settings_row_toggle" />
+
+                    <View style="@style/SettingsDivider" />
+
+                    <include
+                        android:id="@+id/itemMonthlyReport"
+                        layout="@layout/layout_settings_row" />
 
                     <View style="@style/SettingsDivider" />
 
