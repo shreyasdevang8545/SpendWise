@@ -5,6 +5,11 @@
     android:id="@+id/nav_graph"
     app:startDestination="@id/homeFragment">
 
+    <action
+        android:id="@+id/action_global_groupDetail"
+        app:destination="@id/groupDetailFragment"
+        app:launchSingleTop="true" />
+
     <fragment
         android:id="@+id/homeFragment"
         android:name="com.tech.spendwise.HomeFragment"
@@ -282,6 +287,26 @@
         <argument
             android:name="groupId"
             app:argType="string" />
+        <argument
+            android:name="expenseId"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/joinGroupFragment"
+        android:name="com.tech.spendwise.splitwise.JoinGroupFragment"
+        android:label="Join Group">
+        <argument
+            android:name="id"
+            app:argType="string" />
+        <deepLink
+            android:id="@+id/deepLink_joinGroup_custom"
+            app:uri="spendwise://join?id={id}" />
+        <deepLink
+            android:id="@+id/deepLink_joinGroup_https"
+            app:uri="https://shreyasdevang8545.github.io/SpendWise/join.html?id={id}" />
     </fragment>
 
     <!-- ── View Lend (Deep link from WhatsApp) ──────────────────────────── -->

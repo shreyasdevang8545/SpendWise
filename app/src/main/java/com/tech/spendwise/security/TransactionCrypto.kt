@@ -75,71 +75,60 @@ object TransactionCrypto {
 
     /**
      * Encrypts all sensitive fields from a confirmed transaction JSON string.
-     * Returns a [Map] ready to be written to Firestore.
-     * `saved_at` and `uid` are kept in plaintext for ordering/querying.
+     * Handles both regular transactions and lends.
      */
     fun encryptTransaction(plainJson: String, uid: String): Map<String, Any?> {
         val data   = parseSimpleJson(plainJson)
         val result = mutableMapOf<String, Any?>()
 
-        val sensitiveFields = setOf("amount", "type", "merchant", "category", "payment_mode", "currency")
+        val sensitiveFields = setOf("amount", "type", "merchant", "category", "payment_mode", "currency", "lend_name", "phone_number", "note")
         for ((key, value) in data) {
-            result[key] = if (key in sensitiveFields) encryptField(value, uid) else value
+            result[key] = if (key in sensitiveFields) {
+                if (value.isEmpty()) "" else encryptField(value, uid)
+            } else {
+                // Handle non-string types that might be in the map if it was built from an object
+                value
+            }
         }
         result["uid"] = uid
         return result
     }
 
     /**
-     * Decrypts all sensitive fields from a Firestore document [map].
-     * Returns a plain transaction JSON string compatible with [TransactionListAdapter].
+     * Decrypts all sensitive fields from a database document [map].
      */
     fun decryptTransaction(map: Map<String, Any?>, uid: String): String {
-        val sensitiveFields = setOf("amount", "type", "merchant", "category", "payment_mode", "currency")
+        val sensitiveFields = setOf("amount", "type", "merchant", "category", "payment_mode", "currency", "lend_name", "phone_number", "note")
         val result = mutableMapOf<String, String>()
         for ((key, value) in map) {
             val raw = value?.toString() ?: continue
-            result[key] = if (key in sensitiveFields) decryptField(raw, uid) else raw
+            result[key] = if (key in sensitiveFields && raw.isNotEmpty()) decryptField(raw, uid) else raw
         }
         return buildJson(result)
     }
 
     /**
-     * Encrypts a LendTransaction object's sensitive fields for Firestore.
+     * Converts a database map into a LendTransaction object.
      */
-    fun encryptLend(lend: com.tech.spendwise.models.LendTransaction, uid: String): Map<String, Any?> {
-        val result = mutableMapOf<String, Any?>()
-        result["name"] = encryptField(lend.name, uid)
-        result["amount"] = encryptField(lend.amount.toString(), uid)
-        result["payment_mode"] = encryptField(lend.paymentMode, uid)
-        result["phone_number"] = encryptField(lend.phoneNumber ?: "", uid)
-        result["note"] = encryptField(lend.note ?: "", uid)
-        result["return_date"] = lend.returnDate
-        result["is_returned"] = lend.isReturned
-        result["created_at"] = lend.createdAt
-        result["uid"] = uid
-        return result
-    }
-
-    /**
-     * Decrypts a Firestore lend document into a LendTransaction object.
-     */
-    fun decryptLend(id: String, map: Map<String, Any?>, uid: String): com.tech.spendwise.models.LendTransaction? {
+    fun mapToLendTransaction(id: String, map: Map<String, Any?>, uid: String): com.tech.spendwise.models.LendTransaction? {
         return try {
-            val nameRaw = map["name"]?.toString() ?: return null
+            val isLend = map["is_lend"]?.toString()?.toBoolean() ?: false
+            if (!isLend) return null
+            
             val amountRaw = map["amount"]?.toString() ?: return null
-            val modeRaw = map["payment_mode"]?.toString() ?: return null
+            val lendNameRaw = map["lend_name"]?.toString() ?: ""
             
             com.tech.spendwise.models.LendTransaction(
                 id = id,
-                name = decryptField(nameRaw, uid),
+                name = if (lendNameRaw.isNotEmpty()) decryptField(lendNameRaw, uid) else "",
                 amount = decryptField(amountRaw, uid).toDoubleOrNull() ?: 0.0,
-                paymentMode = decryptField(modeRaw, uid),
+                paymentMode = decryptField(map["payment_mode"]?.toString() ?: "", uid),
                 phoneNumber = decryptField(map["phone_number"]?.toString() ?: "", uid),
                 note = decryptField(map["note"]?.toString() ?: "", uid),
-                returnDate = (map["return_date"] as? Long) ?: 0L,
-                isReturned = (map["is_returned"] as? Boolean) ?: false,
-                createdAt = (map["created_at"] as? Long) ?: 0L
+                returnDate = map["return_date"]?.toString()?.toLongOrNull() ?: 0L,
+                isReturned = map["is_returned"]?.toString()?.toBoolean() ?: false,
+                createdAt = map["created_at"]?.toString()?.toLongOrNull() ?: map["saved_at"]?.toString()?.toLongOrNull() ?: 0L,
+                transactionId = id
             )
         } catch (e: Exception) {
             null

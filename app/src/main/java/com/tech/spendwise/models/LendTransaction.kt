@@ -12,5 +12,6 @@ data class LendTransaction(
     val phoneNumber: String? = null,
     val note: String? = null,
     val isReturned: Boolean = false,
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
+    val transactionId: String? = null
 )

@@ -127,10 +127,12 @@
 
     <LinearLayout
         android:id="@+id/emptyState"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
         android:orientation="vertical"
+        android:paddingHorizontal="32dp"
+        android:paddingVertical="48dp"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -138,19 +140,25 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:visibility="visible">
 
-        <ImageView
-            android:layout_width="120dp"
-            android:layout_height="120dp"
-            android:src="@drawable/img_empty_state"
-            app:tint="@color/text_secondary" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="No Lends Tracked"
+            android:textColor="@color/text_primary"
+            android:fontFamily="@font/nunito_sans"
+            android:textSize="22sp"
+            android:textStyle="bold" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="No lends tracked yet"
+            android:layout_marginTop="12dp"
+            android:gravity="center"
+            android:text="You don't have any active lends right now. Keep track of whom you lend money to easily here."
             android:textColor="@color/text_secondary"
-            android:textSize="16sp" />
+            android:fontFamily="@font/nunito_sans"
+            android:lineSpacingExtra="4dp"
+            android:textSize="15sp" />
     </LinearLayout>
 
     <ProgressBar

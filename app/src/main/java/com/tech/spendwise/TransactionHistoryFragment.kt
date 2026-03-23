@@ -47,7 +47,7 @@ class TransactionHistoryFragment : Fragment() {
         setupAdapterCallbacks()
 
         // Fetch a larger set of transactions for history
-        viewModel.fetchFromFirestore(limit = 100)
+        viewModel.fetchFromFirestore()
     }
 
     private fun setupToolbar() {

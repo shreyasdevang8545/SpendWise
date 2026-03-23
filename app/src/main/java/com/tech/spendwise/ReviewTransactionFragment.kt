@@ -14,7 +14,9 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.chip.Chip
-import com.google.firebase.auth.FirebaseAuth
+import androidx.lifecycle.lifecycleScope
+import com.tech.spendwise.SupabaseInstance
+import kotlinx.coroutines.launch
 import com.tech.spendwise.utils.UIUtils
 import com.tech.spendwise.databinding.FragmentReviewTransactionBinding
 
@@ -221,25 +223,21 @@ class ReviewTransactionFragment : Fragment() {
         )
         viewModel.addConfirmedTransaction(confirmedJson)
 
-        if (isLend) {
             // Also create a separate lend record for the Lend History screen
             val lend = com.tech.spendwise.models.LendTransaction(
-                id = java.util.UUID.randomUUID().toString(),
+                id = "", // Supabase will generate ID
                 name = lendName!!,
                 amount = finalAmount.toDoubleOrNull() ?: 0.0,
                 paymentMode = finalPaymentMode,
                 returnDate = System.currentTimeMillis() + (86400000 * 7), // Default 1 week
                 isReturned = false
             )
-            val uid = FirebaseAuth.getInstance().currentUser?.uid
+            val uid = SupabaseInstance.currentUserId()
             if (uid != null) {
-                FirestoreRepository().saveLend(uid, lend) { result ->
-                    result.onFailure { e ->
-                        Log.e("ReviewTransaction", "Failed to save lend record: ${e.message}")
-                    }
+                lifecycleScope.launch {
+                    SupabaseRepository().saveLend(lend)
                 }
             }
-        }
 
         UIUtils.showSuccessSnackbar(
             binding.root,

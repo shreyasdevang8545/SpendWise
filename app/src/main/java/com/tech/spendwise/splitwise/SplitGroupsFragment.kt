@@ -8,7 +8,9 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.firebase.auth.FirebaseAuth
+import androidx.lifecycle.lifecycleScope
+import com.tech.spendwise.SupabaseInstance
+import kotlinx.coroutines.launch
 import com.tech.spendwise.R
 import com.tech.spendwise.databinding.FragmentSplitGroupsBinding
 import com.tech.spendwise.models.SplitGroup
@@ -18,6 +20,7 @@ class SplitGroupsFragment : Fragment() {
 
     private var _binding: FragmentSplitGroupsBinding? = null
     private val binding get() = _binding!!
+    private val splitRepository = SupabaseSplitRepository()
 
     private val adapter = SplitGroupAdapter(
         onClick = { group -> openGroupDetail(group) },
@@ -49,19 +52,15 @@ class SplitGroupsFragment : Fragment() {
     }
 
     private fun loadGroups() {
-        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
-        SplitRepository.fetchGroups(uid) { result ->
-            result.onSuccess { groups ->
-                activity?.runOnUiThread {
-                    adapter.submitList(groups)
-                    binding.emptyState.visibility = if (groups.isEmpty()) View.VISIBLE else View.GONE
-                    binding.rvGroups.visibility = if (groups.isEmpty()) View.GONE else View.VISIBLE
-                }
-            }
-            result.onFailure {
-                activity?.runOnUiThread {
-                    UIUtils.showErrorSnackbar(binding.root, "Failed to load groups")
-                }
+        val uid = SupabaseInstance.currentUserId() ?: return
+        lifecycleScope.launch {
+            try {
+                val groups = splitRepository.fetchGroups()
+                adapter.submitList(groups)
+                binding.emptyState.visibility = if (groups.isEmpty()) View.VISIBLE else View.GONE
+                binding.rvGroups.visibility = if (groups.isEmpty()) View.GONE else View.VISIBLE
+            } catch (e: Exception) {
+                UIUtils.showErrorSnackbar(binding.root, "Failed to load groups")
             }
         }
     }
@@ -76,8 +75,11 @@ class SplitGroupsFragment : Fragment() {
             .setTitle("Delete Group")
             .setMessage("Delete \"${group.name}\" and all its expenses?")
             .setPositiveButton("Delete") { _, _ ->
-                val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return@setPositiveButton
-                SplitRepository.deleteGroup(uid, group.id) { loadGroups() }
+                val uid = SupabaseInstance.currentUserId() ?: return@setPositiveButton
+                lifecycleScope.launch {
+                    splitRepository.deleteGroup(group.id)
+                    loadGroups()
+                }
             }
             .setNegativeButton("Cancel", null)
             .show()

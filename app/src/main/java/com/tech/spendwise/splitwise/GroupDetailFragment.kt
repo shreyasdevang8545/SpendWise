@@ -13,7 +13,9 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.firebase.auth.FirebaseAuth
+import androidx.lifecycle.lifecycleScope
+import com.tech.spendwise.SupabaseInstance
+import kotlinx.coroutines.launch
 import com.tech.spendwise.R
 import com.tech.spendwise.databinding.FragmentGroupDetailBinding
 import com.tech.spendwise.models.Settlement
@@ -27,8 +29,9 @@ class GroupDetailFragment : Fragment() {
 
     private var _binding: FragmentGroupDetailBinding? = null
     private val binding get() = _binding!!
+    private val splitRepository = SupabaseSplitRepository()
 
-    private val expenseAdapter = SplitExpenseAdapter()
+    private lateinit var expenseAdapter: SplitExpenseAdapter
     private var groupId = ""
     private var groupName = ""
     private var members = listOf<String>()
@@ -36,6 +39,8 @@ class GroupDetailFragment : Fragment() {
 
     // Cached data for share/settle
     private var currentDebts = listOf<BalanceCalculator.Debt>()
+    private var memberMappings = mapOf<String, String>()
+    private var currentUserMappedName: String? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentGroupDetailBinding.inflate(inflater, container, false)
@@ -48,8 +53,26 @@ class GroupDetailFragment : Fragment() {
         groupId = arguments?.getString("groupId") ?: ""
         binding.toolbar.setNavigationOnClickListener { findNavController().popBackStack() }
 
+        val uid = SupabaseInstance.currentUserId() ?: ""
+        expenseAdapter = SplitExpenseAdapter(
+            currentUserId = uid,
+            memberMappings = emptyMap(),
+            onEdit = { expense ->
+                val bundle = Bundle().apply {
+                    putString("groupId", groupId)
+                    putString("expenseId", expense.id)
+                }
+                findNavController().navigate(R.id.action_groupDetail_to_addSplitExpense, bundle)
+            },
+            onDelete = { expense ->
+                showDeleteExpenseDialog(expense)
+            }
+        )
         binding.rvExpenses.layoutManager = LinearLayoutManager(requireContext())
         binding.rvExpenses.adapter = expenseAdapter
+
+        // Move invite to toolbar menu, so we hide the button
+        binding.btnInviteGroup.visibility = View.GONE
 
         binding.fabAddExpense.setOnClickListener {
             val bundle = Bundle().apply { putString("groupId", groupId) }
@@ -58,6 +81,21 @@ class GroupDetailFragment : Fragment() {
 
         binding.btnSettleUp.setOnClickListener { showSettleDialog() }
         binding.btnShareSummary.setOnClickListener { shareSummary() }
+
+        binding.toolbar.inflateMenu(R.menu.menu_group_detail)
+        binding.toolbar.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                R.id.action_invite_group -> {
+                    inviteOthers()
+                    true
+                }
+                R.id.action_exit_group -> {
+                    showExitGroupDialog()
+                    true
+                }
+                else -> false
+            }
+        }
 
         loadGroupAndData()
     }
@@ -68,38 +106,35 @@ class GroupDetailFragment : Fragment() {
     }
 
     private fun loadGroupAndData() {
-        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
-
-        // Load group info first
-        SplitRepository.fetchGroups(uid) { result ->
-            result.onSuccess { groups ->
-                val group = groups.find { it.id == groupId } ?: return@onSuccess
+        val uid = SupabaseInstance.currentUserId() ?: return
+        lifecycleScope.launch {
+            try {
+                val groups = splitRepository.fetchGroups()
+                val group = groups.find { it.id == groupId } ?: return@launch
                 groupName = group.name
                 members = group.members
-                activity?.runOnUiThread {
-                    binding.toolbar.title = groupName
-                }
+                memberMappings = group.memberMappings
+                val uid = SupabaseInstance.currentUserId() ?: ""
+                currentUserMappedName = memberMappings[uid]?.split("|")?.firstOrNull()
+                
+                binding.toolbar.title = groupName
+                expenseAdapter.updateMappings(group.memberMappings)
                 // Now load expenses + settlements
-                loadExpensesAndBalances(uid)
+                loadExpensesAndBalances()
+            } catch (e: Exception) {
+                Log.e("GroupDetail", "Error loading group", e)
             }
         }
     }
 
-    private fun loadExpensesAndBalances(uid: String) {
-        SplitRepository.fetchExpenses(uid, groupId) { expResult ->
-            expResult.onSuccess { expenses ->
-                SplitRepository.fetchSettlements(uid, groupId) { setResult ->
-                    setResult.onSuccess { settlements ->
-                        activity?.runOnUiThread {
-                            updateUI(expenses, settlements)
-                        }
-                    }
-                }
-            }
-            expResult.onFailure {
-                activity?.runOnUiThread {
-                    UIUtils.showErrorSnackbar(binding.root, "Failed to load expenses")
-                }
+    private fun loadExpensesAndBalances() {
+        lifecycleScope.launch {
+            try {
+                val expenses = splitRepository.fetchExpenses(groupId)
+                val settlements = splitRepository.fetchSettlements(groupId)
+                updateUI(expenses, settlements)
+            } catch (e: Exception) {
+                UIUtils.showErrorSnackbar(binding.root, "Failed to load expenses")
             }
         }
     }
@@ -121,8 +156,11 @@ class GroupDetailFragment : Fragment() {
                 val itemView = LayoutInflater.from(requireContext())
                     .inflate(R.layout.item_balance, binding.balancesContainer, false)
 
+                val fromName = getRelativeName(debt.from)
+                val toName = getRelativeName(debt.to)
+
                 itemView.findViewById<TextView>(R.id.tvBalanceText).text =
-                    "${debt.from} owes ${debt.to} ${fmt.format(debt.amount)}"
+                    "$fromName owes $toName ${fmt.format(debt.amount)}"
 
                 itemView.findViewById<MaterialButton>(R.id.btnSettle).setOnClickListener {
                     settleDebt(debt)
@@ -133,27 +171,32 @@ class GroupDetailFragment : Fragment() {
         }
     }
 
+    private fun getRelativeName(originalName: String): String {
+        val cleanName = originalName.split("|").firstOrNull() ?: originalName
+        return if (cleanName == currentUserMappedName) "You" else cleanName
+    }
+
     private fun settleDebt(debt: BalanceCalculator.Debt) {
+        val fromName = getRelativeName(debt.from)
+        val toName = getRelativeName(debt.to)
         MaterialAlertDialogBuilder(requireContext())
             .setTitle("Settle Debt")
-            .setMessage("Mark ${debt.from} → ${debt.to} (${fmt.format(debt.amount)}) as settled?")
+            .setMessage("Mark $fromName → $toName (${fmt.format(debt.amount)}) as settled?")
             .setPositiveButton("Settle") { _, _ ->
-                val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return@setPositiveButton
                 val settlement = Settlement(
-                    id = UUID.randomUUID().toString(),
+                    id = "", // Supabase will generate ID
                     groupId = groupId,
                     from = debt.from,
                     to = debt.to,
                     amount = debt.amount
                 )
-                SplitRepository.saveSettlement(uid, settlement) { result ->
-                    activity?.runOnUiThread {
-                        if (result.isSuccess) {
-                            UIUtils.showSuccessSnackbar(binding.root, "Settled!")
-                            loadGroupAndData()
-                        } else {
-                            UIUtils.showErrorSnackbar(binding.root, "Failed to settle")
-                        }
+                lifecycleScope.launch {
+                    val resultId = splitRepository.saveSettlement(settlement)
+                    if (resultId != null) {
+                        UIUtils.showSuccessSnackbar(binding.root, "Settled!")
+                        loadGroupAndData()
+                    } else {
+                        UIUtils.showErrorSnackbar(binding.root, "Failed to settle")
                     }
                 }
             }
@@ -168,12 +211,28 @@ class GroupDetailFragment : Fragment() {
         }
         // Show all debts for quick settle
         val items = currentDebts.map {
-            "${it.from}  →  ${it.to}  ${fmt.format(it.amount)}"
+            val fromName = getRelativeName(it.from)
+            val toName = getRelativeName(it.to)
+            "$fromName  →  $toName  ${fmt.format(it.amount)}"
         }.toTypedArray()
 
         MaterialAlertDialogBuilder(requireContext())
             .setTitle("Settle Up")
             .setItems(items) { _, which -> settleDebt(currentDebts[which]) }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun showDeleteExpenseDialog(expense: SplitExpense) {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Delete Expense")
+            .setMessage("Are you sure you want to delete \"${expense.description}\"?")
+            .setPositiveButton("Delete") { _, _ ->
+                lifecycleScope.launch {
+                    splitRepository.deleteExpense(expense.id)
+                    loadGroupAndData()
+                }
+            }
             .setNegativeButton("Cancel", null)
             .show()
     }
@@ -187,7 +246,9 @@ class GroupDetailFragment : Fragment() {
         } else {
             sb.appendLine("*Outstanding:*")
             for (debt in currentDebts) {
-                sb.appendLine("  • ${debt.from} owes ${debt.to}: ₹${"%.0f".format(debt.amount)}")
+                val fromName = getRelativeName(debt.from)
+                val toName = getRelativeName(debt.to)
+                sb.appendLine("  • $fromName owes $toName: ₹${"%.0f".format(debt.amount)}")
             }
         }
         sb.appendLine("\n— Sent via SpendWise 💚")
@@ -199,8 +260,41 @@ class GroupDetailFragment : Fragment() {
         startActivity(Intent.createChooser(intent, "Share Summary"))
     }
 
+    private fun showExitGroupDialog() {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Exit Group")
+            .setMessage("Are you sure you want to leave this group? You will no longer be able to see its expenses or balances.")
+            .setPositiveButton("Exit") { _, _ ->
+                performExitGroup()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun performExitGroup() {
+        lifecycleScope.launch {
+            try {
+                splitRepository.exitGroup(groupId)
+                UIUtils.showSuccessSnackbar(binding.root, "You have left the group")
+                findNavController().popBackStack()
+            } catch (e: Exception) {
+                UIUtils.showErrorSnackbar(binding.root, "Failed to exit group")
+            }
+        }
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    private fun inviteOthers() {
+        val inviteLink = "https://shreyasdevang8545.github.io/SpendWise/join.html?id=$groupId"
+        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_SUBJECT, "Join my Splitwise group: $groupName")
+            putExtra(Intent.EXTRA_TEXT, "Hey! Join my Splitwise group '$groupName' on SpendWise to track our expenses together: $inviteLink")
+        }
+        startActivity(Intent.createChooser(shareIntent, "Invite via"))
     }
 }

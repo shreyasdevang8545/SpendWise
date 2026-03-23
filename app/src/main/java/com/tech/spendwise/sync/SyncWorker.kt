@@ -4,13 +4,17 @@ import android.content.Context
 import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.google.firebase.firestore.FirebaseFirestore
 import com.tech.spendwise.PreferenceRepository
+import com.tech.spendwise.SupabaseInstance
 import com.tech.spendwise.security.EncryptionManager
+import io.github.jan.supabase.postgrest.*
+import io.github.jan.supabase.postgrest.query.*
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 import java.util.*
 
 /**
- * Background worker that encrypts and uploads transaction data to Firebase Firestore.
+ * Background worker that encrypts and uploads transaction data to Supabase.
  */
 class SyncWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
 
@@ -31,22 +35,21 @@ class SyncWorker(context: Context, params: WorkerParameters) : CoroutineWorker(c
             // 2. Encrypt data for Zero-Knowledge Cloud Storage
             val encryptedData = encryptionManager.encrypt(rawJson)
             
-            // 3. Upload to Firestore
-            // Note: This will fail if google-services.json is missing or Firebase is not configured.
+            // 3. Upload to Supabase
             try {
-                val db = FirebaseFirestore.getInstance()
-                val record = hashMapOf(
-                    "payload" to encryptedData,
-                    "timestamp" to timestamp
-                )
-                
-                // We use a generic collection; filtering/indexing is limited due to encryption.
-                db.collection("transactions").document(transactionId).set(record)
-                Log.i("SyncWorker", "Encrypted transaction uploaded successfully: $transactionId")
+                val uid = SupabaseInstance.currentUserId()
+                if (uid != null) {
+                    val postgrest = SupabaseInstance.client.postgrest
+                    val json = buildJsonObject {
+                        put("uid", uid)
+                        put("payload", encryptedData)
+                        put("captured_at", timestamp)
+                    }
+                    postgrest.from("captured_transactions").insert(json)
+                    Log.i("SyncWorker", "Encrypted transaction uploaded to Supabase: $transactionId")
+                }
             } catch (e: Exception) {
-                Log.e("SyncWorker", "Firebase upload failed (likely config missing): ${e.message}")
-                // We don't fail the whole work if Firebase isn't ready yet, 
-                // as we still want to save locally.
+                Log.e("SyncWorker", "Supabase upload failed: ${e.message}")
             }
 
             // 4. Add to local encrypted queue so the user sees it in the app for review/confirmation

@@ -10,7 +10,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.firebase.auth.FirebaseAuth
+import com.tech.spendwise.SupabaseInstance
 import com.tech.spendwise.utils.UIUtils
 import com.tech.spendwise.databinding.FragmentHomeBinding
 import java.text.NumberFormat
@@ -154,6 +154,45 @@ class HomeFragment : Fragment() {
             }
             false // Continue handling touch
         }
+
+        showGreeting()
+    }
+
+    private fun showGreeting() {
+        val name = SupabaseInstance.currentUserDisplayName()
+        val calendar = Calendar.getInstance()
+        val hour = calendar.get(Calendar.HOUR_OF_DAY)
+        
+        val greeting = when (hour) {
+            in 0..11 -> getString(R.string.greeting_morning)
+            in 12..15 -> getString(R.string.greeting_afternoon)
+            in 16..20 -> getString(R.string.greeting_evening)
+            else -> getString(R.string.greeting_night)
+        }
+        
+        val message = if (!name.isNullOrBlank()) {
+            "$greeting, ${name.split(" ")[0]}!"
+        } else {
+            "$greeting!"
+        }
+        
+        binding.greetingText.text = message
+        binding.greetingText.visibility = View.VISIBLE
+        binding.greetingText.animate()
+            .alpha(1f)
+            .setDuration(500)
+            .setListener(null)
+        
+        Handler(Looper.getMainLooper()).postDelayed({
+            if (_binding != null) {
+                binding.greetingText.animate()
+                    .alpha(0f)
+                    .setDuration(500)
+                    .withEndAction {
+                        binding.greetingText.visibility = View.GONE
+                    }
+            }
+        }, 5000)
     }
 
     private fun refreshSummary() {
@@ -186,7 +225,10 @@ class HomeFragment : Fragment() {
             if (seen.add(savedAt)) merged.add(json)
         }
 
-        if (merged.isEmpty()) {
+        val currentMonthLends = viewModel.lends.value ?: emptyList()
+        val hasData = merged.isNotEmpty() || currentMonthLends.isNotEmpty()
+
+        if (!hasData) {
             binding.headerLayout.visibility       = View.VISIBLE
             binding.emptyStateContainer.visibility = View.VISIBLE
             binding.transactionsContainer.visibility = View.GONE
@@ -227,31 +269,31 @@ class HomeFragment : Fragment() {
                 val amount  = data["amount"]?.toDoubleOrNull() ?: 0.0
 
                 if (isSameMonth(savedAt, currentYear, currentMonth)) {
+                    val isLend = data["is_lend"] == "true" || data["category"] == "Lend"
                     if (type.equals("CREDIT", ignoreCase = true)) {
                         totalIncome += amount
                     } else if (type.equals("DEBIT", ignoreCase = true)) {
-                        totalSpent += amount
+                        if (!isLend) {
+                            totalSpent += amount
+                        }
                     }
                 }
             }
 
-            // Calculate total lent from lends list
+            // Calculate total lent from ALL unreturned lends (not just this month)
             val currentLends = viewModel.lends.value ?: emptyList()
             currentLends.forEach { lend ->
-                // LendTransaction uses createdAt timestamp
-                val calLend = Calendar.getInstance().apply { timeInMillis = lend.createdAt }
-                if (calLend.get(Calendar.YEAR) == currentYear && (calLend.get(Calendar.MONTH) + 1) == currentMonth) {
-                    if (!lend.isReturned) {
-                       totalLent += lend.amount
-                    }
+                if (!lend.isReturned) {
+                    totalLent += lend.amount
                 }
             }
 
-            val mainBalance = totalIncome - totalSpent
+            val totalOutflow = totalSpent + totalLent
+            val mainBalance  = totalIncome - totalOutflow
             
-            if (totalIncome == 0.0 && totalSpent > 0.0) {
+            if (totalIncome == 0.0 && totalOutflow > 0.0) {
                 binding.mainBalanceLabel.text = "TOTAL SPENDING"
-                binding.mainBalanceText.text = formatAmount(totalSpent, merged.firstOrNull())
+                binding.mainBalanceText.text = formatAmount(Math.abs(totalOutflow), merged.firstOrNull())
             } else {
                 binding.mainBalanceLabel.text = "MAIN BALANCE"
                 binding.mainBalanceText.text = formatAmount(mainBalance, merged.firstOrNull())
@@ -272,9 +314,9 @@ class HomeFragment : Fragment() {
             binding.lentTotalText2.text   = formattedLent
             binding.headerMonthLabel.text = monthLabel(cal).uppercase()
             
-            // Set initials from User Name if available
-            val user = FirebaseAuth.getInstance().currentUser
-            binding.profileInitials.text = user?.displayName?.split(" ")?.let {
+            // Set initials from Supabase User Name if available
+            val name = SupabaseInstance.currentUserDisplayName()
+            binding.profileInitials.text = name?.split(" ")?.let {
                 if (it.size >= 2) "${it[0][0]}${it[1][0]}" else it[0].take(2).uppercase()
             } ?: "SD"
         }
@@ -442,16 +484,23 @@ class HomeFragment : Fragment() {
                 val savedAt = data["saved_at"] ?: ""
                 val amount = data["amount"]?.toDoubleOrNull() ?: 0.0
                 val type = data["type"] ?: ""
+                val isLend = data["is_lend"] == "true" || data["category"] == "Lend"
                 
                 if (isSameDay(savedAt, targetCal)) {
-                    if (type.equals("CREDIT", ignoreCase = true)) income += amount
-                    else if (type.equals("DEBIT", ignoreCase = true)) spent += amount
+                    if (type.equals("CREDIT", ignoreCase = true)) {
+                        income += amount
+                    } else if (type.equals("DEBIT", ignoreCase = true)) {
+                        if (!isLend) {
+                            spent += amount
+                        }
+                    }
                 }
             }
             
             lends.forEach { lend ->
                 if (isSameDay(lend.createdAt, targetCal)) {
-                    spent += lend.amount // Lending is an outflow
+                    spent += lend.amount // Lending is an outflow, but now handled separately if we wanted, 
+                                       // for now we keep it in "spent" for the graph color but avoid double counting
                 }
             }
             

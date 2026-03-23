@@ -8,12 +8,18 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.lifecycle.lifecycleScope
+import io.github.jan.supabase.auth.auth
+import kotlinx.coroutines.launch
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.contentOrNull
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.textfield.TextInputEditText
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.UserProfileChangeRequest
+import com.tech.spendwise.SupabaseInstance
 import com.tech.spendwise.databinding.FragmentProfileBinding
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
@@ -49,9 +55,8 @@ class ProfileFragment : Fragment() {
     }
 
     private fun setupUserDetails() {
-        val user = FirebaseAuth.getInstance().currentUser
-        if (user != null) {
-            val name = user.displayName
+        if (SupabaseInstance.isLoggedIn()) {
+            val name = SupabaseInstance.currentUserDisplayName()
             if (name.isNullOrEmpty()) {
                 binding.userName.text = "NAME NOT PROVIDED"
                 binding.userHandle.text = "Add a name to see your handle"
@@ -126,14 +131,17 @@ class ProfileFragment : Fragment() {
         binding.editNameBtn.setOnClickListener {
             showEditNameDialog()
         }
+        binding.userName.setOnClickListener {
+            showEditNameDialog()
+        }
     }
 
     private fun showEditNameDialog() {
-        val user = FirebaseAuth.getInstance().currentUser ?: return
+        val name = SupabaseInstance.currentUserDisplayName() ?: ""
         val dialogView = layoutInflater.inflate(R.layout.dialog_edit_name, null)
         val editNameField = dialogView.findViewById<TextInputEditText>(R.id.editName)
         
-        editNameField.setText(user.displayName)
+        editNameField.setText(name)
 
         AlertDialog.Builder(requireContext(), R.style.CustomAlertDialog)
             .setTitle("Update Name")
@@ -141,19 +149,20 @@ class ProfileFragment : Fragment() {
             .setPositiveButton("Save") { _, _ ->
                 val newName = editNameField.text.toString().trim()
                 if (newName.isNotEmpty()) {
-                    val profileUpdates = UserProfileChangeRequest.Builder()
-                        .setDisplayName(newName)
-                        .build()
-
-                    user.updateProfile(profileUpdates)
-                        .addOnCompleteListener { task ->
-                            if (task.isSuccessful) {
-                                setupUserDetails()
-                                Toast.makeText(requireContext(), "Name updated successfully", Toast.LENGTH_SHORT).show()
-                            } else {
-                                Toast.makeText(requireContext(), "Failed to update name", Toast.LENGTH_SHORT).show()
+                    lifecycleScope.launch {
+                        try {
+                            SupabaseInstance.auth.updateUser {
+                                data = buildJsonObject {
+                                    put("display_name", newName)
+                                    put("full_name", newName)
+                                }
                             }
+                            setupUserDetails()
+                            Toast.makeText(requireContext(), "Name updated successfully", Toast.LENGTH_SHORT).show()
+                        } catch (e: Exception) {
+                            Toast.makeText(requireContext(), "Error updating name: ${e.message}", Toast.LENGTH_SHORT).show()
                         }
+                    }
                 } else {
                     Toast.makeText(requireContext(), "Name cannot be empty", Toast.LENGTH_SHORT).show()
                 }

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join Splitwise Group — SpendWise</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --green: #388E3C;
+            --green-dark: #2E7D32;
+            --green-pale: #F1F8E9;
+            --text-primary: #1A1A1A;
+            --surface: #FFFFFF;
+        }
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: var(--green-pale);
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .card {
+            background: var(--surface);
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+        }
+        .icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 12px;
+        }
+        p {
+            font-size: 16px;
+            color: #5C5C5C;
+            line-height: 1.5;
+            margin-bottom: 30px;
+        }
+        .btn {
+            display: inline-block;
+            background: var(--green);
+            color: white;
+            padding: 14px 32px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 700;
+            transition: background 0.2s;
+        }
+        .btn:hover {
+            background: var(--green-dark);
+        }
+        .footer {
+            margin-top: 40px;
+            font-size: 12px;
+            color: #9E9E9E;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="icon">👥</div>
+        <h1>Join Group</h1>
+        <p>You've been invited to join a Splitwise group on SpendWise. Tap the button below to open the app and join.</p>
+        <a id="joinBtn" href="#" class="btn">Open SpendWise</a>
+        <div class="footer">SpendWise · Track · Save · Grow 💚</div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const groupId = urlParams.get('id');
+        if (groupId) {
+            const appLink = "spendwise://join?id=" + groupId;
+            document.getElementById('joinBtn').href = appLink;
+            // Attempt auto-redirect
+            window.location.href = appLink;
+        }
+    </script>
+</body>
+</html>

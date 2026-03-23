@@ -9,10 +9,13 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.tech.spendwise.utils.UIUtils
 import androidx.navigation.fragment.findNavController
+import androidx.lifecycle.lifecycleScope
+
+import kotlinx.coroutines.launch
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.firebase.auth.FirebaseAuth
+import com.tech.spendwise.SupabaseInstance
 import com.tech.spendwise.databinding.FragmentLendHistoryBinding
 import com.tech.spendwise.models.LendTransaction
 
@@ -21,7 +24,7 @@ class LendHistoryFragment : Fragment() {
     private var _binding: FragmentLendHistoryBinding? = null
     private val binding get() = _binding!!
 
-    private val firestoreRepository = FirestoreRepository()
+    private val supabaseRepository = SupabaseRepository()
     private val adapter = LendListAdapter()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -124,8 +127,10 @@ class LendHistoryFragment : Fragment() {
     }
 
     private fun markAsReturned(lend: LendTransaction) {
-        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
-        firestoreRepository.updateLendStatus(uid, lend.id!!, true) {
+        val uid = SupabaseInstance.currentUserId() ?: return
+        lifecycleScope.launch {
+            supabaseRepository.updateLendStatus(lend.id!!, true)
+            // ...
             _binding?.let {
                 lend.id?.let { id ->
                     ReminderManager.cancelReminder(requireContext(), id)
@@ -143,8 +148,9 @@ class LendHistoryFragment : Fragment() {
             "Delete",
             "Cancel"
         ) {
-            val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return@showAlertDialog
-            firestoreRepository.deleteLend(uid, lend.id!!) {
+            val uid = SupabaseInstance.currentUserId() ?: return@showAlertDialog
+            lifecycleScope.launch {
+                supabaseRepository.deleteLend(lend.id!!)
                 _binding?.let {
                     lend.id?.let { id ->
                         ReminderManager.cancelReminder(requireContext(), id)
@@ -159,28 +165,31 @@ class LendHistoryFragment : Fragment() {
     }
 
     private fun fetchLends() {
-        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
-        
         binding.shimmerViewContainer.visibility = View.VISIBLE
         binding.shimmerViewContainer.startShimmer()
         binding.lendRecyclerView.visibility = View.GONE
         binding.emptyState.visibility = View.GONE
 
-        firestoreRepository.fetchLends(uid) { result ->
-            _binding?.let { binding ->
-                binding.shimmerViewContainer.stopShimmer()
-                binding.shimmerViewContainer.visibility = View.GONE
-                binding.lendRecyclerView.visibility = View.VISIBLE
-                
-                result.onSuccess { lends ->
+        lifecycleScope.launch {
+            try {
+                val lends = supabaseRepository.fetchLends()
+                _binding?.let { binding ->
+                    binding.shimmerViewContainer.stopShimmer()
+                    binding.shimmerViewContainer.visibility = View.GONE
+                    binding.lendRecyclerView.visibility = View.VISIBLE
+                    
                     if (lends.isEmpty()) {
                         binding.emptyState.visibility = View.VISIBLE
                     } else {
                         binding.emptyState.visibility = View.GONE
                         adapter.submitList(lends)
                     }
-                }.onFailure { e ->
-                    Log.e("LendHistoryFragment", "Error fetching lends: ${e.message}")
+                }
+            } catch (e: Exception) {
+                Log.e("LendHistoryFragment", "Error fetching lends: ${e.message}")
+                _binding?.let { binding ->
+                    binding.shimmerViewContainer.stopShimmer()
+                    binding.shimmerViewContainer.visibility = View.GONE
                     binding.emptyState.visibility = View.VISIBLE
                 }
             }

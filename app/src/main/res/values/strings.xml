@@ -163,5 +163,11 @@
     <string name="dialog_clear_all_message">This will permanently delete all your transactions, lends, and Splitwise records from both your device and the cloud. This action cannot be undone.</string>
     <string name="action_clear_everything">Clear Everything</string>
     <string name="msg_data_cleared">All data cleared successfully</string>
+    
+    <!-- Greetings -->
+    <string name="greeting_morning">Good Morning</string>
+    <string name="greeting_afternoon">Good Afternoon</string>
+    <string name="greeting_evening">Good Evening</string>
+    <string name="greeting_night">Good Night</string>
 
 </resources>
