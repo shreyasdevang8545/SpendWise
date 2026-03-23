@@ -272,11 +272,40 @@ class SupabaseRepository {
         val uid = SupabaseInstance.currentUserId() ?: return@withContext
         try {
             postgrest.from("transactions").delete { filter { eq("uid", uid) } }
-            // public_lends are harder to delete by UID if we don't have uid column there.
-            // But we can join or just assume they are tied to lends.
-            // If we added uid to public_lends in schema, it would be easier.
+            postgrest.from("feedbacks").delete { filter { eq("uid", uid) } }
         } catch (e: Exception) {
             Log.e(TAG, "Error clearing user data", e)
+        }
+    }
+
+    // ── Feedbacks ─────────────────────────────────────────────────────────
+
+    suspend fun saveFeedback(message: String) = withContext(Dispatchers.IO) {
+        val uid = SupabaseInstance.currentUserId() ?: return@withContext
+        try {
+            val feedback = buildJsonObject {
+                put("uid", uid)
+                put("message", message)
+                put("status", "pending")
+                put("created_at", System.currentTimeMillis())
+                put("updated_at", System.currentTimeMillis())
+            }
+            postgrest.from("feedbacks").insert(feedback)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error saving feedback", e)
+        }
+    }
+
+    suspend fun fetchFeedbacks(): List<JsonObject> = withContext(Dispatchers.IO) {
+        val uid = SupabaseInstance.currentUserId() ?: return@withContext emptyList()
+        try {
+            postgrest.from("feedbacks").select {
+                filter { eq("uid", uid) }
+                order("created_at", Order.DESCENDING)
+            }.decodeList<JsonObject>()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error fetching feedbacks", e)
+            emptyList()
         }
     }
 }

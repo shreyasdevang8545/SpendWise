@@ -153,9 +153,6 @@
             android:id="@+id/action_settings_to_bankSenders"
             app:destination="@id/bankSendersFragment" />
         <action
-            android:id="@+id/action_settings_to_budgetAlerts"
-            app:destination="@id/budgetAlertsFragment" />
-        <action
             android:id="@+id/action_settings_to_backupRestore"
             app:destination="@id/backupRestoreFragment" />
         <action
@@ -164,6 +161,15 @@
         <action
             android:id="@+id/action_settings_to_about"
             app:destination="@id/aboutFragment" />
+        <action
+            android:id="@+id/action_settings_to_monthlyReport"
+            app:destination="@id/monthlyReportFragment" />
+        <action
+            android:id="@+id/action_settings_to_feedback"
+            app:destination="@id/feedbackFragment" />
+        <action
+            android:id="@+id/action_settings_to_privacyPolicy"
+            app:destination="@id/privacyPolicyFragment" />
     </fragment>
 
     <fragment
@@ -186,10 +192,12 @@
         android:name="com.tech.spendwise.BankSendersFragment"
         android:label="Manage Bank Senders" />
 
+
     <fragment
-        android:id="@+id/budgetAlertsFragment"
-        android:name="com.tech.spendwise.BudgetAlertsFragment"
-        android:label="Budget Alerts" />
+        android:id="@+id/monthlyReportFragment"
+        android:name="com.tech.spendwise.MonthlyReportFragment"
+        android:label="Monthly Report"
+        tools:layout="@layout/fragment_monthly_report" />
 
     <fragment
         android:id="@+id/budgetDashboardFragment"
@@ -331,5 +339,17 @@
         <argument android:name="note"        app:argType="string" android:defaultValue="" />
         <argument android:name="status"      app:argType="string" android:defaultValue="pending" />
     </fragment>
+
+    <fragment
+        android:id="@+id/feedbackFragment"
+        android:name="com.tech.spendwise.FeedbackFragment"
+        android:label="Send Feedback"
+        tools:layout="@layout/fragment_feedback" />
+
+    <fragment
+        android:id="@+id/privacyPolicyFragment"
+        android:name="com.tech.spendwise.PrivacyPolicyFragment"
+        android:label="Privacy Policy"
+        tools:layout="@layout/fragment_privacy_policy" />
 
 </navigation>

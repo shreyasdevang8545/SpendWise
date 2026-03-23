@@ -41,6 +41,7 @@ class SettingsFragment : Fragment() {
         populateGeneralSection()
         populateSmsSection()
         populateNotificationsSection()
+        populateMonthlyReportSection()
         populateDataPrivacySection()
         populateSupportSection()
         setupClickListeners()
@@ -103,6 +104,15 @@ class SettingsFragment : Fragment() {
         }
     }
 
+    private fun populateMonthlyReportSection() {
+        binding.itemMonthlyReport.apply {
+            rowTitle.text = getString(R.string.title_monthly_report)
+            rowSubtitle.text = getString(R.string.subtitle_monthly_report)
+            rowIcon.setImageResource(R.drawable.ic_history)
+            root.setOnClickListener { findNavController().navigate(R.id.action_settings_to_monthlyReport) }
+        }
+    }
+
     private fun populateNotificationsSection() {
         lifecycleScope.launch {
             binding.itemTransactionAlerts.apply {
@@ -113,23 +123,6 @@ class SettingsFragment : Fragment() {
                 rowSwitch.setOnCheckedChangeListener { _, isChecked ->
                     lifecycleScope.launch { settingsManager.setBoolean(SettingsManager.TRANSACTION_ALERTS, isChecked) }
                 }
-            }
-            binding.itemBudgetAlerts.apply {
-                rowTitle.text = getString(R.string.title_budget_alerts)
-                rowSubtitle.text = getString(R.string.subtitle_budget_alerts)
-                rowIcon.setImageResource(R.drawable.ic_timer)
-                rowBadge.visibility = View.VISIBLE
-                lifecycleScope.launch {
-                    val currentLimit = settingsManager.overallBudgetLimit.first()
-                    if (currentLimit > 0f) {
-                        rowBadge.text = getString(R.string.budget_limit_set, "₹" + currentLimit.toInt().toString())
-                        rowBadge.backgroundTintList = android.content.res.ColorStateList.valueOf(0x334CAF50.toInt()) // Green
-                    } else {
-                        rowBadge.text = getString(R.string.budget_not_set)
-                        rowBadge.backgroundTintList = android.content.res.ColorStateList.valueOf(0x33FF9800.toInt()) // Orange
-                    }
-                }
-                root.setOnClickListener { findNavController().navigate(R.id.action_settings_to_budgetAlerts) }
             }
             binding.itemMonthlySummary.apply {
                 rowTitle.text = getString(R.string.title_monthly_summary)
@@ -282,11 +275,13 @@ class SettingsFragment : Fragment() {
             rowTitle.text = getString(R.string.title_feedback)
             rowSubtitle.text = getString(R.string.subtitle_feedback)
             rowIcon.setImageResource(R.drawable.ic_chat)
+            root.setOnClickListener { findNavController().navigate(R.id.action_settings_to_feedback) }
         }
         binding.itemPrivacyPolicy.apply {
             rowTitle.text = getString(R.string.title_privacy_policy)
             rowSubtitle.text = getString(R.string.subtitle_privacy_policy)
             rowIcon.setImageResource(R.drawable.ic_policy)
+            root.setOnClickListener { findNavController().navigate(R.id.action_settings_to_privacyPolicy) }
         }
         binding.itemRate.apply {
             rowTitle.text = getString(R.string.title_rate)

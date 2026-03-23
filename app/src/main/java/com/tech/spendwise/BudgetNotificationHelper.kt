@@ -123,7 +123,7 @@ object BudgetNotificationHelper {
         )
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notifications) // Use existing notification icon or fallback
+            .setSmallIcon(R.drawable.ic_account_balance) // Use consistent financial icon
             .setContentTitle(title)
             .setContentText(message)
             .setStyle(NotificationCompat.BigTextStyle().bigText(message))

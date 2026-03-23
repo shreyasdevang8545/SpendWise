@@ -236,7 +236,7 @@ class SmsReceiver : BroadcastReceiver() {
         )
 
         val notification = androidx.core.app.NotificationCompat.Builder(context, MainActivity.TRANSACTION_CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setSmallIcon(R.drawable.ic_account_balance)
             .setContentTitle("New Transaction Detected")
             .setContentText(contentText)
             .setPriority(androidx.core.app.NotificationCompat.PRIORITY_HIGH)
