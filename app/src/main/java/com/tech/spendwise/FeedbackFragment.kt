@@ -105,7 +105,10 @@ class FeedbackFragment : Fragment() {
             val message = item["message"]?.jsonPrimitive?.content ?: ""
             val reply = item["reply"]?.jsonPrimitive?.contentOrNull
             val status = item["status"]?.jsonPrimitive?.content ?: "pending"
-            val createdAt = item["created_at"]?.jsonPrimitive?.long ?: 0L
+            val rawDate = item["created_at"]?.jsonPrimitive?.content ?: ""
+            val createdAt = rawDate.toLongOrNull() ?: try {
+                SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()).parse(rawDate.take(19))?.time ?: 0L
+            } catch (e: Exception) { 0L }
 
             holder.binding.tvMessage.text = message
             holder.binding.tvDate.text = SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault()).format(Date(createdAt))

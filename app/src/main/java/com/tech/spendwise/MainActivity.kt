@@ -37,6 +37,7 @@ import android.text.TextWatcher
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import com.google.android.material.textfield.TextInputLayout
+import com.google.firebase.messaging.FirebaseMessaging
 
 import androidx.activity.viewModels
 import com.tech.spendwise.utils.UIUtils
@@ -151,6 +152,7 @@ class MainActivity : AppCompatActivity() {
         requestNotificationPermission()
         registerSmsReceiver()
         createNotificationChannel()
+        initFcm()
  
         // Set up Bottom Navigation
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
@@ -302,6 +304,26 @@ class MainActivity : AppCompatActivity() {
                 description = "Notifications when you exceed your set budget limits."
             }
             notificationManager.createNotificationChannel(budgetChannel)
+        }
+    }
+
+    private fun initFcm() {
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (!task.isSuccessful) {
+                Log.w(TAG, "Fetching FCM registration token failed", task.exception)
+                return@addOnCompleteListener
+            }
+
+            // Get new FCM registration token
+            val token = task.result
+            Log.d(TAG, "FCM Token: $token")
+
+            // Save to Supabase
+            lifecycleScope.launch {
+                if (SupabaseInstance.isLoggedIn()) {
+                    FcmTokenRepository().saveToken(token)
+                }
+            }
         }
     }
 

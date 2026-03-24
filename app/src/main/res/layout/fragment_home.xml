@@ -67,8 +67,6 @@
                     android:textColor="@color/white"
                     android:textSize="18sp"
                     android:textStyle="bold"
-                    android:alpha="0"
-                    android:visibility="gone"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/appTitle"
                     tools:text="Good Morning, Shreyas!"

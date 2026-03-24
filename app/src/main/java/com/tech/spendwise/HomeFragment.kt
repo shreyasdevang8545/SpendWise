@@ -177,22 +177,6 @@ class HomeFragment : Fragment() {
         }
         
         binding.greetingText.text = message
-        binding.greetingText.visibility = View.VISIBLE
-        binding.greetingText.animate()
-            .alpha(1f)
-            .setDuration(500)
-            .setListener(null)
-        
-        Handler(Looper.getMainLooper()).postDelayed({
-            if (_binding != null) {
-                binding.greetingText.animate()
-                    .alpha(0f)
-                    .setDuration(500)
-                    .withEndAction {
-                        binding.greetingText.visibility = View.GONE
-                    }
-            }
-        }, 5000)
     }
 
     private fun refreshSummary() {

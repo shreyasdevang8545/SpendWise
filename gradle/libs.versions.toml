@@ -31,6 +31,8 @@ glance = "1.1.1"
 work = "2.10.0"
 shimmer = "0.5.0"
 play-services-mlkit-text-recognition = "19.0.1"
+firebase-bom = "33.9.0"
+google-services = "4.4.2"
 
 [libraries]
 androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "biometric" }
@@ -82,6 +84,8 @@ glance-appwidget = { group = "androidx.glance", name = "glance-appwidget", versi
 glance = { group = "androidx.glance", name = "glance", version.ref = "glance" }
 work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "work" }
 play-services-mlkit-text-recognition = { group = "com.google.android.gms", name = "play-services-mlkit-text-recognition", version.ref = "play-services-mlkit-text-recognition" }
+firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebase-bom" }
+firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging-ktx" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -89,3 +93,4 @@ kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "serialization" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 navigation-safe-args = { id = "androidx.navigation.safeargs.kotlin", version.ref = "navigation" }
+google-services = { id = "com.google.gms.google-services", version.ref = "google-services" }

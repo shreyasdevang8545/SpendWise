@@ -337,30 +337,8 @@ class AddLendFragment : Fragment() {
             note        = "" // Default empty note for now, as there's no input field
         )
 
-        // ── Save to Supabase (and linked transaction) ──
+        // ── Save via ViewModel (handles cloud sync & offline fallback) ──
         viewModel.saveLend(lend)
-
-        // ── Add to local UI flow without triggering another cloud sync ──
-        val timestamp = SimpleDateFormat(
-            "yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()
-        ).format(Date())
-
-        fun String.esc() = replace("\\", "\\\\").replace("\"", "\\\"")
-
-        val lendJson = """
-            {
-              "amount": $amount,
-              "type": "DEBIT",
-              "merchant": "${name.esc()}",
-              "category": "Lend",
-              "payment_mode": "${paymentMode.esc()}",
-              "currency": "INR",
-              "saved_at": "$timestamp",
-              "is_lend": true,
-              "lend_name": "${name.esc()}"
-            }
-        """.trimIndent()
-        viewModel.addConfirmedTransaction(lendJson, syncToCloud = false)
 
         // ── Schedule return date reminder notification ──
         ReminderManager.scheduleReminder(

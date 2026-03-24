@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.navigation.safe.args)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.google.services)
     id("kotlin-parcelize")
 }
 
@@ -94,6 +95,10 @@ dependencies {
 
     // ML Kit Text Recognition
     implementation(libs.play.services.mlkit.text.recognition)
+
+    // Firebase Messaging
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
 
     // JUnit 4 — kept for existing ExampleUnitTest
     testImplementation(libs.junit)

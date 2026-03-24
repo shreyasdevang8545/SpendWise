@@ -150,15 +150,54 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
      */
     fun saveLend(lend: com.tech.spendwise.models.LendTransaction) {
         viewModelScope.launch {
-            try {
-                _isLoading.postValue(true)
-                supabaseRepository.saveLend(lend)
-                fetchFromFirestore()
-            } catch (e: Exception) {
-                Log.e("TransactionVM", "Save lend failed: ${e.message}")
-            } finally {
+            _isLoading.postValue(true)
+            val uid = SupabaseInstance.currentUserId()
+            
+            if (uid != null) {
+                try {
+                    supabaseRepository.saveLend(lend)
+                    Log.d("TransactionVM", "Lend synced successfully")
+                    fetchFromFirestore()
+                } catch (e: Exception) {
+                    Log.e("TransactionVM", "Lend Sync failed: ${e.message}")
+                    // Fallback to local
+                    saveLendLocally(lend)
+                } finally {
+                    _isLoading.postValue(false)
+                }
+            } else {
+                saveLendLocally(lend)
                 _isLoading.postValue(false)
             }
+        }
+    }
+
+    private fun saveLendLocally(lend: com.tech.spendwise.models.LendTransaction) {
+        viewModelScope.launch {
+             val timestamp = java.text.SimpleDateFormat(
+                "yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.getDefault()
+            ).format(java.util.Date())
+
+            fun String.esc() = replace("\\", "\\\\").replace("\"", "\\\"")
+
+            val json = """
+                {
+                  "amount": ${lend.amount},
+                  "type": "DEBIT",
+                  "merchant": "${lend.name.esc()}",
+                  "category": "Lend",
+                  "payment_mode": "${lend.paymentMode.esc()}",
+                  "currency": "INR",
+                  "saved_at": "$timestamp",
+                  "is_lend": true,
+                  "lend_name": "${lend.name.esc()}",
+                  "phone_number": "${(lend.phoneNumber ?: "").esc()}",
+                  "note": "${(lend.note ?: "").esc()}",
+                  "return_date": ${lend.returnDate},
+                  "created_at": ${if (lend.createdAt > 0) lend.createdAt else System.currentTimeMillis()}
+                }
+            """.trimIndent()
+            repository.addConfirmedTransaction(json)
         }
     }
 

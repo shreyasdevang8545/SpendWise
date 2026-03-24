@@ -39,10 +39,23 @@ class SupabaseRepository {
                 put("uid", uid)
                 encryptedMap.forEach { (k, v) ->
                     if (allowedColumns.contains(k)) {
-                        when (v) {
-                            is String -> put(k, v)
-                            is Number -> put(k, v)
-                            is Boolean -> put(k, v)
+                        // Some timestamps might come as strings from AddTransactionFragment
+                        // or as Long strings from saveLend. We ensure they are ISO 8601.
+                        val valueToPut = if (k == "saved_at" || k == "created_at" || k == "return_date") {
+                            val raw = v?.toString() ?: ""
+                            if (raw.all { it.isDigit() } && raw.length >= 10) {
+                                formatTimestamp(raw.toLong())
+                            } else {
+                                v
+                            }
+                        } else {
+                            v
+                        }
+
+                        when (valueToPut) {
+                            is String -> put(k, valueToPut)
+                            is Number -> put(k, valueToPut)
+                            is Boolean -> put(k, valueToPut)
                             null -> put(k, JsonNull)
                         }
                     }
@@ -96,14 +109,14 @@ class SupabaseRepository {
                 put("category", "Lend")
                 put("payment_mode", lend.paymentMode)
                 put("currency", "INR")
-                put("saved_at", System.currentTimeMillis())
+                put("saved_at", formatTimestamp(System.currentTimeMillis()))
                 put("is_lend", true)
                 put("lend_name", lend.name)
                 put("phone_number", lend.phoneNumber ?: "")
                 put("note", lend.note ?: "")
-                put("return_date", lend.returnDate)
+                put("return_date", if (lend.returnDate > 0) formatTimestamp(lend.returnDate) else "null")
                 put("is_returned", lend.isReturned)
-                put("created_at", lend.createdAt)
+                put("created_at", formatTimestamp(if (lend.createdAt > 0) lend.createdAt else System.currentTimeMillis()))
             }.toString()
             
             val transactionId = saveTransaction(unifiedJson)
@@ -127,10 +140,10 @@ class SupabaseRepository {
                 put("amount", lend.amount)
                 put("note", lend.note)
                 put("payment_mode", lend.paymentMode)
-                put("return_date", lend.returnDate)
+                put("return_date", if (lend.returnDate > 0) formatTimestamp(lend.returnDate) else null)
                 put("is_returned", lend.isReturned)
-                put("created_at", lend.createdAt)
-                put("updated_at", System.currentTimeMillis())
+                put("created_at", formatTimestamp(if (lend.createdAt > 0) lend.createdAt else System.currentTimeMillis()))
+                put("updated_at", formatTimestamp(System.currentTimeMillis()))
             }
             postgrest.from("public_lends").upsert(json)
         } catch (e: Exception) {
@@ -178,10 +191,11 @@ class SupabaseRepository {
 
     suspend fun updateLendReturnDate(lendId: String, date: Long) = withContext(Dispatchers.IO) {
         try {
-            postgrest.from("transactions").update(buildJsonObject { put("return_date", date) }) {
+            val isoDate = formatTimestamp(date)
+            postgrest.from("transactions").update(buildJsonObject { put("return_date", isoDate) }) {
                 filter { eq("id", lendId) }
             }
-            postgrest.from("public_lends").update(buildJsonObject { put("return_date", date) }) {
+            postgrest.from("public_lends").update(buildJsonObject { put("return_date", isoDate) }) {
                 filter { eq("id", lendId) }
             }
         } catch (e: Exception) {
@@ -251,10 +265,21 @@ class SupabaseRepository {
             val json = buildJsonObject {
                 encryptedMap.forEach { (k, v) ->
                     if (allowedColumns.contains(k)) {
-                        when (v) {
-                            is String -> put(k, v)
-                            is Number -> put(k, v)
-                            is Boolean -> put(k, v)
+                        val valueToPut = if (k == "saved_at") {
+                            val raw = v?.toString() ?: ""
+                            if (raw.all { it.isDigit() } && raw.length >= 10) {
+                                formatTimestamp(raw.toLong())
+                            } else {
+                                v
+                            }
+                        } else {
+                            v
+                        }
+
+                        when (valueToPut) {
+                            is String -> put(k, valueToPut)
+                            is Number -> put(k, valueToPut)
+                            is Boolean -> put(k, valueToPut)
                             null -> put(k, JsonNull)
                         }
                     }
@@ -287,8 +312,8 @@ class SupabaseRepository {
                 put("uid", uid)
                 put("message", message)
                 put("status", "pending")
-                put("created_at", System.currentTimeMillis())
-                put("updated_at", System.currentTimeMillis())
+                put("created_at", formatTimestamp(System.currentTimeMillis()))
+                put("updated_at", formatTimestamp(System.currentTimeMillis()))
             }
             postgrest.from("feedbacks").insert(feedback)
         } catch (e: Exception) {
@@ -307,5 +332,17 @@ class SupabaseRepository {
             Log.e(TAG, "Error fetching feedbacks", e)
             emptyList()
         }
+    }
+
+    private fun formatTimestamp(ms: Long): String {
+        return java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.getDefault())
+            .format(java.util.Date(ms))
+    }
+
+    private fun parseIsoDateToLong(raw: String?): Long {
+        if (raw == null || raw.isBlank()) return 0L
+        return raw.toLongOrNull() ?: try {
+            java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.getDefault()).parse(raw.take(19))?.time ?: 0L
+        } catch (e: Exception) { 0L }
     }
 }

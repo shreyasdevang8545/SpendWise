@@ -9,5 +9,6 @@ data class SplitGroup(
     val uid: String = "",
     val members: List<String> = emptyList(),
     val memberMappings: Map<String, String> = emptyMap(), // UID -> Name
+    val participants: List<String> = emptyList(),
     val createdAt: Long = System.currentTimeMillis()
 )

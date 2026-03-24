@@ -117,7 +117,15 @@ object TransactionCrypto {
             
             val amountRaw = map["amount"]?.toString() ?: return null
             val lendNameRaw = map["lend_name"]?.toString() ?: ""
-            
+            val returnDateRaw = map["return_date"]?.toString() ?: "0"
+            val createdAtRaw = map["created_at"]?.toString() ?: map["saved_at"]?.toString() ?: "0"
+
+            fun parse(raw: String): Long {
+                return raw.toLongOrNull() ?: try {
+                    java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.getDefault()).parse(raw.take(19))?.time ?: 0L
+                } catch (e: Exception) { 0L }
+            }
+
             com.tech.spendwise.models.LendTransaction(
                 id = id,
                 name = if (lendNameRaw.isNotEmpty()) decryptField(lendNameRaw, uid) else "",
@@ -125,9 +133,9 @@ object TransactionCrypto {
                 paymentMode = decryptField(map["payment_mode"]?.toString() ?: "", uid),
                 phoneNumber = decryptField(map["phone_number"]?.toString() ?: "", uid),
                 note = decryptField(map["note"]?.toString() ?: "", uid),
-                returnDate = map["return_date"]?.toString()?.toLongOrNull() ?: 0L,
+                returnDate = parse(returnDateRaw),
                 isReturned = map["is_returned"]?.toString()?.toBoolean() ?: false,
-                createdAt = map["created_at"]?.toString()?.toLongOrNull() ?: map["saved_at"]?.toString()?.toLongOrNull() ?: 0L,
+                createdAt = parse(createdAtRaw),
                 transactionId = id
             )
         } catch (e: Exception) {
