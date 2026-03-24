@@ -99,6 +99,9 @@ dependencies {
     // Firebase Messaging
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.messaging)
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.googleid)
 
     // JUnit 4 — kept for existing ExampleUnitTest
     testImplementation(libs.junit)

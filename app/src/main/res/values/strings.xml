@@ -172,5 +172,8 @@
     <string name="greeting_afternoon">Good Afternoon</string>
     <string name="greeting_evening">Good Evening</string>
     <string name="greeting_night">Good Night</string>
-
+ 
+    <!-- Google Auth (REPLACE WITH YOUR WEB CLIENT ID) -->
+    <string name="google_web_client_id">328976930978-nkamo1aciu57umoldi20r4i807440e7p.apps.googleusercontent.com</string>
+ 
 </resources>

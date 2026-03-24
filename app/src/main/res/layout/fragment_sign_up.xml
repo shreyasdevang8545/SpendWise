@@ -31,62 +31,65 @@
     <!-- Full Name Input -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/nameInputLayout"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        style="@style/Widget_SpendWise_TextInputLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="40dp"
+        app:errorEnabled="true"
         android:hint="Full Name">
-
+ 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/nameEditText"
+            style="@style/Widget_SpendWise_TextInputEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textPersonName"
-            android:maxLines="1"
-            android:textColor="@color/text_primary"
-            android:textSize="16sp" />
-
+            android:imeOptions="actionNext"
+            android:maxLines="1" />
+ 
     </com.google.android.material.textfield.TextInputLayout>
 
     <!-- Email Input -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/emailInputLayout"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        style="@style/Widget_SpendWise_TextInputLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
+        app:errorEnabled="true"
         android:hint="Email Address">
-
+ 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/emailEditText"
+            style="@style/Widget_SpendWise_TextInputEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textEmailAddress"
-            android:maxLines="1"
-            android:textColor="@color/text_primary"
-            android:textSize="16sp" />
-
+            android:imeOptions="actionNext"
+            android:maxLines="1" />
+ 
     </com.google.android.material.textfield.TextInputLayout>
 
     <!-- Password Input -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/passwordInputLayout"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        style="@style/Widget_SpendWise_TextInputLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:hint="Password"
+        app:errorEnabled="true"
         app:passwordToggleEnabled="true">
-
+ 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/passwordEditText"
+            style="@style/Widget_SpendWise_TextInputEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textPassword"
-            android:maxLines="1"
-            android:textColor="@color/text_primary"
-            android:textSize="16sp" />
-
+            android:imeOptions="actionDone"
+            android:maxLines="1" />
+ 
     </com.google.android.material.textfield.TextInputLayout>
 
     <!-- Sign Up Button -->
@@ -97,6 +100,30 @@
         android:layout_height="56dp"
         android:layout_marginTop="32dp"
         android:text="Create Account"
+        android:textSize="16sp" />
+ 
+    <!-- Divider -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+        <View android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1" android:background="#33FFFFFF" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:padding="8dp" android:text="OR" android:textColor="@color/text_secondary" android:textSize="12sp" />
+        <View android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1" android:background="#33FFFFFF" />
+    </LinearLayout>
+ 
+    <!-- Google Sign In Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/googleSignInButton"
+        style="@style/Widget.SpendWise.Button.Outlined"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginTop="8dp"
+        android:text="Continue with Google"
+        app:icon="@drawable/ic_google"
+        app:iconGravity="textStart"
         android:textSize="16sp" />
 
     <!-- Progress -->

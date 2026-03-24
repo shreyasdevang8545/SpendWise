@@ -9,6 +9,15 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.tech.spendwise.utils.UIUtils
 import com.tech.spendwise.databinding.FragmentLoginBinding
+import androidx.core.widget.doAfterTextChanged
+import android.view.inputmethod.EditorInfo
+import androidx.credentials.CredentialManager
+import androidx.credentials.GetCredentialRequest
+import androidx.lifecycle.lifecycleScope
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import kotlinx.coroutines.launch
+import android.util.Log
 
 /**
  * Screen 1 of auth flow: user enters email/password or chooses Google Sign-In.
@@ -61,7 +70,63 @@ class LoginFragment : Fragment() {
         }
 
         binding.googleSignInButton.setOnClickListener {
-            authViewModel.signInWithGoogle()
+            handleGoogleSignIn()
+        }
+ 
+        setupTextFields()
+    }
+ 
+    private fun handleGoogleSignIn() {
+        val credentialManager = CredentialManager.create(requireContext())
+        
+        val googleIdOption = GetGoogleIdOption.Builder()
+            .setFilterByAuthorizedAccounts(false)
+            .setServerClientId(getString(R.string.google_web_client_id))
+            .setAutoSelectEnabled(false)
+            .build()
+ 
+        val request = GetCredentialRequest.Builder()
+            .addCredentialOption(googleIdOption)
+            .build()
+ 
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val result = credentialManager.getCredential(requireContext(), request)
+                val credential = result.credential
+                
+                if (credential is GoogleIdTokenCredential) {
+                    val idToken = credential.idToken
+                    authViewModel.signInWithGoogle(idToken)
+                } else {
+                    Log.e("LoginFragment", "Unexpected credential type: ${credential.type}")
+                    UIUtils.showErrorSnackbar(binding.root, "Google Sign-In failed: Unexpected response")
+                }
+            } catch (e: Exception) {
+                Log.e("LoginFragment", "Google Sign-In Error", e)
+                // If the user hasn't replaced the placeholder, show a more helpful message
+                val errorMessage = if (getString(R.string.google_web_client_id) == "YOUR_WEB_CLIENT_ID_HERE") {
+                    "Google Sign-In is not configured yet (missing Web Client ID)."
+                } else {
+                    e.message ?: "Google Sign-In failed"
+                }
+                UIUtils.showErrorSnackbar(binding.root, errorMessage)
+            }
+        }
+    }
+ 
+    private fun setupTextFields() {
+        binding.emailEditText.doAfterTextChanged {
+            binding.emailInputLayout.error = null
+        }
+        binding.passwordEditText.doAfterTextChanged {
+            binding.passwordInputLayout.error = null
+        }
+ 
+        binding.passwordEditText.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                performLogin()
+                true
+            } else false
         }
     }
 

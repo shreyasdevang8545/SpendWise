@@ -80,42 +80,44 @@
     <!-- Email Input -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/emailInputLayout"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        style="@style/Widget_SpendWise_TextInputLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
+        app:errorEnabled="true"
         android:hint="Email Address">
-
+ 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/emailEditText"
+            style="@style/Widget_SpendWise_TextInputEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textEmailAddress"
-            android:maxLines="1"
-            android:textColor="@color/text_primary"
-            android:textSize="16sp" />
-
+            android:imeOptions="actionNext"
+            android:maxLines="1" />
+ 
     </com.google.android.material.textfield.TextInputLayout>
 
     <!-- Password Input -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/passwordInputLayout"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        style="@style/Widget_SpendWise_TextInputLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:hint="Password"
+        app:errorEnabled="true"
         app:passwordToggleEnabled="true">
-
+ 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/passwordEditText"
+            style="@style/Widget_SpendWise_TextInputEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textPassword"
-            android:maxLines="1"
-            android:textColor="@color/text_primary"
-            android:textSize="16sp" />
-
+            android:imeOptions="actionDone"
+            android:maxLines="1" />
+ 
     </com.google.android.material.textfield.TextInputLayout>
 
     <!-- Sign In Button -->

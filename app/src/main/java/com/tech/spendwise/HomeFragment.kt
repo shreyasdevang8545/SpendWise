@@ -254,8 +254,12 @@ class HomeFragment : Fragment() {
 
                 if (isSameMonth(savedAt, currentYear, currentMonth)) {
                     val isLend = data["is_lend"] == "true" || data["category"] == "Lend"
+                    val isRepayment = data["category"] == "Lend Repayment"
+                    
                     if (type.equals("CREDIT", ignoreCase = true)) {
-                        totalIncome += amount
+                        if (!isRepayment) {
+                            totalIncome += amount
+                        }
                     } else if (type.equals("DEBIT", ignoreCase = true)) {
                         if (!isLend) {
                             totalSpent += amount
@@ -471,8 +475,13 @@ class HomeFragment : Fragment() {
                 val isLend = data["is_lend"] == "true" || data["category"] == "Lend"
                 
                 if (isSameDay(savedAt, targetCal)) {
+                    val isLend = data["is_lend"] == "true" || data["category"] == "Lend"
+                    val isRepayment = data["category"] == "Lend Repayment"
+                    
                     if (type.equals("CREDIT", ignoreCase = true)) {
-                        income += amount
+                        if (!isRepayment) {
+                            income += amount
+                        }
                     } else if (type.equals("DEBIT", ignoreCase = true)) {
                         if (!isLend) {
                             spent += amount
@@ -481,12 +490,15 @@ class HomeFragment : Fragment() {
                 }
             }
             
+            // Lends are now handled by the user request to NOT show in graphs as spent
+            // We can add logic here if we want to show it in a separate color, but for now we exclude as requested
+            /*
             lends.forEach { lend ->
                 if (isSameDay(lend.createdAt, targetCal)) {
-                    spent += lend.amount // Lending is an outflow, but now handled separately if we wanted, 
-                                       // for now we keep it in "spent" for the graph color but avoid double counting
+                    spent += lend.amount 
                 }
             }
+            */
             
             barDataList.add(BarData(dayName, income, spent))
         }

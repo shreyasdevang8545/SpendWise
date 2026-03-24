@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.Google
 import io.github.jan.supabase.auth.providers.builtin.Email
+import io.github.jan.supabase.auth.providers.builtin.IDToken
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.buildJsonObject
@@ -67,19 +68,19 @@ class AuthViewModel : ViewModel() {
     }
 
     /**
-     * Initiates Google Sign-In (handled by Supabase OAuth flow).
+     * Completes sign-in using a Google ID Token obtained from Credential Manager.
      */
-    fun signInWithGoogle() {
+    fun signInWithGoogle(idToken: String) {
         _authState.value = AuthState.Loading
         viewModelScope.launch {
             try {
-                // In a real Android app, you'd use a native Google Sign-In intent
-                // and then call Supabase with the ID Token.
-                // For simplicity, we trigger the OAuth flow.
-                SupabaseInstance.auth.signInWith(Google)
+                SupabaseInstance.auth.signInWith(IDToken) {
+                    this.idToken = idToken
+                    provider = Google
+                }
                 _authState.value = AuthState.Success
             } catch (e: Exception) {
-                _authState.value = AuthState.Error(e.message ?: "Google Login failed")
+                _authState.value = AuthState.Error(e.message ?: "Google Sign-In failed")
             }
         }
     }

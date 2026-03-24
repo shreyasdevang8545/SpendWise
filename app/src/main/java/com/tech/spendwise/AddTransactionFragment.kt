@@ -42,7 +42,7 @@ class AddTransactionFragment : Fragment() {
 
     private val categories = listOf(
         "Food", "Groceries", "Transport", "Bills", "Health",
-        "Entertainment", "Shopping", "Income", "Investment", "Others"
+        "Entertainment", "Shopping", "Income", "Investment", "Lend Repayment", "Others"
     )
 
     override fun onCreateView(

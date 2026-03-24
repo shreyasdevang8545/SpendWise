@@ -147,6 +147,11 @@ class BudgetDashboardFragment : Fragment() {
 
                     val amt = tx.optDouble("amount", 0.0)
                     val cat = tx.optString("category", "Others")
+                    
+                    // Filter out Lends - User requested to not consider them in budget
+                    val isLend = tx.optBoolean("is_lend", false) || cat == "Lend"
+                    if (isLend) continue
+
                     val savedAt = tx.optString("saved_at", "")
                     val dateTime = tx.optString("date_time", "")
 

@@ -156,6 +156,25 @@
     <style name="ShapeAppearance.SpendWise.Chip" parent="">
         <item name="cornerSize">10dp</item>
     </style>
+ 
+    <!-- Standardized Text Fields (Premium Look) -->
+    <style name="Widget_SpendWise_TextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxStrokeColor">@color/box_stroke_selector</item>
+        <item name="boxStrokeWidth">1dp</item>
+        <item name="boxStrokeWidthFocused">2dp</item>
+        <item name="boxCornerRadiusBottomEnd">12dp</item>
+        <item name="boxCornerRadiusBottomStart">12dp</item>
+        <item name="boxCornerRadiusTopEnd">12dp</item>
+        <item name="boxCornerRadiusTopStart">12dp</item>
+        <item name="hintTextColor">@color/primary_green</item>
+        <item name="android:textColorHint">@color/text_secondary</item>
+    </style>
+ 
+    <style name="Widget_SpendWise_TextInputEditText" parent="Widget.AppCompat.EditText">
+        <item name="android:textColor">@color/primary_green</item>
+        <item name="android:textSize">16sp</item>
+        <item name="fontFamily">@font/nunito_sans</item>
+    </style>
 
     <!-- Splash Screen Theme -->
     <style name="Theme.SpendWise.Splash" parent="Theme.Material3.Light.NoActionBar">
