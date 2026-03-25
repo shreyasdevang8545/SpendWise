@@ -908,48 +908,69 @@
 
   // ── Main Logic ──
   async function init() {
-    renderLend(); // Load initial URL data first (placeholders or from params)
+    renderLend(); 
 
     const lendId = p('id', '');
     if (lendId) {
       console.log("Fetching lend updates from Supabase:", lendId);
       
-      try {
-        const { data, error } = await supabaseClient
-          .from('public_lends')
-          .select('*')
-          .eq('id', lendId)
-          .single();
+      // 1. Initial Fetch
+      async function fetchData() {
+        try {
+          const { data, error } = await supabaseClient
+            .from('public_lends')
+            .select('*')
+            .eq('id', lendId)
+            .single();
 
-        if (error) {
-           console.error("Supabase fetch error:", error);
-           return;
+          if (error) {
+             console.error("Supabase fetch error:", error);
+             return;
+          }
+
+          if (data) {
+            updateLendObject(data);
+          }
+        } catch (err) {
+          console.error("Unexpected error:", err);
         }
-
-        if (data) {
-          console.log("Data received:", data);
-          
-          lend.name        = data.name;
-          lend.phone       = data.phone || lend.phone;
-          lend.note        = data.note || "—";
-          lend.initials    = getInitials(data.name);
-          lend.avatarColor = getAvatarColor(data.name);
-          lend.totalAmount = parseFloat(data.amount);
-          lend.status      = data.is_returned ? "settled" : "pending";
-          lend.paidAmount  = data.is_returned ? parseFloat(data.amount) : 0;
-          lend.returnLabel = formatTs(data.return_date);
-          lend.paymentMode = data.payment_mode;
-          lend.lentOn      = formatTs(data.created_at);
-          lend.createdAtRaw = data.created_at;
-          lend.returnDate  = data.return_date;
-          lend.updatedAt   = data.updated_at;
-
-          renderLend();
-        }
-      } catch (err) {
-        console.error("Unexpected error:", err);
       }
+
+      await fetchData();
+
+      // 2. Real-time Subscription
+      supabaseClient
+        .channel('public-lends-status')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'public_lends', filter: `id=eq.${lendId}` },
+          (payload) => {
+            console.log('Real-time update received:', payload);
+            if (payload.new) {
+              updateLendObject(payload.new);
+            }
+          }
+        )
+        .subscribe();
     }
+  }
+
+  function updateLendObject(data) {
+    lend.name        = data.name;
+    lend.phone       = data.phone || lend.phone;
+    lend.note        = data.note || "—";
+    lend.initials    = getInitials(data.name);
+    lend.avatarColor = getAvatarColor(data.name);
+    lend.totalAmount = parseFloat(data.amount);
+    lend.status      = data.is_returned ? "settled" : "pending";
+    lend.paidAmount  = data.is_returned ? parseFloat(data.amount) : 0;
+    lend.returnLabel = formatTs(data.return_date);
+    lend.paymentMode = data.payment_mode;
+    lend.lentOn      = formatTs(data.created_at);
+    lend.createdAtRaw = data.created_at;
+    lend.returnDate  = data.return_date;
+    lend.updatedAt   = data.updated_at;
+    renderLend();
   }
 
   function markSettled() {
