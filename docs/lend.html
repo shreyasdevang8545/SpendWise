@@ -841,10 +841,6 @@
     else if (lend.status === "partial") fill.classList.add("partial");
     else if (lend.status === "settled") fill.classList.add("settled");
 
-    // Stats
-    document.getElementById("statTotal").textContent       = "₹" + formatAmount(lend.totalAmount);
-    document.getElementById("statOutstanding").textContent = "₹" + formatAmount(remaining);
-
     // Days chip & Status Badge
     const today      = new Date();
     today.setHours(0,0,0,0);
@@ -863,8 +859,6 @@
       chip.classList.add("done-chip");
       badge.textContent = "Settled ✓";
       badge.classList.add("status-settled");
-      document.getElementById("statDays").textContent = "0";
-      document.getElementById("statDays").style.color = "var(--green-dark)";
       document.getElementById("tlSettledItem").style.display = "flex";
       document.getElementById("tlSettledDate").textContent = formatTs(lend.updatedAt || new Date());
       document.getElementById("tlDueDot").textContent = "✓";
@@ -875,8 +869,6 @@
       chip.classList.add("overdue-chip");
       badge.textContent = "Overdue";
       badge.classList.add("status-overdue");
-      document.getElementById("statDays").textContent = overdueDays;
-      document.getElementById("statDays").style.color = "var(--red)";
     } else {
       chip.textContent = diffDays === 0 ? "Due today!" : diffDays + " days left";
       if (diffDays === 0) {
@@ -887,8 +879,6 @@
         badge.textContent = "Pending";
         badge.classList.add("status-pending");
       }
-      document.getElementById("statDays").textContent = "0";
-      document.getElementById("statDays").style.color = "var(--text-secondary)";
     }
 
     // Timeline
