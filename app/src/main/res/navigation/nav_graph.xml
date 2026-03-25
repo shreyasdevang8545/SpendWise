@@ -57,6 +57,13 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_home_to_notificationLog"
+            app:destination="@id/notificationLogFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     </fragment>
 
     <fragment
@@ -345,6 +352,16 @@
         android:name="com.tech.spendwise.FeedbackFragment"
         android:label="Send Feedback"
         tools:layout="@layout/fragment_feedback" />
+
+    <fragment
+        android:id="@+id/notificationLogFragment"
+        android:name="com.tech.spendwise.NotificationLogFragment"
+        android:label="Missed Alerts"
+        tools:layout="@layout/fragment_notification_log">
+        <action
+            android:id="@+id/action_notificationLog_to_review"
+            app:destination="@id/reviewTransactionFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/privacyPolicyFragment"

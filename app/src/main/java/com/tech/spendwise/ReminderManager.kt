@@ -52,6 +52,13 @@ object ReminderManager {
                 )
             }
             Log.d(TAG, "Reminder scheduled for $name at $timeInMillis")
+        } catch (e: SecurityException) {
+            Log.w(TAG, "SecurityException: Cannot schedule exact alarm, falling back to non-exact: ${e.message}")
+            alarmManager.setAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP,
+                timeInMillis,
+                pendingIntent
+            )
         } catch (e: Exception) {
             Log.e(TAG, "Failed to schedule reminder: ${e.message}")
         }
@@ -119,6 +126,13 @@ object ReminderManager {
                 )
             }
             Log.d(TAG, "Daily reminder scheduled for ${hour}:${minute}")
+        } catch (e: SecurityException) {
+            Log.w(TAG, "SecurityException: Cannot schedule exact daily alarm, falling back to non-exact: ${e.message}")
+            alarmManager.setAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP,
+                calendar.timeInMillis,
+                pendingIntent
+            )
         } catch (e: Exception) {
             Log.e(TAG, "Failed to schedule daily reminder: ${e.message}")
         }
@@ -162,6 +176,9 @@ object ReminderManager {
                 alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, timeInMillis, pendingIntent)
             }
             Log.d(TAG, "Snooze scheduled for $timeInMillis")
+        } catch (e: SecurityException) {
+            Log.w(TAG, "SecurityException: Cannot schedule exact snooze, falling back to non-exact: ${e.message}")
+            alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, timeInMillis, pendingIntent)
         } catch (e: Exception) {
             Log.e(TAG, "Failed to schedule snooze: ${e.message}")
         }

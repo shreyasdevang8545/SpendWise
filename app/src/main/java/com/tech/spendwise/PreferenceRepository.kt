@@ -1,6 +1,7 @@
 package com.tech.spendwise
 
 import android.content.Context
+import android.util.Log
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -142,6 +143,15 @@ class PreferenceRepository(private val context: Context) {
                 try { encryptionManager.decrypt(encryptedCurrent) } catch (e: Exception) { "" }
             }
             
+            // Duplicate Check: If exact JSON already exists, skip
+            if (currentDecrypted.isNotEmpty()) {
+                val list = currentDecrypted.split(DELIMITER)
+                if (list.contains(json)) {
+                    Log.d("PreferenceRepo", "Duplicate transaction detected — skipping.")
+                    return@edit
+                }
+            }
+
             val newListDecrypted = if (currentDecrypted.isEmpty()) json else "$currentDecrypted$DELIMITER$json"
             preferences[PENDING_TRANSACTIONS_LIST_KEY] = encryptionManager.encrypt(newListDecrypted)
         }
@@ -203,6 +213,41 @@ class PreferenceRepository(private val context: Context) {
 
     /**
      * Clears all pending transactions.
+     */
+    suspend fun clearAllPendingTransactions() {
+        context.dataStore.edit { preferences ->
+            preferences.remove(PENDING_TRANSACTIONS_LIST_KEY)
+        }
+    }
+
+    /**
+     * Removes a specific pending transaction by its index in the queue.
+     */
+    suspend fun removeTransactionAtIndex(index: Int) {
+        context.dataStore.edit { preferences ->
+            val encryptedCurrent = preferences[PENDING_TRANSACTIONS_LIST_KEY] ?: ""
+            if (encryptedCurrent.isNotEmpty()) {
+                try {
+                    val currentDecrypted = encryptionManager.decrypt(encryptedCurrent)
+                    val list = currentDecrypted.split(DELIMITER).toMutableList()
+                    if (index in list.indices) {
+                        list.removeAt(index)
+                        if (list.isEmpty()) {
+                            preferences.remove(PENDING_TRANSACTIONS_LIST_KEY)
+                        } else {
+                            val newListDecrypted = list.joinToString(DELIMITER)
+                            preferences[PENDING_TRANSACTIONS_LIST_KEY] = encryptionManager.encrypt(newListDecrypted)
+                        }
+                    }
+                } catch (e: Exception) {
+                    // Ignore or clear on failure
+                }
+            }
+        }
+    }
+
+    /**
+     * Clears all confirmed transactions (not used by pop, but for completeness).
      */
     suspend fun clearAll() {
         context.dataStore.edit { preferences ->

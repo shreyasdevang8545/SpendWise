@@ -15,53 +15,72 @@ class ReminderReceiver : BroadcastReceiver() {
     private val repository = SupabaseRepository()
 
     override fun onReceive(context: Context, intent: Intent) {
-        val isDaily = intent.getBooleanExtra("is_daily_reminder", false)
-        val lendId = intent.getStringExtra("lend_id")
-        val uid = SupabaseInstance.currentUserId() ?: return
-
-        if (isDaily) {
-            if (intent.action == ACTION_SNOOZE_DAILY) {
-                Log.d("ReminderReceiver", "Snoozing daily reminder")
-                val snoozeTime = System.currentTimeMillis() + (60 * 60 * 1000) // 1 hour
-                ReminderManager.scheduleSnooze(context, snoozeTime)
-                
-                // Dismiss the notification
-                val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-                notificationManager.cancel(DAILY_REMINDER_ID)
-            } else {
-                handleDailyReminder(context)
-            }
-            return
-        }
-
-        if (lendId == null) return
-
-        Log.d("ReminderReceiver", "Alarm fired for lend: $lendId")
-
-        // Fetch latest status from Supabase
+        val pendingResult = goAsync()
+        
         GlobalScope.launch(Dispatchers.IO) {
-            val lend = repository.getLendById(lendId)
-            if (lend != null && !lend.isReturned) {
-                withContext(Dispatchers.Main) {
-                    // Show notification with actions
-                    showNotification(context, lend)
+            try {
+                // Important: Restore session before checking UID or fetching data
+                SupabaseInstance.restoreSession(context)
+                
+                val isDaily = intent.getBooleanExtra("is_daily_reminder", false)
+                val lendId = intent.getStringExtra("lend_id")
+                val uid = SupabaseInstance.currentUserId()
+                
+                if (uid == null) {
+                    Log.w("ReminderReceiver", "No user logged in. Skipping reminder.")
+                    return@launch
                 }
-                
-                // Reschedule for 24 hours later (persistent daily reminder)
-                val cal = java.util.Calendar.getInstance()
-                cal.timeInMillis = System.currentTimeMillis()
-                cal.add(java.util.Calendar.DAY_OF_YEAR, 1)
-                
-                ReminderManager.scheduleReminder(
-                    context,
-                    lend.id!!,
-                    lend.name,
-                    lend.amount,
-                    cal.timeInMillis
-                )
-            } else if (lend?.isReturned == true) {
-                Log.d("ReminderReceiver", "Lend $lendId already returned. Stopping reminders.")
-                ReminderManager.cancelReminder(context, lendId)
+
+                if (isDaily) {
+                    if (intent.action == ACTION_SNOOZE_DAILY) {
+                        Log.d("ReminderReceiver", "Snoozing daily reminder")
+                        val snoozeTime = System.currentTimeMillis() + (60 * 60 * 1000) // 1 hour
+                        ReminderManager.scheduleSnooze(context, snoozeTime)
+                        
+                        // Dismiss the notification
+                        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                        notificationManager.cancel(DAILY_REMINDER_ID)
+                    } else {
+                        handleDailyReminder(context)
+                    }
+                    return@launch
+                }
+
+                if (lendId == null) return@launch
+
+                Log.d("ReminderReceiver", "Fetching lend data for ID: $lendId")
+                val lend = repository.getLendById(lendId)
+                if (lend != null) {
+                    Log.d("ReminderReceiver", "Lend found: ${lend.name}, isReturned: ${lend.isReturned}")
+                    if (!lend.isReturned) {
+                        withContext(Dispatchers.Main) {
+                            Log.d("ReminderReceiver", "Showing notification for: ${lend.name}")
+                            showNotification(context, lend)
+                        }
+                        
+                        // Reschedule for 24 hours later (persistent daily reminder)
+                        val cal = java.util.Calendar.getInstance()
+                        cal.timeInMillis = System.currentTimeMillis()
+                        cal.add(java.util.Calendar.DAY_OF_YEAR, 1)
+                        
+                        ReminderManager.scheduleReminder(
+                            context,
+                            lend.id!!,
+                            lend.name,
+                            lend.amount,
+                            cal.timeInMillis
+                        )
+                    } else {
+                        Log.d("ReminderReceiver", "Lend already returned. Stopping reminders.")
+                        ReminderManager.cancelReminder(context, lendId)
+                    }
+                } else {
+                    Log.e("ReminderReceiver", "Lend NOT found in repository for ID: $lendId")
+                }
+            } catch (e: Exception) {
+                Log.e("ReminderReceiver", "Error processing reminder: ${e.message}")
+            } finally {
+                pendingResult.finish()
             }
         }
     }
@@ -105,6 +124,7 @@ class ReminderReceiver : BroadcastReceiver() {
             .addAction(android.R.drawable.ic_menu_recent_history, "Remind Tomorrow", tomorrowPendingIntent)
             .build()
 
+        Log.d("ReminderReceiver", "Sending notification to manager for id: ${lend.id}. Channel: ${LEND_CHANNEL_ID}")
         notificationManager.notify(lend.id.hashCode(), notification)
     }
 

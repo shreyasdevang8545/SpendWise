@@ -145,6 +145,26 @@ class TransactionExtractorTest {
             "raw_sms should contain original text. Actual: $rawSms")
     }
 
+    // ── Test 3b: ₹ Symbol Support ──────────────────────────────────────────
+
+    /**
+     * SMS:
+     *   "Your account has been debited by ₹ 500.00 at AMAZON."
+     *
+     * Expected:
+     *   amount   = 500.0
+     *   currency = "INR"
+     */
+    @Test
+    fun `Rupee symbol transaction SMS is parsed correctly`() {
+        val sms = "Your account has been debited by ₹ 500.00 at AMAZON."
+        val map = parseToMap(sms)
+
+        assertEquals(500.0, map["amount"]?.toDoubleOrNull(), "amount mismatch")
+        assertEquals("INR", map["currency"], "currency mismatch")
+        assertEquals("DEBIT", map["type"], "type mismatch")
+    }
+
     // ── Test 4: Is bank transaction filtering ───────────────────────────────
 
     @Test
@@ -199,5 +219,9 @@ class TransactionExtractorTest {
         // 4. No balance in message
         val sms4 = "OTP for your transaction is 123456."
         assertEquals("null", parseToMap(sms4)["balance"])
+
+        // 5. Rupee symbol balance
+        val sms5 = "Trx of INR 100. Avl Bal: ₹25000.75"
+        assertEquals(25000.75, parseToMap(sms5)["balance"]?.toDoubleOrNull())
     }
 }

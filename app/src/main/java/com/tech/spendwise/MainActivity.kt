@@ -153,6 +153,7 @@ class MainActivity : AppCompatActivity() {
         registerSmsReceiver()
         createNotificationChannel()
         initFcm()
+        ensureDailyReminderScheduled()
  
         // Set up Bottom Navigation
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
@@ -471,5 +472,24 @@ class MainActivity : AppCompatActivity() {
             data = Uri.fromParts("package", packageName, null)
         }
         startActivity(intent)
+    }
+
+    /**
+     * Ensures the daily reminder is scheduled if enabled in settings.
+     * This is called on every app launch to maintain alarm persistence.
+     */
+    private fun ensureDailyReminderScheduled() {
+        val settingsManager = SettingsManager(this)
+        lifecycleScope.launch {
+            val isEnabled = settingsManager.dailyReminder.first()
+            if (isEnabled) {
+                val hour = settingsManager.dailyReminderHour.first()
+                val minute = settingsManager.dailyReminderMinute.first()
+                Log.i(TAG, "Ensuring daily reminder is scheduled for $hour:$minute")
+                ReminderManager.scheduleDailyReminder(this@MainActivity, hour, minute)
+            } else {
+                Log.d(TAG, "Daily reminder is disabled in settings.")
+            }
+        }
     }
 }

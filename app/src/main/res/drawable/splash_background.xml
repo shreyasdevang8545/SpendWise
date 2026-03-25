@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@color/background_light" />
-    <item>
-        <bitmap
-            android:gravity="center"
-            android:src="@drawable/app_logo" />
-    </item>
+    <item
+        android:drawable="@drawable/app_logo"
+        android:gravity="center"
+        android:width="180dp"
+        android:height="180dp" />
 </layer-list>

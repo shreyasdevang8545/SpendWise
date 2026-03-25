@@ -156,7 +156,7 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
             if (uid != null) {
                 try {
                     supabaseRepository.saveLend(lend)
-                    Log.d("TransactionVM", "Lend synced successfully")
+                    Log.d("TransactionVM", "Lend synced successfully ${lend.id}")
                     fetchFromFirestore()
                 } catch (e: Exception) {
                     Log.e("TransactionVM", "Lend Sync failed: ${e.message}")
@@ -217,6 +217,33 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
     fun popTransaction() {
         viewModelScope.launch {
             repository.removeTopTransaction()
+        }
+    }
+
+    /**
+     * Removes a specific pending transaction from the queue.
+     */
+    fun removePendingTransaction(index: Int) {
+        viewModelScope.launch {
+            repository.removeTransactionAtIndex(index)
+        }
+    }
+
+    /**
+     * Removes a specific pending transaction from the queue by its JSON string.
+     */
+    fun removePendingTransactionByJson(json: String) {
+        viewModelScope.launch {
+            repository.removeTransaction(json)
+        }
+    }
+
+    /**
+     * Clears all pending transactions.
+     */
+    fun clearPendingTransactions() {
+        viewModelScope.launch {
+            repository.clearAllPendingTransactions()
         }
     }
 

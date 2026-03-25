@@ -29,6 +29,7 @@ class ReviewTransactionFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val viewModel: TransactionViewModel by activityViewModels()
+    private var specificJson: String? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentReviewTransactionBinding.inflate(inflater, container, false)
@@ -38,13 +39,19 @@ class ReviewTransactionFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewModel.firstTransaction.observe(viewLifecycleOwner) { json ->
-            if (json != null) {
-                setupUI(json)
-            } else {
-                // If queue is empty, return to home
-                if (findNavController().currentDestination?.id == R.id.reviewTransactionFragment) {
-                    findNavController().popBackStack()
+        specificJson = arguments?.getString("transaction_json")
+
+        if (specificJson != null) {
+            setupUI(specificJson!!)
+        } else {
+            viewModel.firstTransaction.observe(viewLifecycleOwner) { json ->
+                if (json != null) {
+                    setupUI(json)
+                } else {
+                    // If queue is empty, return to home
+                    if (findNavController().currentDestination?.id == R.id.reviewTransactionFragment) {
+                        findNavController().popBackStack()
+                    }
                 }
             }
         }
@@ -59,11 +66,19 @@ class ReviewTransactionFragment : Fragment() {
         }
 
         binding.btnDiscard.setOnClickListener {
-            viewModel.popTransaction()
+            handleCompletion()
         }
 
         binding.toolbar.setNavigationOnClickListener {
-            // Act like discard/close for now to handle it gracefully
+            handleCompletion()
+        }
+    }
+
+    private fun handleCompletion() {
+        if (specificJson != null) {
+            viewModel.removePendingTransactionByJson(specificJson!!)
+            findNavController().popBackStack()
+        } else {
             viewModel.popTransaction()
         }
     }
@@ -223,6 +238,7 @@ class ReviewTransactionFragment : Fragment() {
         )
         viewModel.addConfirmedTransaction(confirmedJson)
 
+        if (isLend) {
             // Also create a separate lend record for the Lend History screen
             val lend = com.tech.spendwise.models.LendTransaction(
                 id = "", // Supabase will generate ID
@@ -238,13 +254,14 @@ class ReviewTransactionFragment : Fragment() {
                     SupabaseRepository().saveLend(lend)
                 }
             }
+        }
 
         UIUtils.showSuccessSnackbar(
             binding.root,
             if (isLend) "Lend saved for $lendName" else "Saved: ₹$finalAmount as $finalType at $finalMerchant"
         )
 
-        viewModel.popTransaction()
+        handleCompletion()
     }
 
     private fun buildConfirmedJson(

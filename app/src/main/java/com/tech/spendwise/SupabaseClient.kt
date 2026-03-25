@@ -13,6 +13,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import android.content.Context
+import android.util.Log
 
 /**
  * Singleton object that manages the Supabase client instance.
@@ -66,16 +67,22 @@ object SupabaseInstance {
         val repository = PreferenceRepository(context)
         val tokens = repository.getSupabaseTokensSync()
         
+        Log.d("SupabaseInstance", "restoreSession: tokens found=${tokens != null}, isLoggedIn=${isLoggedIn()}")
+
         if (tokens != null && !isLoggedIn()) {
             try {
+                Log.d("SupabaseInstance", "restoreSession: Importing auth tokens...")
                 auth.importAuthToken(tokens.first, tokens.second, autoRefresh = true)
+                Log.i("SupabaseInstance", "restoreSession: Auth tokens imported successfully. User=${currentUserId()}")
                 // Once imported, also ensure listener is running if not already
                 startSessionListener(context)
             } catch (e: Exception) {
+                Log.e("SupabaseInstance", "restoreSession: Failed to import tokens", e)
                 // Token might be invalid/expired, clear it
                 repository.clearSupabaseTokensSync()
             }
         } else {
+            Log.d("SupabaseInstance", "restoreSession: No tokens or already logged in. starting listener.")
             // Even if no tokens, start listener to catch future login
             startSessionListener(context)
         }

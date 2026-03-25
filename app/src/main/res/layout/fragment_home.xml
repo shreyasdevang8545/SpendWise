@@ -37,27 +37,57 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
-                <FrameLayout
-                    android:id="@+id/profileImageContainer"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:background="@drawable/bg_profile_circle"
-                    android:clipToOutline="true"
-                    android:contentDescription="User profile"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent">
+        <FrameLayout
+            android:id="@+id/notificationContainer"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="12dp"
+            android:background="@drawable/bg_profile_circle"
 
-                    <TextView
-                        android:id="@+id/profileInitials"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:text="SD"
-                        android:textColor="@color/white"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
+            app:layout_constraintEnd_toStartOf="@id/btnSettings"
+            app:layout_constraintTop_toTopOf="parent">
 
-                </FrameLayout>
+            <ImageView
+                android:id="@+id/btnNotifications"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="8dp"
+                android:src="@drawable/ic_notifications"
+                app:tint="@color/white" />
+
+            <TextView
+                android:id="@+id/notificationBadge"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_gravity="top|end"
+                android:background="@drawable/bg_icon_orange"
+                android:gravity="center"
+                android:text="3"
+                android:textColor="@color/white"
+                android:textSize="9sp"
+                android:textFontWeight="900"
+                android:visibility="gone"
+                tools:visibility="visible" />
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/btnSettings"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/bg_profile_circle"
+            android:clipToOutline="true"
+            android:contentDescription="Settings"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="10dp"
+                android:src="@drawable/ic_settings"
+                app:tint="@color/white" />
+
+        </FrameLayout>
 
                 <TextView
                     android:id="@+id/greetingText"

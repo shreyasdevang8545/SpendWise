@@ -30,6 +30,9 @@ class SupabaseRepository {
     suspend fun saveTransaction(jsonStr: String): String? = withContext(Dispatchers.IO) {
         val uid = SupabaseInstance.currentUserId() ?: return@withContext null
         try {
+            val originalMap = TransactionCrypto.parseSimpleJson(jsonStr)
+            val providedId = originalMap["id"] // Check if ID already exists (e.g. from Lend)
+            
             val encryptedMap = TransactionCrypto.encryptTransaction(jsonStr, uid)
             val allowedColumns = setOf(
                 "amount", "type", "merchant", "category", "payment_mode", "currency", "saved_at",
@@ -37,10 +40,11 @@ class SupabaseRepository {
             )
             val json = buildJsonObject {
                 put("uid", uid)
+                if (!providedId.isNullOrEmpty()) {
+                    put("id", providedId)
+                }
                 encryptedMap.forEach { (k, v) ->
                     if (allowedColumns.contains(k)) {
-                        // Some timestamps might come as strings from AddTransactionFragment
-                        // or as Long strings from saveLend. We ensure they are ISO 8601.
                         val valueToPut = if (k == "saved_at" || k == "created_at" || k == "return_date") {
                             val raw = v?.toString() ?: ""
                             if (raw.all { it.isDigit() } && raw.length >= 10) {
@@ -61,7 +65,7 @@ class SupabaseRepository {
                     }
                 }
             }
-            val response = postgrest.from("transactions").insert(json) {
+            val response = postgrest.from("transactions").upsert(json) {
                 select()
             }.decodeSingle<JsonObject>()
             
@@ -103,6 +107,7 @@ class SupabaseRepository {
         try {
             // In unified approach, we save a single transaction record with is_lend = true
             val unifiedJson = buildJsonObject {
+                put("id", lend.id ?: "")
                 put("amount", lend.amount.toString())
                 put("type", "Expense") // Lend is an outflow
                 put("merchant", "Lend: ${lend.name}")
@@ -132,6 +137,7 @@ class SupabaseRepository {
 
     private suspend fun savePublicLend(lend: LendTransaction) {
         try {
+            Log.d(TAG, "savePublicLend: Upserting to public_lends for id=${lend.id}")
             // Public lend is NOT encrypted
             val json = buildJsonObject {
                 put("id", lend.id)
@@ -146,8 +152,9 @@ class SupabaseRepository {
                 put("updated_at", formatTimestamp(System.currentTimeMillis()))
             }
             postgrest.from("public_lends").upsert(json)
+            Log.d(TAG, "savePublicLend: Successfully upserted to public_lends")
         } catch (e: Exception) {
-            Log.e(TAG, "Error saving public lend", e)
+            Log.e(TAG, "Error saving public lend for id=${lend.id}", e)
         }
     }
 
@@ -215,15 +222,33 @@ class SupabaseRepository {
     }
 
     suspend fun getLendById(lendId: String): LendTransaction? = withContext(Dispatchers.IO) {
-        val uid = SupabaseInstance.currentUserId() ?: return@withContext null
+        val uid = SupabaseInstance.currentUserId() ?: run {
+            Log.e(TAG, "getLendById: No current user ID")
+            return@withContext null
+        }
         try {
+            Log.d(TAG, "getLendById: Fetching from PostgREST for id=$lendId")
             val obj = postgrest.from("transactions").select {
                 filter { eq("id", lendId) }
-            }.decodeSingle<JsonObject>()
+            }.decodeSingleOrNull<JsonObject>()
+            
+            if (obj == null) {
+                Log.w(TAG, "getLendById: No record found for id=$lendId")
+                return@withContext null
+            }
+            
+            Log.d(TAG, "getLendById: Record found. Mapping to LendTransaction.")
             val map = obj.mapValues { it.value.jsonPrimitive.contentOrNull }
-            TransactionCrypto.mapToLendTransaction(lendId, map, uid)
+            val lend = TransactionCrypto.mapToLendTransaction(lendId, map, uid)
+            
+            if (lend == null) {
+                Log.e(TAG, "getLendById: mapToLendTransaction returned null for id=$lendId. Data: $map")
+            } else {
+                Log.d(TAG, "getLendById: Successfully mapped lend: ${lend.name}")
+            }
+            lend
         } catch (e: Exception) {
-            Log.e(TAG, "Error getting lend", e)
+            Log.e(TAG, "Error getting lend with id=$lendId", e)
             null
         }
     }

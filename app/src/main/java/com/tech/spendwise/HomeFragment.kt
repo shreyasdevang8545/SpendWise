@@ -75,18 +75,24 @@ class HomeFragment : Fragment() {
         // Fetch cloud transactions when screen opens
         viewModel.fetchFromFirestore()
 
-        // Observe pending transactions for the bottom card
+        // Observe pending transactions for the bottom card and notification badge
         viewModel.pendingTransactions.observe(viewLifecycleOwner) { list ->
-            if (list.isNotEmpty()) {
+            val count = list.size
+            if (count > 0) {
+                // Bottom card
                 binding.pendingTransactionCard.visibility = View.VISIBLE
-                val count = list.size
                 binding.pendingTransactionText.text = if (count == 1) {
                     getString(R.string.home_transaction_found_single)
                 } else {
                     getString(R.string.home_transaction_found_plural, count)
                 }
+                
+                // Toolbar badge
+                binding.notificationBadge.visibility = View.VISIBLE
+                binding.notificationBadge.text = if (count > 9) "9+" else count.toString()
             } else {
                 binding.pendingTransactionCard.visibility = View.GONE
+                binding.notificationBadge.visibility = View.GONE
             }
         }
 
@@ -119,7 +125,7 @@ class HomeFragment : Fragment() {
             findNavController().navigate(R.id.action_home_to_review)
         }
 
-        binding.profileImageContainer.setOnClickListener {
+        binding.btnSettings.setOnClickListener {
             findNavController().navigate(R.id.action_home_to_settings)
         }
 
@@ -140,6 +146,10 @@ class HomeFragment : Fragment() {
 
         binding.btnEmptyGetStarted.setOnClickListener {
             findNavController().navigate(R.id.action_home_to_addTransaction)
+        }
+
+        binding.btnNotifications.setOnClickListener {
+            findNavController().navigate(R.id.action_home_to_notificationLog)
         }
 
         // Pause on touch, resume after delay
@@ -302,11 +312,7 @@ class HomeFragment : Fragment() {
             binding.lentTotalText2.text   = formattedLent
             binding.headerMonthLabel.text = monthLabel(cal).uppercase()
             
-            // Set initials from Supabase User Name if available
-            val name = SupabaseInstance.currentUserDisplayName()
-            binding.profileInitials.text = name?.split(" ")?.let {
-                if (it.size >= 2) "${it[0][0]}${it[1][0]}" else it[0].take(2).uppercase()
-            } ?: "SD"
+            // initials removal - no logic needed here anymore as we use ic_settings
         }
     }
 

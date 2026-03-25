@@ -126,7 +126,7 @@ class SmsReceiver : BroadcastReceiver() {
 
         // Filter: only process if it's a bank transaction
         if (!TransactionExtractor.isBankTransaction(fullBody, senderAddress)) {
-            Log.i(TAG, "Ignoring non-bank or promotional SMS from $senderAddress")
+            Log.i(TAG, "Ignoring non-bank or promotional SMS from $senderAddress. Body matches non-bank criteria.")
             return
         }
 
@@ -138,7 +138,7 @@ class SmsReceiver : BroadcastReceiver() {
 
             // Don't alert if there was a parsing error (e.g. missing crucial fields)
             if (json.contains("\"error\":")) {
-                Log.w(TAG, "JSON contains error key, skipping alert.")
+                Log.w(TAG, "JSON contains error key for SMS from $senderAddress, skipping alert. JSON: $json")
                 return
             }
 
@@ -148,7 +148,7 @@ class SmsReceiver : BroadcastReceiver() {
             val amountVal = amountMatch?.groupValues?.get(1)?.toDoubleOrNull() ?: 0.0
             
             if (amountVal <= 0.0) {
-                Log.i(TAG, "Amount is 0.0 or could not be parsed, skipping alert.")
+                Log.i(TAG, "Amount is 0.0 or could not be parsed for SMS from $senderAddress, skipping alert. JSON: $json")
                 return
             }
 

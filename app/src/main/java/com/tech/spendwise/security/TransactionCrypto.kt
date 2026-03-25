@@ -113,9 +113,15 @@ object TransactionCrypto {
     fun mapToLendTransaction(id: String, map: Map<String, Any?>, uid: String): com.tech.spendwise.models.LendTransaction? {
         return try {
             val isLend = map["is_lend"]?.toString()?.toBoolean() ?: false
-            if (!isLend) return null
+            if (!isLend) {
+                android.util.Log.w("TransactionCrypto", "mapToLendTransaction: is_lend is false for id=$id")
+                return null
+            }
             
-            val amountRaw = map["amount"]?.toString() ?: return null
+            val amountRaw = map["amount"]?.toString() ?: run {
+                android.util.Log.e("TransactionCrypto", "mapToLendTransaction: amount is null for id=$id")
+                return null
+            }
             val lendNameRaw = map["lend_name"]?.toString() ?: ""
             val returnDateRaw = map["return_date"]?.toString() ?: "0"
             val createdAtRaw = map["created_at"]?.toString() ?: map["saved_at"]?.toString() ?: "0"
@@ -126,10 +132,17 @@ object TransactionCrypto {
                 } catch (e: Exception) { 0L }
             }
 
+            val name = if (lendNameRaw.isNotEmpty()) decryptField(lendNameRaw, uid) else ""
+            val amount = decryptField(amountRaw, uid).toDoubleOrNull() ?: 0.0
+            
+            if (amount == 0.0) {
+                android.util.Log.w("TransactionCrypto", "mapToLendTransaction: Decrypted amount is 0.0 for id=$id. amountRaw=$amountRaw")
+            }
+
             com.tech.spendwise.models.LendTransaction(
                 id = id,
-                name = if (lendNameRaw.isNotEmpty()) decryptField(lendNameRaw, uid) else "",
-                amount = decryptField(amountRaw, uid).toDoubleOrNull() ?: 0.0,
+                name = name,
+                amount = amount,
                 paymentMode = decryptField(map["payment_mode"]?.toString() ?: "", uid),
                 phoneNumber = decryptField(map["phone_number"]?.toString() ?: "", uid),
                 note = decryptField(map["note"]?.toString() ?: "", uid),
@@ -139,13 +152,14 @@ object TransactionCrypto {
                 transactionId = id
             )
         } catch (e: Exception) {
+            android.util.Log.e("TransactionCrypto", "Error in mapToLendTransaction for id=$id", e)
             null
         }
     }
 
     // ── Internal utils ────────────────────────────────────────────────────
-
-    private fun parseSimpleJson(json: String): Map<String, String> {
+    
+    fun parseSimpleJson(json: String): Map<String, String> {
         val result  = mutableMapOf<String, String>()
         val pattern = Regex(""""(\w+)"\s*:\s*(?:"((?:[^"\\]|\\.)*)"|([^,}\s]+))""")
         for (match in pattern.findAll(json)) {

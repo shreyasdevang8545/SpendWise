@@ -13,19 +13,19 @@ object TransactionExtractor {
 
     // ── Currency & Amount ────────────────────────────────────────────────────
 
-    /** Matches: INR 1,200.50  |  AED 451.20  |  Rs 800  |  Rs. 17987.32 */
+    /** Matches: INR 1,200.50  |  AED 451.20  |  Rs 800  |  Rs. 17987.32 | ₹ 500 */
     private val AMOUNT_PATTERN: Pattern = Pattern.compile(
-        """(?i)(?:INR|AED|Rs\.?)\s*([\d,]+(?:\.\d+)?)"""
+        """(?i)(?:INR|AED|Rs\.?|₹)\s*([\d,]+(?:\.\d+)?)"""
     )
 
     /** Matches the currency code/keyword itself. */
     private val CURRENCY_PATTERN: Pattern = Pattern.compile(
-        """(?i)\b(INR|AED|Rs\.?)\b"""
+        """(?i)(INR|AED|Rs\.?|₹)"""
     )
 
-    /** Matches: Avl Bal: Rs. 17987.32 | Bal: INR 100.00 | available balance is INR 500 */
+    /** Matches: Avl Bal: Rs. 17987.32 | Bal: INR 100.00 | available balance is INR 500 | Bal: ₹100 */
     private val BALANCE_PATTERN: Pattern = Pattern.compile(
-        """(?i)(?:Avl\s*Bal|Bal|Balance|Available\s+Balance)(?:\s+is)?[:\s\-]*+(?:INR|AED|Rs\.?)?[\s]*+([\d,]+(?:\.\d+)?)"""
+        """(?i)(?:Avl\s*Bal|Bal|Balance|Available\s+Balance)(?:\s+is)?[:\s\-]*+(?:INR|AED|Rs\.?|₹)?[\s]*+([\d,]+(?:\.\d+)?)"""
     )
 
     // ── Transaction Type ─────────────────────────────────────────────────────
@@ -210,6 +210,7 @@ object TransactionExtractor {
             val raw = matcher.group(1) ?: return "UNKNOWN"
             when {
                 raw.startsWith("Rs", ignoreCase = true) -> "INR"
+                raw == "₹" -> "INR"
                 else -> raw.uppercase()
             }
         } else "UNKNOWN"
