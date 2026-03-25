@@ -221,7 +221,7 @@
     color: white;
     flex-shrink: 0;
   }
-  .lent-info {}
+  .lent-info { flex: 1; }
   .lent-name {
     font-family: var(--fnh);
     font-size: 16px;
@@ -754,23 +754,13 @@
 
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-  // ── Firebase Configuration ──
-  const firebaseConfig = {
-    apiKey: "AIzaSyAKzRqFoJ1SuQWv2-FP-PB8qtAMfjPCs9SQY",
-    authDomain: "spendwise-d34f6.firebaseapp.com",
-    projectId: "spendwise-d34f6",
-    storageBucket: "spendwise-d34f6.firebasestorage.app",
-    messagingSenderId: "328976930978",
-    appId: "1:328976930978:android:bbd9bf879053696ddc1ffb"
-  };
-
-  // Initialize Firebase
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
+  // ── Supabase Configuration ──
+  const supabaseUrl = "https://barzqylbhgywfrajgyki.supabase.co";
+  const supabaseKey = "sb_publishable_b7heHUw2SQjIv79LIBY4Ng_vbDmo7w3";
+  const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
   // ── Helpers ──
   function getInitials(name) {
@@ -788,10 +778,13 @@
     return new Intl.NumberFormat("en-IN").format(amount);
   }
 
-  function formatTs(ts) {
+  function formatTs(ts, includeTime = false) {
     if (!ts) return "—";
-    const date = (typeof ts === 'number') ? new Date(ts) : new Date(ts.toDate ? ts.toDate() : ts); // Handle Firestore Timestamp objects
-    return date.toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'});
+    const date = (typeof ts === 'string') ? new Date(ts) : ((typeof ts === 'number') ? new Date(ts) : new Date(ts.toDate ? ts.toDate() : ts));
+    const dStr = date.toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'});
+    if (!includeTime) return dStr;
+    const tStr = date.toLocaleTimeString('en-IN', {hour:'2-digit',minute:'2-digit'});
+    return `${dStr} · ${tStr}`;
   }
 
   // ── Data Handling ──
@@ -854,8 +847,11 @@
 
     // Days chip & Status Badge
     const today      = new Date();
-    const returnDate = lend.returnDate ? new Date(lend.returnDate) : new Date();
-    const diffDays   = Math.ceil((returnDate - today) / (1000 * 60 * 60 * 24));
+    today.setHours(0,0,0,0);
+    const targetDate = lend.returnDate ? new Date(lend.returnDate) : new Date();
+    targetDate.setHours(0,0,0,0);
+    const diffTime   = targetDate - today;
+    const diffDays   = Math.round(diffTime / (1000 * 60 * 60 * 24));
     const chip       = document.getElementById("daysChip");
     const badge      = document.getElementById("heroStatusBadge");
     
@@ -896,8 +892,8 @@
     }
 
     // Timeline
-    document.getElementById("tlCreated").textContent  = lend.lentOn + " · Recorded";
-    document.getElementById("tlReminder").textContent = lend.lentOn + " · Via WhatsApp";
+    document.getElementById("tlCreated").textContent  = formatTs(lend.createdAtRaw, true);
+    document.getElementById("tlReminder").textContent = formatTs(lend.createdAtRaw, true).split('·')[0] + " · Via WhatsApp"; // Assuming sent near creation
     document.getElementById("tlDueDate").textContent  = lend.returnLabel;
 
     // WhatsApp Link
@@ -911,39 +907,48 @@
   }
 
   // ── Main Logic ──
-  function init() {
-    renderLend(); // Load initial URL data first
+  async function init() {
+    renderLend(); // Load initial URL data first (placeholders or from params)
 
     const lendId = p('id', '');
     if (lendId) {
-      console.log("Listening for lend updates:", lendId);
-      db.collection("public_lends").doc(lendId)
-        .onSnapshot((doc) => {
-          if (doc.exists) {
-            const data = doc.data();
-            console.log("Live update received:", data);
-            
-            lend.name        = data.name;
-            lend.phone       = data.phone || lend.phone;
-            lend.note        = data.note || "—";
-            lend.initials    = getInitials(data.name);
-            lend.avatarColor = getAvatarColor(data.name);
-            lend.totalAmount = data.amount;
-            lend.status      = data.isReturned ? "settled" : "pending";
-            lend.paidAmount  = data.isReturned ? data.amount : 0;
-            lend.returnLabel = formatTs(data.returnDate);
-            lend.paymentMode = data.paymentMode;
-            lend.lentOn      = formatTs(data.createdAt);
-            lend.returnDate  = data.returnDate;
-            lend.updatedAt   = data.updatedAt;
+      console.log("Fetching lend updates from Supabase:", lendId);
+      
+      try {
+        const { data, error } = await supabaseClient
+          .from('public_lends')
+          .select('*')
+          .eq('id', lendId)
+          .single();
 
-            renderLend();
-          } else {
-            console.warn("Lend not found in public collection:", lendId);
-          }
-        }, (err) => {
-          console.error("Firestore listen error:", err);
-        });
+        if (error) {
+           console.error("Supabase fetch error:", error);
+           return;
+        }
+
+        if (data) {
+          console.log("Data received:", data);
+          
+          lend.name        = data.name;
+          lend.phone       = data.phone || lend.phone;
+          lend.note        = data.note || "—";
+          lend.initials    = getInitials(data.name);
+          lend.avatarColor = getAvatarColor(data.name);
+          lend.totalAmount = parseFloat(data.amount);
+          lend.status      = data.is_returned ? "settled" : "pending";
+          lend.paidAmount  = data.is_returned ? parseFloat(data.amount) : 0;
+          lend.returnLabel = formatTs(data.return_date);
+          lend.paymentMode = data.payment_mode;
+          lend.lentOn      = formatTs(data.created_at);
+          lend.createdAtRaw = data.created_at;
+          lend.returnDate  = data.return_date;
+          lend.updatedAt   = data.updated_at;
+
+          renderLend();
+        }
+      } catch (err) {
+        console.error("Unexpected error:", err);
+      }
     }
   }
 
