@@ -30,7 +30,6 @@ import kotlinx.coroutines.runBlocking
  *
  * IMPORTANT: Runtime permissions must be requested in MainActivity for Android 6.0+:
  * - android.permission.RECEIVE_SMS
- * - android.permission.READ_SMS
  */
 class SmsReceiver : BroadcastReceiver() {
 
