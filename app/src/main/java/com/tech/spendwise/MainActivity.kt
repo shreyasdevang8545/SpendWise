@@ -101,9 +101,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Request launcher for SMS permissions (Android 6.0+).
-     * Requests RECEIVE_SMS and READ_SMS permissions.
+     /* Requests RECEIVE_SMS permission.
      */
     private val requestSmsPermissionsLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
@@ -430,7 +428,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun requestSmsPermissions() {
-        val permissions = arrayOf(Manifest.permission.RECEIVE_SMS, Manifest.permission.READ_SMS)
+        val permissions = arrayOf(Manifest.permission.RECEIVE_SMS)
         val missingPermissions = permissions.filter {
             ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
         }
