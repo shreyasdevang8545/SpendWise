@@ -15,7 +15,7 @@ android {
         applicationId = "com.tech.spendwise"
         minSdk = 26
         targetSdk = 35
-        versionCode = 2
+        versionCode = 3
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -108,6 +108,7 @@ dependencies {
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)
+    implementation(libs.androidx.remote.creation.core)
 
     // JUnit 4 — kept for existing ExampleUnitTest
     testImplementation(libs.junit)

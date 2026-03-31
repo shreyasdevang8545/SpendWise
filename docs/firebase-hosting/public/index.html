@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SpendWise — Account & Data Deletion Request</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --g:#013220;--g2:#2E7D32;--g3:#43A047;--gl:#E8F5E9;
+  --red:#C62828;--redl:#FFEBEE;
+  --txt:#1A1A1A;--txt2:#616161;--txt3:#9E9E9E;
+  --border:#E0E0E0;--surf:#FFFFFF;--bg:#F9FBF9;
+  --fn:'Nunito Sans',sans-serif;--fnh:'Nunito',sans-serif;
+}
+body{font-family:var(--fn);background:var(--bg);color:var(--txt);min-height:100vh;}
+
+/* ── Header ── */
+.header{background:var(--g);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;}
+.brand{display:flex;align-items:center;gap:10px;}
+.brand-icon{width:36px;height:36px;background:var(--g2);border-radius:10px;display:flex;align-items:center;justify-content:center;}
+.brand-name{font-family:var(--fnh);font-size:18px;font-weight:900;color:#FFFFFF;}
+.header-sub{font-size:12px;color:rgba(255,255,255,0.6);font-family:var(--fn);}
+
+/* ── Hero ── */
+.hero{background:var(--g);padding:32px 24px 48px;text-align:center;}
+.hero-icon{width:72px;height:72px;background:rgba(255,255,255,0.1);border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;}
+.hero-title{font-family:var(--fnh);font-size:26px;font-weight:900;color:#FFFFFF;margin-bottom:8px;}
+.hero-sub{font-size:14px;color:rgba(255,255,255,0.7);font-family:var(--fn);max-width:400px;margin:0 auto;line-height:1.6;}
+
+/* ── Main ── */
+.main{max-width:600px;margin:-24px auto 0;padding:0 16px 48px;position:relative;z-index:1;}
+
+/* ── Info cards ── */
+.info-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
+.info-card{background:var(--surf);border-radius:14px;padding:14px;border:1px solid var(--border);}
+.info-card-icon{font-size:20px;margin-bottom:6px;}
+.info-card-title{font-size:13px;font-weight:700;color:var(--txt);font-family:var(--fn);margin-bottom:3px;}
+.info-card-desc{font-size:11px;color:var(--txt2);font-family:var(--fn);line-height:1.5;}
+
+/* ── Form card ── */
+.form-card{background:var(--surf);border-radius:18px;padding:24px;border:1px solid var(--border);margin-bottom:16px;}
+.form-title{font-family:var(--fnh);font-size:18px;font-weight:800;color:var(--txt);margin-bottom:4px;}
+.form-subtitle{font-size:13px;color:var(--txt2);font-family:var(--fn);margin-bottom:20px;}
+
+.field{margin-bottom:16px;}
+.field-label{font-size:12px;font-weight:700;color:var(--txt2);font-family:var(--fn);letter-spacing:0.4px;text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;gap:4px;}
+.required{color:var(--red);font-size:14px;}
+.field-input{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;font-size:14px;font-family:var(--fn);background:#FAFAFA;color:var(--txt);outline:none;transition:border-color 0.2s;}
+.field-input:focus{border-color:var(--g3);background:#FFFFFF;}
+.field-textarea{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;font-size:14px;font-family:var(--fn);background:#FAFAFA;color:var(--txt);outline:none;resize:vertical;min-height:90px;transition:border-color 0.2s;}
+.field-textarea:focus{border-color:var(--g3);background:#FFFFFF;}
+.field-select{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;font-size:14px;font-family:var(--fn);background:#FAFAFA;color:var(--txt);outline:none;appearance:none;cursor:pointer;}
+.field-select:focus{border-color:var(--g3);}
+
+/* ── Deletion type options ── */
+.del-options{display:flex;flex-direction:column;gap:8px;}
+.del-option{border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;cursor:pointer;display:flex;align-items:flex-start;gap:12px;transition:all 0.15s;}
+.del-option:hover{border-color:var(--g3);background:var(--gl);}
+.del-option.selected{border-color:var(--g2);background:var(--gl);}
+.del-option input[type=radio]{margin-top:2px;accent-color:var(--g2);width:16px;height:16px;flex-shrink:0;}
+.del-option-body{}
+.del-option-title{font-size:13px;font-weight:700;color:var(--txt);font-family:var(--fn);}
+.del-option-desc{font-size:11px;color:var(--txt2);font-family:var(--fn);margin-top:2px;line-height:1.4;}
+.del-option-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;margin-top:4px;font-family:var(--fn);}
+.badge-red{background:var(--redl);color:var(--red);}
+.badge-amber{background:#FFF3E0;color:#E65100;}
+.badge-green{background:var(--gl);color:var(--g2);}
+
+/* ── Confirm checkbox ── */
+.confirm-box{background:var(--redl);border-radius:12px;padding:14px;border:1px solid rgba(198,40,40,0.2);margin-bottom:16px;}
+.confirm-check{display:flex;align-items:flex-start;gap:10px;}
+.confirm-check input{margin-top:2px;accent-color:var(--red);width:16px;height:16px;flex-shrink:0;}
+.confirm-text{font-size:12px;color:var(--red);font-family:var(--fn);line-height:1.5;font-weight:600;}
+
+/* ── Submit button ── */
+.submit-btn{width:100%;background:var(--g2);color:#FFFFFF;border:none;border-radius:14px;padding:15px;font-family:var(--fnh);font-size:16px;font-weight:800;cursor:pointer;transition:opacity 0.2s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.submit-btn:hover{opacity:0.9;}
+.submit-btn:disabled{background:#BDBDBD;cursor:not-allowed;}
+
+/* ── Success screen ── */
+.success-screen{display:none;text-align:center;padding:32px 16px;}
+.success-icon{width:72px;height:72px;background:var(--gl);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;}
+.success-title{font-family:var(--fnh);font-size:22px;font-weight:900;color:var(--txt);margin-bottom:8px;}
+.success-sub{font-size:14px;color:var(--txt2);font-family:var(--fn);line-height:1.6;max-width:380px;margin:0 auto;}
+.success-ref{background:var(--gl);border-radius:10px;padding:12px 16px;margin:16px auto;max-width:300px;font-size:13px;font-weight:700;color:var(--g2);font-family:var(--fnh);}
+.timeline{text-align:left;margin:20px 0;background:var(--surf);border-radius:14px;border:1px solid var(--border);overflow:hidden;}
+.tl-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);}
+.tl-item:last-child{border-bottom:none;}
+.tl-num{width:28px;height:28px;border-radius:50%;background:var(--gl);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--g2);font-family:var(--fnh);flex-shrink:0;}
+.tl-text{font-size:13px;color:var(--txt2);font-family:var(--fn);}
+.tl-time{margin-left:auto;font-size:11px;font-weight:700;color:var(--txt3);font-family:var(--fn);flex-shrink:0;}
+
+/* ── What gets deleted ── */
+.what-card{background:var(--surf);border-radius:14px;border:1px solid var(--border);overflow:hidden;margin-bottom:16px;}
+.what-header{padding:14px 16px;border-bottom:1px solid var(--border);font-family:var(--fnh);font-size:14px;font-weight:800;color:var(--txt);}
+.what-row{display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid var(--border);}
+.what-row:last-child{border-bottom:none;}
+.what-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.what-text{font-size:13px;color:var(--txt);font-family:var(--fn);flex:1;}
+.what-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;font-family:var(--fn);flex-shrink:0;}
+
+/* ── Footer ── */
+.footer{background:var(--g);padding:24px;text-align:center;}
+.footer-brand{font-family:var(--fnh);font-size:14px;font-weight:800;color:#FFFFFF;margin-bottom:4px;}
+.footer-sub{font-size:12px;color:rgba(255,255,255,0.5);font-family:var(--fn);}
+.footer-links{display:flex;gap:20px;justify-content:center;margin-top:12px;}
+.footer-link{font-size:12px;color:rgba(255,255,255,0.6);font-family:var(--fn);text-decoration:none;}
+.footer-link:hover{color:#FFFFFF;}
+
+@media(max-width:480px){
+  .info-row{grid-template-columns:1fr;}
+  .hero-title{font-size:22px;}
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="brand">
+    <div class="brand-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6EE06E" stroke-width="2.5" stroke-linecap="round">
+        <polyline points="22,7 13.5,15.5 8.5,10.5 2,17"/>
+        <polyline points="16,7 22,7 22,13"/>
+      </svg>
+    </div>
+    <div class="brand-name">SpendWise</div>
+  </div>
+  <div class="header-sub">Data & Privacy</div>
+</div>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-icon">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.9)" stroke-width="2" stroke-linecap="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+    </svg>
+  </div>
+  <div class="hero-title">Account & Data Deletion</div>
+  <div class="hero-sub">Request deletion of your SpendWise account and personal data. We process all requests within 30 days.</div>
+</div>
+
+<!-- Main content -->
+<div class="main">
+
+  <!-- Info cards -->
+  <div class="info-row" style="margin-top:0;">
+    <div class="info-card">
+      <div class="info-card-icon">⏱️</div>
+      <div class="info-card-title">Processed in 30 days</div>
+      <div class="info-card-desc">We will confirm and complete your deletion request within 30 days of submission.</div>
+    </div>
+    <div class="info-card">
+      <div class="info-card-icon">📧</div>
+      <div class="info-card-title">Email confirmation</div>
+      <div class="info-card-desc">You will receive an email confirmation once your data has been permanently deleted.</div>
+    </div>
+  </div>
+
+  <!-- What gets deleted -->
+  <div class="what-card">
+    <div class="what-header">What data will be deleted</div>
+    <div class="what-row">
+      <div class="what-dot" style="background:#C62828;"></div>
+      <div class="what-text">All transaction records and expense entries</div>
+      <div class="what-badge badge-red">Deleted</div>
+    </div>
+    <div class="what-row">
+      <div class="what-dot" style="background:#C62828;"></div>
+      <div class="what-text">Budget limits and category settings</div>
+      <div class="what-badge badge-red">Deleted</div>
+    </div>
+    <div class="what-row">
+      <div class="what-dot" style="background:#C62828;"></div>
+      <div class="what-text">Lend and IOU records</div>
+      <div class="what-badge badge-red">Deleted</div>
+    </div>
+    <div class="what-row">
+      <div class="what-dot" style="background:#C62828;"></div>
+      <div class="what-text">Friends and split expense data</div>
+      <div class="what-badge badge-red">Deleted</div>
+    </div>
+    <div class="what-row">
+      <div class="what-dot" style="background:#C62828;"></div>
+      <div class="what-text">Profile information (name, email, photo)</div>
+      <div class="what-badge badge-red">Deleted</div>
+    </div>
+    <div class="what-row">
+      <div class="what-dot" style="background:#C62828;"></div>
+      <div class="what-text">Savings goals and progress</div>
+      <div class="what-badge badge-red">Deleted</div>
+    </div>
+    <div class="what-row">
+      <div class="what-dot" style="background:#E65100;"></div>
+      <div class="what-text">App preferences and settings</div>
+      <div class="what-badge badge-amber">Deleted</div>
+    </div>
+    <div class="what-row">
+      <div class="what-dot" style="background:#2E7D32;"></div>
+      <div class="what-text">Anonymous crash logs (no personal data)</div>
+      <div class="what-badge badge-green">Retained 90 days</div>
+    </div>
+  </div>
+
+  <!-- Deletion request form -->
+  <div class="form-card" id="formCard">
+    <div class="form-title">Submit deletion request</div>
+    <div class="form-subtitle">All fields marked with * are required</div>
+
+    <div class="field">
+      <div class="field-label">Full name <span class="required">*</span></div>
+      <input type="text" id="fname" class="field-input" placeholder="Enter your full name"/>
+    </div>
+
+    <div class="field">
+      <div class="field-label">Email address <span class="required">*</span></div>
+      <input type="email" id="femail" class="field-input" placeholder="Email you used to register in SpendWise"/>
+    </div>
+
+    <div class="field">
+      <div class="field-label">Phone number (optional)</div>
+      <input type="tel" id="fphone" class="field-input" placeholder="+91 98765 43210"/>
+    </div>
+
+    <div class="field">
+      <div class="field-label">What would you like to delete? <span class="required">*</span></div>
+      <div class="del-options">
+        <label class="del-option selected" id="opt1">
+          <input type="radio" name="deltype" value="all" checked onchange="selectOpt(1)"/>
+          <div class="del-option-body">
+            <div class="del-option-title">Delete my account and all data</div>
+            <div class="del-option-desc">Permanently removes your account, all transactions, budgets, lends, and personal information from our servers.</div>
+            <div class="del-option-badge badge-red">Permanent — cannot be undone</div>
+          </div>
+        </label>
+        <label class="del-option" id="opt2">
+          <input type="radio" name="deltype" value="dataonly" onchange="selectOpt(2)"/>
+          <div class="del-option-body">
+            <div class="del-option-title">Delete my data only (keep account)</div>
+            <div class="del-option-desc">Removes all transactions, budgets, and spending history but keeps your account so you can start fresh.</div>
+            <div class="del-option-badge badge-amber">Data removed · Account kept</div>
+          </div>
+        </label>
+        <label class="del-option" id="opt3">
+          <input type="radio" name="deltype" value="specific" onchange="selectOpt(3)"/>
+          <div class="del-option-body">
+            <div class="del-option-title">Delete specific data</div>
+            <div class="del-option-desc">Choose exactly which data to delete — transactions for a specific period, lend records, or contact data only.</div>
+            <div class="del-option-badge badge-green">Partial deletion</div>
+          </div>
+        </label>
+      </div>
+    </div>
+
+    <div class="field" id="specificField" style="display:none;">
+      <div class="field-label">Specify what to delete <span class="required">*</span></div>
+      <textarea id="fspecific" class="field-textarea" placeholder="e.g. All transactions before January 2026, lend records only, contact information only..."></textarea>
+    </div>
+
+    <div class="field">
+      <div class="field-label">Reason for deletion (optional)</div>
+      <select class="field-select" id="freason">
+        <option value="">Select a reason</option>
+        <option value="privacy">Privacy concerns</option>
+        <option value="nolonger">No longer using the app</option>
+        <option value="switching">Switching to another app</option>
+        <option value="test">Was just testing the app</option>
+        <option value="other">Other reason</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <div class="field-label">Additional notes (optional)</div>
+      <textarea id="fnotes" class="field-textarea" placeholder="Any additional information about your request..."></textarea>
+    </div>
+
+    <div class="confirm-box">
+      <label class="confirm-check">
+        <input type="checkbox" id="fconfirm" onchange="toggleSubmit()"/>
+        <div class="confirm-text">I understand that this deletion request is permanent and cannot be undone. All selected data will be irreversibly removed within 30 days of this request.</div>
+      </label>
+    </div>
+
+    <button class="submit-btn" id="submitBtn" disabled onclick="submitForm()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round">
+        <polyline points="20,6 9,17 4,12"/>
+      </svg>
+      Submit deletion request
+    </button>
+  </div>
+
+  <!-- Success screen -->
+  <div class="success-screen" id="successScreen">
+    <div class="success-icon">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="2.5" stroke-linecap="round">
+        <polyline points="20,6 9,17 4,12"/>
+      </svg>
+    </div>
+    <div class="success-title">Request submitted!</div>
+    <div class="success-sub">Your deletion request has been received. We will process it and send a confirmation to your email within 30 days.</div>
+    <div class="success-ref" id="refNumber">Reference: SW-DEL-000000</div>
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="tl-num">✓</div>
+        <div class="tl-text">Request received</div>
+        <div class="tl-time">Now</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-num">2</div>
+        <div class="tl-text">Identity verification email sent</div>
+        <div class="tl-time">Within 24 hrs</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-num">3</div>
+        <div class="tl-text">Data deletion begins</div>
+        <div class="tl-time">Within 7 days</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-num">4</div>
+        <div class="tl-text">Deletion complete confirmation</div>
+        <div class="tl-time">Within 30 days</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contact note -->
+  <div style="background:var(--surf);border-radius:14px;padding:16px;border:1px solid var(--border);text-align:center;">
+    <div style="font-size:13px;font-weight:700;color:var(--txt);font-family:var(--fn);margin-bottom:4px;">Need help or have questions?</div>
+    <div style="font-size:12px;color:var(--txt2);font-family:var(--fn);">Contact us at <a href="mailto:privacy@spendwise.app" style="color:var(--g2);font-weight:700;">privacy@spendwise.app</a></div>
+    <div style="font-size:11px;color:var(--txt3);font-family:var(--fn);margin-top:4px;">We respond to all privacy inquiries within 3 business days</div>
+  </div>
+
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  <div class="footer-brand">SpendWise</div>
+  <div class="footer-sub">Your personal expense diary · Made in India</div>
+  <div class="footer-links">
+    <a href="#" class="footer-link">Privacy Policy</a>
+    <a href="#" class="footer-link">Terms of Use</a>
+    <a href="#" class="footer-link">Contact Us</a>
+  </div>
+</div>
+
+<script>
+function selectOpt(n){
+  [1,2,3].forEach(i=>{
+    document.getElementById('opt'+i).classList.remove('selected');
+  });
+  document.getElementById('opt'+n).classList.add('selected');
+  document.getElementById('specificField').style.display = n===3 ? 'block' : 'none';
+}
+
+function toggleSubmit(){
+  const checked = document.getElementById('fconfirm').checked;
+  const btn     = document.getElementById('submitBtn');
+  btn.disabled  = !checked;
+  btn.style.background = checked ? '#2E7D32' : '#BDBDBD';
+}
+
+function submitForm(){
+  const name    = document.getElementById('fname').value.trim();
+  const email   = document.getElementById('femail').value.trim();
+  const confirm = document.getElementById('fconfirm').checked;
+
+  if(!name){
+    document.getElementById('fname').focus();
+    document.getElementById('fname').style.borderColor='#C62828';
+    return;
+  }
+  if(!email || !email.includes('@')){
+    document.getElementById('femail').focus();
+    document.getElementById('femail').style.borderColor='#C62828';
+    return;
+  }
+  if(!confirm) return;
+
+  // Generate reference number
+  const ref = 'SW-DEL-' + Date.now().toString().slice(-6);
+  document.getElementById('refNumber').textContent = 'Reference: ' + ref;
+
+  // Show success screen
+  document.getElementById('formCard').style.display   = 'none';
+  document.getElementById('successScreen').style.display = 'block';
+
+  // In production: send form data to your backend / Supabase / email
+  // fetch('/api/deletion-request', { method:'POST', body: JSON.stringify({name,email,ref}) })
+  fetch('https://formspree.io/f/meepkqnv', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ name, email, ref })
+});
+}
+</script>
+</body>
+</html>
