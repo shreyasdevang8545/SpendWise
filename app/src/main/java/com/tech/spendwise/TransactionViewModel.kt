@@ -8,8 +8,17 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
+import org.json.JSONArray
+import org.json.JSONObject
+import kotlinx.coroutines.flow.first
 import com.tech.spendwise.SupabaseInstance
 import kotlinx.coroutines.launch
+import android.appwidget.AppWidgetManager
+import android.content.ComponentName
+import android.content.Intent
+import java.util.Calendar
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 /**
  * ViewModel for sharing transaction data between fragments and activity,
@@ -113,8 +122,14 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
     /**
      * Fetches the [limit] most recent confirmed transactions from Firestore for the signed-in user.
      * Results are posted to [firestoreTransactions].
+     * @param forceRefresh If true, always performs the network fetch. If false, skips if data already exists.
      */
-    fun fetchFromFirestore() {
+    fun fetchFromFirestore(forceRefresh: Boolean = false) {
+        if (!forceRefresh && _firestoreTransactions.value?.isNotEmpty() == true) {
+            Log.d("TransactionVM", "fetchFromFirestore: Data already present, skipping fetch.")
+            return
+        }
+        
         val uid = SupabaseInstance.currentUserId() ?: return
         _isLoading.value = true
         viewModelScope.launch {
@@ -131,6 +146,7 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
                 Log.e("TransactionVM", "Fetch failed: ${e.message}")
             } finally {
                 _isLoading.postValue(false)
+                updateWidgetSummary()
             }
         }
     }
@@ -205,6 +221,7 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
                 }
             """.trimIndent()
             repository.addConfirmedTransaction(json)
+            updateWidgetSummary()
         }
     }
 
@@ -226,6 +243,7 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
                 fetchFromFirestore()
             } finally {
                 _isLoading.postValue(false)
+                updateWidgetSummary()
             }
         }
     }
@@ -317,6 +335,94 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
     fun deleteLocalTransaction(json: String) {
         viewModelScope.launch {
             repository.removeConfirmedTransaction(json)
+            updateWidgetSummary()
         }
+    }
+
+    /**
+     * Triggered every time data changes to update the home screen widget cache.
+     */
+    /**
+     * Triggered every time data changes to update the home screen widget cache.
+     */
+    fun updateWidgetSummary() {
+        viewModelScope.launch {
+            val local = repository.confirmedTransactionsFlow.first()
+            val cloud = _firestoreTransactions.value ?: emptyList()
+            
+            // Deduplicate
+            val seen = mutableSetOf<String>()
+            val merged = mutableListOf<String>()
+            for (json in cloud) if (seen.add(json)) merged.add(json)
+            for (json in local) if (seen.add(json)) merged.add(json)
+
+            val cal = Calendar.getInstance()
+            val currYear = cal.get(Calendar.YEAR)
+            val currMonth = cal.get(Calendar.MONTH) + 1
+            val monthName = SimpleDateFormat("MMMM", Locale.getDefault()).format(cal.time)
+
+            var income = 0.0
+            var spent = 0.0
+            val lentItems = mutableListOf<String>()
+
+            merged.forEach { json ->
+                try {
+                    val obj = JSONObject(json)
+                    val amount = obj.optDouble("amount", 0.0)
+                    val type = obj.optString("type", "")
+                    val savedAt = obj.optString("saved_at", "")
+                    val category = obj.optString("category", "")
+                    val isSameMonth = isSameMonth(savedAt, currYear, currMonth)
+
+                    if (isSameMonth) {
+                        if (type.equals("CREDIT", ignoreCase = true)) income += amount
+                        else if (type.equals("DEBIT", ignoreCase = true)) spent += amount
+                    }
+
+                    // Extract Lends (Global, not just this month, or maybe just this month? User said "show the lent amount...")
+                    // Usually users want to see ALL active lends.
+                    if (category.equals("Lend", ignoreCase = true) || obj.optBoolean("is_lend", false)) {
+                        val name = obj.optString("merchant", obj.optString("lend_name", "Unknown"))
+                        val returnDate = obj.optLong("return_date", 0L)
+                        var dateStr = ""
+                        if (returnDate > 0) {
+                           try {
+                               val d = SimpleDateFormat("dd MMM", Locale.getDefault()).format(java.util.Date(returnDate))
+                               dateStr = " ($d)"
+                           } catch (e: Exception) {}
+                        }
+                        lentItems.add("$name - ₹${amount.toInt()}$dateStr")
+                    }
+                } catch (e: Exception) {}
+            }
+
+            val lentJson = JSONArray().apply {
+                lentItems.take(2).forEach { put(it) }
+                if (lentItems.size > 2) put("...")
+            }.toString()
+
+            repository.updateWidgetData(income - spent, income, spent, monthName, lentJson)
+            notifyWidgetUpdate()
+        }
+    }
+
+    private fun isSameMonth(savedAt: String, year: Int, month: Int): Boolean {
+        if (savedAt.length < 7) return false
+        try {
+            val y = savedAt.substring(0, 4).toInt()
+            val m = savedAt.substring(5, 7).toInt()
+            return y == year && m == month
+        } catch (e: Exception) { return false }
+    }
+
+    private fun notifyWidgetUpdate() {
+        val intent = Intent(getApplication(), BalanceWidgetProvider::class.java).apply {
+            action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+        }
+        val ids = AppWidgetManager.getInstance(getApplication()).getAppWidgetIds(
+            ComponentName(getApplication(), BalanceWidgetProvider::class.java)
+        )
+        intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids)
+        getApplication<Application>().sendBroadcast(intent)
     }
 }

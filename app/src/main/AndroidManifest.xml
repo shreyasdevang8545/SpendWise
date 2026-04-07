@@ -110,6 +110,18 @@
         -->
 
         <receiver
+            android:name=".BalanceWidgetProvider"
+            android:exported="true"
+            android:enabled="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_balance_info" />
+        </receiver>
+
+        <receiver
             android:name=".ReminderReceiver"
             android:enabled="true"
             android:exported="false" />

@@ -90,6 +90,7 @@ dependencies {
     implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
     implementation("androidx.biometric:biometric:1.1.0")
     implementation(libs.shimmer)
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
 
     // Supabase
     implementation("io.github.jan-tennert.supabase:auth-kt:3.0.1")

@@ -12,7 +12,12 @@
           "package_name": "com.tech.spendwise"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "328976930978-h3akrvh7r0qubajjvmmqah9o3232r0d7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAKzRqFoJ1SuQWv2-FPB8qtAMfjPCs9SQY"

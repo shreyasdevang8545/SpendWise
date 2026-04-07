@@ -24,6 +24,11 @@ class PreferenceRepository(private val context: Context) {
         private val CONFIRMED_TRANSACTIONS_KEY = stringPreferencesKey("confirmed_transactions_encrypted")
         private val IS_VOICE_GUIDE_SHOWN_KEY = booleanPreferencesKey("is_voice_guide_shown")
         private val SUPABASE_TOKENS_KEY = stringPreferencesKey("supabase_tokens_encrypted")
+        private val WIDGET_BALANCE_KEY = stringPreferencesKey("widget_balance")
+        private val WIDGET_INCOME_KEY = stringPreferencesKey("widget_income")
+        private val WIDGET_SPENT_KEY = stringPreferencesKey("widget_spent")
+        private val WIDGET_MONTH_KEY = stringPreferencesKey("widget_month")
+        private val WIDGET_LENT_DATA_KEY = stringPreferencesKey("widget_lent_data")
         private const val DELIMITER = "|_|"
         private const val MAX_CONFIRMED = 100
     }
@@ -269,6 +274,22 @@ class PreferenceRepository(private val context: Context) {
     suspend fun clearEverything() {
         context.dataStore.edit { preferences ->
             preferences.clear()
+        }
+    }
+
+    val widgetBalance: Flow<Double> = context.dataStore.data.map { it[WIDGET_BALANCE_KEY]?.toDoubleOrNull() ?: 0.0 }
+    val widgetIncome: Flow<Double> = context.dataStore.data.map { it[WIDGET_INCOME_KEY]?.toDoubleOrNull() ?: 0.0 }
+    val widgetSpent: Flow<Double> = context.dataStore.data.map { it[WIDGET_SPENT_KEY]?.toDoubleOrNull() ?: 0.0 }
+    val widgetMonth: Flow<String> = context.dataStore.data.map { it[WIDGET_MONTH_KEY] ?: "" }
+    val widgetLentData: Flow<String> = context.dataStore.data.map { it[WIDGET_LENT_DATA_KEY] ?: "" }
+
+    suspend fun updateWidgetData(balance: Double, income: Double, spent: Double, month: String = "", lentJson: String = "") {
+        context.dataStore.edit { preferences ->
+            preferences[WIDGET_BALANCE_KEY] = balance.toString()
+            preferences[WIDGET_INCOME_KEY] = income.toString()
+            preferences[WIDGET_SPENT_KEY] = spent.toString()
+            if (month.isNotEmpty()) preferences[WIDGET_MONTH_KEY] = month
+            if (lentJson.isNotEmpty()) preferences[WIDGET_LENT_DATA_KEY] = lentJson
         }
     }
 

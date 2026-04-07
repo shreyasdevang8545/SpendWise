@@ -90,8 +90,12 @@ class HomeFragment : Fragment() {
 
 
 
-        // Fetch cloud transactions when screen opens
-        viewModel.fetchFromFirestore()
+        // Fetch cloud transactions when screen opens (skip if data already present)
+        viewModel.fetchFromFirestore(forceRefresh = false)
+
+        binding.swipeRefresh.setOnRefreshListener {
+            viewModel.fetchFromFirestore(forceRefresh = true)
+        }
 
         // Observe pending transactions for the bottom card and notification badge
         viewModel.pendingTransactions.observe(viewLifecycleOwner) { list ->
@@ -129,7 +133,10 @@ class HomeFragment : Fragment() {
 
 
         viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
-            if (isLoading) {
+            binding.swipeRefresh.isRefreshing = isLoading
+            val hasData = viewModel.firestoreTransactions.value?.isNotEmpty() == true
+            
+            if (isLoading && !hasData) {
                 binding.shimmerViewContainer.visibility = View.VISIBLE
                 binding.shimmerViewContainer.startShimmer()
                 binding.recentTransactionsList.visibility = View.GONE

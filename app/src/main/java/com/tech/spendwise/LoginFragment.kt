@@ -16,6 +16,7 @@ import androidx.credentials.GetCredentialRequest
 import androidx.lifecycle.lifecycleScope
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
 import kotlinx.coroutines.launch
 import android.util.Log
 
@@ -94,12 +95,24 @@ class LoginFragment : Fragment() {
                 val result = credentialManager.getCredential(requireContext(), request)
                 val credential = result.credential
                 
-                if (credential is GoogleIdTokenCredential) {
-                    val idToken = credential.idToken
-                    authViewModel.signInWithGoogle(idToken)
-                } else {
-                    Log.e("LoginFragment", "Unexpected credential type: ${credential.type}")
-                    UIUtils.showErrorSnackbar(binding.root, "Google Sign-In failed: Unexpected response")
+                when {
+                    credential is GoogleIdTokenCredential -> {
+                        val idToken = credential.idToken
+                        authViewModel.signInWithGoogle(idToken)
+                    }
+                    credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL -> {
+                        try {
+                            val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
+                            authViewModel.signInWithGoogle(googleIdTokenCredential.idToken)
+                        } catch (e: GoogleIdTokenParsingException) {
+                            Log.e("LoginFragment", "Received an invalid google id token response", e)
+                            UIUtils.showErrorSnackbar(binding.root, "Google Sign-In failed: Invalid response")
+                        }
+                    }
+                    else -> {
+                        Log.e("LoginFragment", "Unexpected credential type: ${credential.type}")
+                        UIUtils.showErrorSnackbar(binding.root, "Google Sign-In failed: Unexpected response")
+                    }
                 }
             } catch (e: Exception) {
                 Log.e("LoginFragment", "Google Sign-In Error", e)
