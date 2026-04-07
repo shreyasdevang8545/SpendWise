@@ -1,6 +1,6 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">SpendWise</string>
+    <string name="app_tagline">ಟ್ರ್ಯಾಕ್ ಮಾಡಿ · ಉಳಿಸಿ · ಬೆಳೆಯಿರಿ 💚</string>
 
     <!-- Settings Sections -->
     <string name="settings_title">ಸೆಟ್ಟಿಂಗ್‌ಗಳು</string>
@@ -9,6 +9,7 @@
     <string name="section_notifications">ಅಧಿಸೂಚನೆಗಳು</string>
     <string name="section_data_privacy">ಡೇಟಾ ಮತ್ತು ಗೌಪ್ಯತೆ</string>
     <string name="section_support">ಬೆಂಬಲ</string>
+    <string name="section_app_settings">ಅಪ್ಲಿಕೇಶನ್ ಸೆಟ್ಟಿಂಗ್‌ಗಳು</string>
 
     <!-- General Section -->
     <string name="title_profile">ಪ್ರೊಫೈಲ್ ಮತ್ತು ಖಾತೆ</string>
@@ -35,12 +36,16 @@
     <!-- Notifications Section -->
     <string name="title_transaction_alerts">ವಹಿವಾಟು ಎಚ್ಚರಿಕೆಗಳು</string>
     <string name="subtitle_transaction_alerts">SMS ವಹಿವಾಟು ಪತ್ತೆಯಾದಾಗ ಅಧಿಸೂಚಿಸಿ</string>
-    <string name="title_budget_alerts">ಬಜೆಟ್ ಎಚ್ಚರಿಕೆಗಳು</string>
-    <string name="subtitle_budget_alerts" formatted="false">ಮಿತಿಯ 75%, 90%, 100% ನಲ್ಲಿ ಎಚ್ಚರಿಸಿ</string>
     <string name="title_monthly_summary">ಮಾಸಿಕ ಸಾರಾಂಶ</string>
     <string name="subtitle_monthly_summary">ಪ್ರತಿ ತಿಂಗಳ 1 ರಂದು ವರದಿ ಕಳುಹಿಸಿ</string>
+    <string name="title_monthly_report">ಮಾಸಿಕ ವರದಿಗಳು</string>
+    <string name="subtitle_monthly_report">ಹಣಕಾಸಿನ ಸಾರಾಂಶಗಳನ್ನು ನೋಡಿ ಮತ್ತು ರಫ್ತು ಮಾಡಿ</string>
     <string name="title_daily_reminder">ದೈನಂದಿನ ಖರ್ಚು ಜ್ಞಾಪನೆ</string>
     <string name="subtitle_daily_reminder">ಖರ್ಚುಗಳನ್ನು ದಾಖಲಿಸಲು ಸಾಯಂಕಾಲ ನೆನಪಿಸಿ</string>
+    <string name="title_budget_alerts">ಬಜೆಟ್ ಎಚ್ಚರಿಕೆಗಳು</string>
+    <string name="subtitle_budget_alerts">ಮಿತಿಯ 75%, 90%, 100% ನಲ್ಲಿ ಎಚ್ಚರಿಸಿ</string>
+    <string name="set_reminder_time">ಜ್ಞಾಪನೆ ಸಮಯವನ್ನು ಆಯ್ಕೆಮಾಡಿ</string>
+    <string name="reminder_scheduled_at">ಜ್ಞಾಪನೆಯನ್ನು %1$02d:%2$02d ಕ್ಕೆ ಹೊಂದಿಸಲಾಗಿದೆ</string>
 
     <!-- Data & Privacy Section -->
     <string name="title_backup_restore">ಬ್ಯಾಕಪ್ ಮತ್ತು ಮರುಸ್ಥಾಪನೆ</string>
@@ -90,6 +95,61 @@
     <string name="home_lent">ಸಾಲ %1$s</string>
     <string name="home_transaction_found_single">1 ವಹಿವಾಟು ಕಂಡುಬಂದಿದೆ. ಪರಿಶೀಲಿಸಲು ಟ್ಯಾಪ್ ಮಾಡಿ.</string>
     <string name="home_transaction_found_plural">%1$d ವಹಿವಾಟುಗಳು ಕಂಡುಬಂದಿವೆ. ಪರಿಶೀಲಿಸಲು ಟ್ಯಾಪ್ ಮಾಡಿ.</string>
+    <string name="home_empty_title">ಹೊಸ ಆರಂಭಕ್ಕೆ ಸಿದ್ಧರಿದ್ದೀರಾ?</string>
+    <string name="home_empty_subtitle">SpendWise ನೊಂದಿಗೆ ನಿಮ್ಮ ಖರ್ಚು ಟ್ರ್ಯಾಕಿಂಗ್ ಪ್ರಯಾಣವನ್ನು ಪ್ರಾರಂಭಿಸಲು ನಿಮ್ಮ ಮೊದಲ ವಹಿವಾಟನ್ನು ಸೇರಿಸಿ.</string>
+
+    <!-- Action Buttons -->
+    <string name="btn_save">ಉಳಿಸಿ</string>
+    <string name="btn_cancel">ರದ್ದುಮಾಡಿ</string>
+    <string name="btn_delete">ಅಳಿಸಿ</string>
+    <string name="btn_edit">ಸಂಪಾದಿಸಿ</string>
+    <string name="btn_next">ಮುಂದೆ</string>
+    <string name="btn_review">ಪರಿಶೀಲಿಸಿ</string>
+    <string name="btn_ignore">ನಿರ್ಲಕ್ಷಿಸಿ</string>
+    <string name="btn_grant_access">ಪ್ರವೇಶ ನೀಡಿ</string>
+    <string name="btn_not_now">ಈಗ ಬೇಡ</string>
+    <string name="btn_go_to_settings">ಸೆಟ್ಟಿಂಗ್‌ಗಳಿಗೆ ಹೋಗಿ</string>
+    <string name="btn_mark_returned">ಹಿಂತಿರುಗಿಸಲಾಗಿದೆ ಎಂದು ಗುರುತಿಸಿ</string>
+    <string name="btn_edit_detail">ವಿವರವನ್ನು ಸಂಪಾದಿಸಿ</string>
+    <string name="btn_submit_feedback">ಪ್ರತಿಕ್ರಿಯೆ ಕಳುಹಿಸಿ</string>
+    <string name="btn_export_pdf">PDF ಆಗಿ ರಫ್ತು ಮಾಡಿ</string>
+    <string name="btn_discard">ಅಳಿಸಿಹಾಕಿ</string>
+    <string name="btn_save_continue">ಉಳಿಸಿ ಮತ್ತು ಮುಂದುವರಿಯಿರಿ</string>
+    <string name="btn_upload_now">ಈಗ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ</string>
+    <string name="btn_create_account">ಖಾತೆ ರಚಿಸಿ</string>
+    <string name="btn_sign_in">ಸೈನ್ ಇನ್ ಮಾಡಿ</string>
+    <string name="btn_continue_with_google">Google ನೊಂದಿಗೆ ಮುಂದುವರಿಯಿರಿ</string>
+    <string name="btn_add_transaction">ವಹಿವಾಟನ್ನು ಸೇರಿಸಿ</string>
+    <string name="btn_save_next_count">ಉಳಿಸಿ ಮತ್ತು ಮುಂದೆ (%1$d ಉಳಿದಿದೆ)</string>
+    <string name="btn_save_finish">ಉಳಿಸಿ ಮತ್ತು ಮುಗಿಸಿ</string>
+
+    <!-- Messages -->
+    <string name="msg_filled_from_voice">\"%1$s\" ನಿಂದ ಭರ್ತಿ ಮಾಡಲಾಗಿದೆ</string>
+    <string name="msg_saved_and_synced">ಉಳಿತಾಯ ಮತ್ತು ಸಿಂಕ್ ಮಾಡಲಾಗಿದೆ: ₹%1$s · %2$s</string>
+    <string name="msg_bill_extracted">ಬಿಲ್ ವಿವರಗಳನ್ನು ಹೊರತೆಗೆಯಲಾಗಿದೆ!</string>
+    <string name="msg_new_transaction_found">ಹೊಸ ವಹಿವಾಟು ಕಂಡುಬಂದಿದೆ</string>
+    <string name="msg_test_action_received">SpendWise: ಟೆಸ್ಟ್ ಆಕ್ಷನ್ ಸ್ವೀಕರಿಸಲಾಗಿದೆ!</string>
+    <string name="msg_new_transaction_detected">ಹೊಸ ವಹಿವಾಟು ಪತ್ತೆಹಚ್ಚಲಾಗಿದೆ</string>
+    <string name="msg_transaction_found_details">%2$s %3$s ಗಾಗಿ %1$s ವಹಿವಾಟು ಕಂಡುಬಂದಿದೆ. ಹೆಚ್ಚಿನ ವಿವರಗಳನ್ನು ಸೇರಿಸಲು ಟ್ಯಾಪ್ ಮಾಡಿ.</string>
+    <string name="msg_no_transactions_found_period">%1$s %2$d ಗಾಗಿ ಯಾವುದೇ ವಹಿವಾಟುಗಳು ಕಂಡುಬಂದಿಲ್ಲ</string>
+    <string name="msg_generated_by_spendwise">SpendWise ನಿಂದ %1$s ರಂದು ರಚಿಸಲಾಗಿದೆ</string>
+    <string name="msg_name_updated">ಹೆಸರನ್ನು ಯಶಸ್ವಿಯಾಗಿ ನವೀಕರಿಸಲಾಗಿದೆ</string>
+    <string name="msg_cloud_sync_active">ಕ್ಲೌಡ್ ಸಿಂಕ್ ಸಕ್ರಿಯವಾಗಿದೆ</string>
+    <string name="msg_support_coming_soon">ಬೆಂಬಲ ಶೀಘ್ರದಲ್ಲೇ ಬರಲಿದೆ!</string>
+    <string name="msg_lend_saved_for">%1$s ಗಾಗಿ ಸಾಲವನ್ನು ಉಳಿಸಲಾಗಿದೆ</string>
+    <string name="msg_saved_details">ಉಳಿಸಲಾಗಿದೆ: %3$s ರಂದು ₹%1$s ಸಾಲವಾಗಿ %2$s</string>
+    <string name="msg_contacts_permission_needed">ವ್ಯಕ್ತಿಯನ್ನು ಆಯ್ಕೆ ಮಾಡಲು ಸಂಪರ್ಕಗಳ ಅನುಮತಿ ಅಗತ್ಯವಿದೆ</string>
+    <string name="msg_pick_contact_whatsapp">ವಾಟ್ಸಾಪ್ ಜ್ಞಾಪನೆ ಕಳುಹಿಸಲು ದಯವಿಟ್ಟು ಸಂಪರ್ಕವನ್ನು ಆಯ್ಕೆ ಮಾಡಿ</string>
+    <string name="msg_login_required">ಉಳಿಸಲು ದಯವಿಟ್ಟು ಲಾಗಿನ್ ಮಾಡಿ</string>
+    <string name="msg_preparing_link">%1$s · ಲಿಂಕ್ ಸಿದ್ಧಪಡಿಸಲಾಗುತ್ತಿದೆ...</string>
+    <string name="msg_whatsapp_not_installed">ಈ ಸಾಧನದಲ್ಲಿ ವಾಟ್ಸಾಪ್ ಇನ್‌ಸ್ಟಾಲ್ ಆಗಿಲ್ಲ</string>
+    <string name="msg_whatsapp_template">ನಮಸ್ಕಾರ %1$s! 👋\n\nಕೇವಲ ಒಂದು ಸಣ್ಣ ವಿಷಯ — ನಾನು ನಿಮಗೆ ₹%2$s ಸಾಲ ನೀಡಿದ್ದೇನೆ ಮತ್ತು ಅದನ್ನು SpendWise ನಲ್ಲಿ ದಾಖಲಿಸಿದ್ದೇನೆ.\n\n📅 ಶಿಫಾರಸು ಮಾಡಿದ ವಾಪಸಾತಿ ದಿನಾಂಕ: *%3$s*\n\n📋 ಪೂರ್ಣ ವಿವರಗಳನ್ನು ನೋಡಿ:\n%4$s\n\nಯಾವುದೇ ಅವಸರವಿಲ್ಲ, ಕೇವಲ ಗಮನದಲ್ಲಿರಿಸಿಕೊಳ್ಳಲು! 😊\n\n— SpendWise ಮೂಲಕ ಕಳುಹಿಸಲಾಗಿದೆ 💚</string>
+    <string name="msg_lend_updated">ಸಾಲದ ವಿವರವನ್ನು ನವೀಕರಿಸಲಾಗಿದೆ</string>
+    <string name="msg_money_return_content">%1$s ಅವರು ₹%2$s ಹಿಂತಿರುಗಿಸಬೇಕಿತ್ತು.</string>
+    <string name="msg_log_spending_today">ಇಂದಿನ ನಿಮ್ಮ ಖರ್ಚನ್ನು ದಾಖಲಿಸಲು ಮರೆಯಬೇಡಿ!</string>
+    <string name="msg_lend_manual">ಸ್ವೈಪ್ ಗೆಸ್ಚರ್‌ಗಳು:\n\n👉 ಬಲಕ್ಕೆ ಸ್ವೈಪ್ ಮಾಡಿ:\n• ಹಿಂತಿರುಗಿಸಲಾಗಿದೆ ಎಂದು ಗುರುತಿಸಿ: ಸ್ಥಿತಿಯನ್ನು ತ್ವರಿತವಾಗಿ ನವೀಕರಿಸಿ.\n• ವಿವರವನ್ನು ಸಂಪಾದಿಸಿ: ಮೊತ್ತ ಅಥವಾ ದಿನಾಂಕವನ್ನು ಬದಲಾಯಿಸಿ.\n\n👈 ಎಡಕ್ಕೆ ಸ್ವೈಪ್ ಮಾಡಿ:\n• ಅಳಿಸಿ: ರೆಕಾರ್ಡ್ ಅನ್ನು ಶಾಶ್ವತವಾಗಿ ತೆಗೆದುಹಾಕಿ.\n\nಗಮನಿಸಿ: ರೆಕಾರ್ಡ್ ಅಳಿಸುವುದರಿಂದ ಯಾವುದೇ ಬಾಕಿ ಇರುವ ಅಧಿಸೂಚನೆಗಳನ್ನು ಸಹ ರದ್ದುಗೊಳಿಸುತ್ತದೆ.</string>
+    <string name="msg_no_budget_tracking">ಇನ್ನೂ ಯಾವುದೇ ಬಜೆಟ್ ಮಿತಿಗಳ ಟ್ರ್ಯಾಕಿಂಗ್ ಇಲ್ಲ.</string>
+    <string name="msg_data_cleared">ಎಲ್ಲಾ ಡೇಟಾವನ್ನು ಯಶಸ್ವಿಯಾಗಿ ಅಳಿಸಲಾಗಿದೆ</string>
 
     <!-- Dialogs -->
     <string name="dialog_edit_transaction">ವಹಿವಾಟು ಸಂಪಾದಿಸಿ</string>
@@ -104,8 +164,217 @@
     <string name="dialog_edit">ಸಂಪಾದಿಸಿ</string>
     <string name="dialog_offline_transaction">ಆಫ್‌ಲೈನ್ ವಹಿವಾಟು</string>
     <string name="dialog_transaction_options">ವಹಿವಾಟು ಆಯ್ಕೆಗಳು</string>
+    <string name="dialog_add_transaction">ವಹಿವಾಟನ್ನು ಸೇರಿಸಿ</string>
+    <string name="dialog_clear_all_title">ಎಲ್ಲಾ ಡೇಟಾವನ್ನು ಅಳಿಸಲಿ?</string>
+    <string name="dialog_clear_all_message">ಇದು ನಿಮ್ಮ ಎಲ್ಲಾ ವಹಿವಾಟುಗಳು, ಸಾಲಗಳು ಮತ್ತು ಸ್ಪ್ಲಿಟ್‌ವೈಸ್ ದಾಖಲೆಗಳನ್ನು ಶಾಶ್ವತವಾಗಿ ಅಳಿಸುತ್ತದೆ. ಈ ಕ್ರಿಯೆಯನ್ನು ಹಿಂತಿರುಗಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ.</string>
+    <string name="dialog_set_overall_budget_title">ಒಟ್ಟಾರೆ ಮಾಸಿಕ ಬಜೆಟ್ ಹೊಂದಿಸಿ</string>
+    <string name="dialog_select_category_title">ವರ್ಗವನ್ನು ಆಯ್ಕೆಮಾಡಿ</string>
+    <string name="dialog_set_category_limit_title">%1$s ಗಾಗಿ ಮಿತಿ ಹೊಂದಿಸಿ</string>
+    <string name="dialog_notifications_permission_title">ಅಧಿಸೂಚನೆಗಳ ಅನುಮತಿ</string>
+    <string name="dialog_notifications_permission_msg">ದೈನಂದಿನ ಜ್ಞಾಪನೆಗಳು, ಸಾಲ ವಾಪಸಾತಿ ಎಚ್ಚರಿಕೆಗಳು ಮತ್ತು ಬಜೆಟ್ ಎಚ್ಚರಿಕೆಗಳನ್ನು ಕಳುಹಿಸಲು SpendWise ಗೆ ಅಧಿಸೂಚನೆ ಪ್ರವೇಶದ ಅಗತ್ಯವಿದೆ.</string>
+    <string name="dialog_sms_access_title">SMS ಪ್ರವೇಶ</string>
+    <string name="dialog_sms_access_msg">SMS ಅನುಮತಿಯು SpendWise ಗೆ ನಿಮ್ಮ ಸಂದೇಶಗಳಿಂದ ಬ್ಯಾಂಕ್ ವಹಿವಾಟುಗಳನ್ನು ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಪತ್ತೆಹಚ್ಚಲು ಅನುಮತಿಸುತ್ತದೆ.</string>
+    <string name="dialog_contacts_permission_title">ಸಂಪರ್ಕಗಳ ಅನುಮತಿ ಅಗತ್ಯವಿದೆ</string>
+    <string name="dialog_contacts_permission_msg">ನಿಮ್ಮ ಫೋನ್‌ಬುಕ್‌ನಿಂದ ನೇರವಾಗಿ ಜನರನ್ನು ಆಯ್ಕೆ ಮಾಡಲು ಅಗತ್ಯವಿದೆ.</string>
+    <string name="dialog_contacts_access_title">ಸಂಪರ್ಕಗಳ ಪ್ರವೇಶ</string>
+    <string name="dialog_contacts_access_msg">ನಿಮ್ಮ ಫೋನ್‌ಬುಕ್‌ನಿಂದ ನೇರವಾಗಿ ವ್ಯಕ್ತಿಯನ್ನು ಆಯ್ಕೆ ಮಾಡಲು SpendWise ಗೆ ಸಂಪರ್ಕಗಳ ಪ್ರವೇಶದ ಅಗತ್ಯವಿದೆ.</string>
+    <string name="dialog_permission_required_title">%1$s ಅನುಮತಿ ಅಗತ್ಯವಿದೆ</string>
+    <string name="dialog_permission_required_msg">ನೀವು %1$s ಪ್ರವೇಶವನ್ನು ನಿರಾಕರಿಸಿದ್ದೀರಿ. ಇದು %2$s ಗೆ ಅಗತ್ಯವಿದೆ.</string>
+    <string name="dialog_delete_transactions_batch_title">ವಹಿವಾಟುಗಳನ್ನು ಅಳಿಸಿ</string>
+    <string name="dialog_delete_transactions_batch_msg">ನೀವು ಈ %1$d ವಹಿವಾಟುಗಳನ್ನು ಅಳಿಸಲು ಖಚಿತವಾಗಿ ಬಯಸುವಿರಾ?</string>
 
-    <!-- Security & Lock -->
+    <!-- Hints -->
+    <string name="hint_merchant">ವ್ಯಾಪಾರಿ / ಟಿಪ್ಪಣಿ</string>
+    <string name="hint_category">ವರ್ಗ</string>
+    <string name="hint_amount">ಮೊತ್ತ</string>
+    <string name="hint_amount_currency">ಮೊತ್ತ (%1$s)</string>
+    <string name="hint_date_time">ದಿನಾಂಕ ಮತ್ತು ಸಮಯ</string>
+    <string name="hint_full_name">ಪೂರ್ಣ ಹೆಸರು</string>
+    <string name="hint_email_address">ಇಮೇಲ್ ವಿಳಾಸ</string>
+    <string name="hint_password">ಪಾಸ್‌ವರ್ಡ್</string>
+    <string name="hint_feedback">ನಿಮ್ಮ ಪ್ರತಿಕ್ರಿಯೆ</string>
+
+    <!-- Greetings -->
+    <string name="label_greeting_name">%1$s, %2$s!</string>
+    <string name="label_greeting_simple">%1$s!</string>
+    <string name="greeting_morning">ಶುಭೋದಯ</string>
+    <string name="greeting_afternoon">ಶುಭ ಮಧ್ಯಾಹ್ನ</string>
+    <string name="greeting_evening">ಶುಭ ಸಂಜೆ</string>
+    <string name="greeting_night">ಶುಭ ರಾತ್ರಿ</string>
+
+    <!-- Status -->
+    <string name="status_pending">ಬಾಕಿ ಇದೆ</string>
+    <string name="label_status_pending">ಬಾಕಿ ಇದೆ</string>
+    <string name="label_status_replied">ಪ್ರತ್ಯುತ್ತರಿಸಲಾಗಿದೆ</string>
+    <string name="status_loading">ಲೋಡ್ ಆಗುತ್ತಿದೆ...</string>
+
+    <!-- Titles -->
+    <string name="title_review_transaction">ವಹಿವಾಟಿನ ವಿಮರ್ಶೆ</string>
+    <string name="title_edit_lend_detail">ಸಾಲದ ವಿವರಗಳನ್ನು ಸಂಪಾದಿಸಿ</string>
+    <string name="title_transaction_history">ವಹಿವಾಟಿನ ಇತಿಹಾಸ</string>
+    <string name="title_offline_transaction">ಆಫ್‌ಲೈನ್ ವಹಿವಾಟು</string>
+    <string name="title_transaction_options">ವಹಿವಾಟಿನ ಆಯ್ಕೆಗಳು</string>
+    <string name="title_edit_transaction">ವಹಿವಾಟನ್ನು ಸಂಪಾದಿಸಿ</string>
+    <string name="title_lend_history">ಸಾಲದ ಇತಿಹಾಸ</string>
+    <string name="title_cloud_sync">ಕ್ಲೌಡ್ ಸಿಂಕ್ರೊನೈಸೇಶನ್</string>
+    <string name="title_help_support">ಸಹಾಯ ಮತ್ತು ಬೆಂಬಲ</string>
+    <string name="title_update_name">ಹೆಸರನ್ನು ನವೀಕರಿಸಿ</string>
+    <string name="title_my_profile">ನನ್ನ ಪ್ರೊಫೈಲ್</string>
+    <string name="title_choose_action">ಕ್ರಿಯೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ</string>
+    <string name="title_report">SpendWise ವರದಿ</string>
+    <string name="title_open_report">ಬ್ರೌಸರ್‌ನಲ್ಲಿ ವರದಿಯನ್ನು ತೆರೆಯಿರಿ</string>
+    <string name="title_feedback_hero">ನಾವು ನಿಮ್ಮಿಂದ ಕೇಳಲು ಇಷ್ಟಪಡುತ್ತೇವೆ!</string>
+    <string name="title_previous_feedbacks">ಹಿಂದಿನ ಪ್ರತಿಕ್ರಿಯೆಗಳು</string>
+    <string name="title_lend_manual">ಬಳಕೆದಾರರ ಕೈಪಿಡಿ: ಸಾಲದ ಇತಿಹಾಸ</string>
+    <string name="title_action_for">%1$s ಗಾಗಿ ಕ್ರಮ</string>
+    <string name="title_delete_record">ದಾಖಲೆಯನ್ನು ಅಳಿಸಿ</string>
+    <string name="title_money_return_reminder">ಹಣ ವಾಪಸಾತಿ ಜ್ಞಾಲನೆ</string>
+    <string name="title_add_your_expenses">ನಿಮ್ಮ ಖರ್ಚುಗಳನ್ನು ಸೇರಿಸಿ</string>
+    <string name="title_voice_entry">ಧ್ವನಿ ನಮೂದು</string>
+    <string name="title_sign_up">ಖಾತೆ ರಚಿಸಿ</string>
+
+    <!-- Errors -->
+    <string name="error_no_text_in_bill">ಚಿತ್ರದಲ್ಲಿ ಯಾವುದೇ ಪಠ್ಯ ಕಂಡುಬಂದಿಲ್ಲ. ದಯವಿಟ್ಟು ಸ್ಪಷ್ಟವಾದ ಫೋಟೋದೊಂದಿಗೆ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.</string>
+    <string name="error_analysis_failed">ವಿಶ್ಲೇಷಣೆ ವಿಫಲವಾಗಿದೆ: %1$s</string>
+    <string name="error_feedback_empty">ದಯವಿಟ್ಟು ನಿಮ್ಮ ಪ್ರತಿಕ್ರಿಯೆಯನ್ನು ದಾಖಲಿಸಿ</string>
+    <string name="error_extract_failed">ಯಾವುದೇ ವಹಿವಾಟಿನ ವಿವರಗಳನ್ನು ಹೊರತೆಗೆಯಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ.</string>
+    <string name="error_updating_name">ಹೆಸರನ್ನು ನವೀಕರಿಸುವಲ್ಲಿ ದೋಷ: %1$s</string>
+    <string name="error_name_empty">ಹೆಸರು ಖಾಲಿಯಿರಬಾರದು</string>
+    <string name="error_name_not_provided">ಹೆಸರನ್ನು ಒದಗಿಸಿಲ್ಲ</string>
+    <string name="error_enter_name">ವ್ಯಕ್ತಿಯ ಹೆಸರನ್ನು ದಾಖಲಿಸಿ</string>
+    <string name="error_enter_amount">ಮಾನ್ಯವಾದ ಮೊತ್ತವನ್ನು ದಾಖಲಿಸಿ</string>
+
+    <!-- Categories -->
+    <string name="category_food">ಆಹಾರ</string>
+    <string name="category_entertainment">ಮನೋರಂಜನೆ</string>
+    <string name="category_shopping">ಖರೀದಿ</string>
+    <string name="category_transport">ಸಾರಿಗೆ</string>
+    <string name="category_bills">ಬಿಲ್‌ಗಳು</string>
+    <string name="category_health">ಆರೋಗ್ಯ</string>
+    <string name="category_investment">ಹೂಡಿಕೆ</string>
+    <string name="category_others">ಇತರೆ</string>
+    <string name="category_groceries">ದಿನಸಿ</string>
+    <string name="category_lend_repayment">ಸಾಲ ಮರುಪಾವತಿ</string>
+    <string name="category_income">ಆದಾಯ</string>
+    <string name="category_travel">ಪ್ರವಾಸ</string>
+    <string name="category_education">ಶಿಕ್ಷಣ</string>
+    <string name="category_gifts">ಉಡುಗೊರೆಗಳು</string>
+    <string name="category_utilities">ಸೌಲಭ್ಯಗಳು</string>
+
+    <!-- Months -->
+    <string name="month_january">ಜನವರಿ</string>
+    <string name="month_february">ಫೆಬ್ರವರಿ</string>
+    <string name="month_march">ಮಾರ್ಚ್</string>
+    <string name="month_april">ಏಪ್ರಿಲ್</string>
+    <string name="month_may">ಮೇ</string>
+    <string name="month_june">ಜೂನ್</string>
+    <string name="month_july">ಜುಲೈ</string>
+    <string name="month_august">ಆಗಸ್ಟ್</string>
+    <string name="month_september">ಸೆಪ್ಟೆಂಬರ್</string>
+    <string name="month_october">ಅಕ್ಟೋಬರ್</string>
+    <string name="month_november">ನವೆಂಬರ್</string>
+    <string name="month_december">ದಿಸೆಂಬರ್</string>
+
+    <!-- Days -->
+    <string name="day_s">ಭಾ</string>
+    <string name="day_m">ಸೋ</string>
+    <string name="day_t">ಮಂ</string>
+    <string name="day_w">ಬು</string>
+    <string name="day_f">ಶು</string>
+
+    <!-- Misc Labels -->
+    <string name="label_unknown">ಅಜ್ಞಾತ</string>
+    <string name="label_version">ಆವೃತ್ತಿ 1.0.0</string>
+    <string name="label_version_format">ಆವೃತ್ತಿ %1$s</string>
+    <string name="label_category_breakdown">ವರ್ಗ ವಿಭಜನೆ</string>
+    <string name="label_summary">ಸಾರಾಂಶ</string>
+    <string name="label_total_income">ಒಟ್ಟು ಆದಾಯ</string>
+    <string name="label_total_expense">ಒಟ್ಟು ವೆಚ್ಚ</string>
+    <string name="label_net_savings">ನಿವ್ವಳ ಉಳಿತಾಯ</string>
+    <string name="label_deficit">ಕೊರತೆ</string>
+    <string name="label_transactions">ವಹಿವಾಟುಗಳು</string>
+    <string name="label_date">ದಿನಾಂಕ</string>
+    <string name="label_merchant">ವ್ಯಾಪಾರಿ</string>
+    <string name="label_developed_by">ಇವರಿಂದ ಅಭಿವೃದ್ಧಿಪಡಿಸಲಾಗಿದೆ</string>
+    <string name="label_dev_team">ಟೆಕ್ ತಂಡ</string>
+    <string name="label_copyright">© 2026 SpendWise. ಎಲ್ಲಾ ಹಕ್ಕುಗಳನ್ನು ಕಾಯ್ದಿರಿಸಲಾಗಿದೆ.</string>
+    <string name="label_upi">UPI</string>
+    <string name="label_settings">ಸೆಟ್ಟಿಂಗ್‌ಗಳು</string>
+    <string name="label_main_balance">ಒಟ್ಟು ಉಳಿಕೆ</string>
+    <string name="label_your_credit_cards">ನಿಮ್ಮ ಕ್ರೆಡಿಟ್ ಕಾರ್ಡ್‌ಗಳು</string>
+    <string name="label_amount_remaining">%1$s ಉಳಿದಿದೆ</string>
+    <string name="label_no_limit_set">ಯಾವುದೇ ಮಿತಿ ಹೊಂದಿಸಿಲ್ಲ</string>
+    <string name="label_of_amount">%1$s ನಲ್ಲಿ</string>
+    <string name="label_percentage_used">%1$d%% ಬಳಸಲಾಗಿದೆ</string>
+    <string name="label_amount_left">%1$s ಉಳಿದಿದೆ</string>
+    <string name="label_exceeded_by">%1$s ಮೀರಿದೆ</string>
+    <string name="label_limit_not_set">ಮಿತಿ ಹೊಂದಿಸಿಲ್ಲ</string>
+    <string name="label_tap_to_set">ಹೊಂದಿಸಲು ಟ್ಯಾಪ್ ಮಾಡಿ</string>
+    <string name="label_or">ಅಥವಾ</string>
+    <string name="label_already_have_account">ಈಗಾಗಲೇ ಖಾತೆ ಇದೆಯೇ? </string>
+    <string name="label_total_lent">ಒಟ್ಟು ಸಾಲ</string>
+    <string name="label_lent_on">ಸಾಲ ನೀಡಿದ ದಿನಾಂಕ</string>
+    <string name="label_return_date">ಮರುಪಾವತಿ ದಿನಾಂಕ</string>
+    <string name="label_note">ಟಿಪ್ಪಣಿ</string>
+    <string name="label_total_spent_short">ಒಟ್ಟು ಖರ್ಚು</string>
+    <string name="label_quick_add">ತ್ವರಿತ ಸೇರ್ಪಡೆ</string>
+    <string name="label_total_spending">ಒಟ್ಟು ಖರ್ಚು</string>
+    <string name="label_add_transaction">ವಹಿವಾಟು ಸೇರಿಸಿ</string>
+    <string name="label_add_lend_amount">ಸಾಲದ ಮೊತ್ತವನ್ನು ಸೇರಿಸಿ</string>
+    <string name="label_view_lend_history">ಸಾಲದ ಇತಿಹಾಸವನ್ನು ನೋಡಿ</string>
+    <string name="label_split_expense">ವೆಚ್ಚವನ್ನು ಹಂಚಿಕೊಳ್ಳಿ</string>
+    <string name="label_credit_cards">ಕ್ರೆಡಿಟ್ ಕಾರ್ಡ್‌ಗಳು</string>
+    <string name="label_send_whatsapp_reminder">ವಾಟ್ಸಾಪ್ ಜ್ಞಾಪನೆ ಕಳುಹಿಸಿ</string>
+    <string name="label_lend_via_spendwise">SpendWise ಮೂಲಕ ಸಾಲ</string>
+    <string name="label_selected_contact_no_phone">ಆಯ್ಕೆ ಮಾಡಲಾಗಿದೆ: %1$s (ಫೋನ್ ಸಂಖ್ಯೆ ಇಲ್ಲ)</string>
+    <string name="label_selected_contact_with_phone">ಆಯ್ಕೆ ಮಾಡಲಾಗಿದೆ: %1$s (%2$s)</string>
+    <string name="label_n_selected">%1$d ಆಯ್ಕೆ ಮಾಡಲಾಗಿದೆ</string>
+    <string name="label_add_name_for_handle">ನಿಮ್ಮ ಹ್ಯಾಂಡಲ್ ನೋಡಲು ಹೆಸರನ್ನು ಸೇರಿಸಿ</string>
+    <string name="label_card_chip">%1$s (*%2$s)</string>
+    <string name="label_credit">ಕ್ರೆಡಿಟ್</string>
+    <string name="label_debit">ಡೆಬಿಟ್</string>
+    <string name="label_debit_card">ಡೆಬಿಟ್ ಕಾರ್ಡ್</string>
+    <string name="label_cash">ನಗದು</string>
+    <string name="label_other_mode">ಇತರೆ</string>
+    <string name="label_type">ವಹಿವಾಟಿನ ಪ್ರಕಾರ</string>
+    <string name="label_payment_mode">ಪಾವತಿ ವಿಧಾನ</string>
+    <string name="label_merchant_billing">ವರ್ತಕ / ಬಿಲ್ಲಿಂಗ್ ಘಟಕ</string>
+    <string name="label_transaction_type">ವಹಿವಾಟಿನ ಪ್ರಕಾರ</string>
+    <string name="label_payment_method">ಪಾವತಿ ವಿಧಾನ</string>
+    <string name="label_specify_other_method">ಇತರ ವಿಧಾನ ತಿಳಿಸಿ</string>
+    <string name="label_is_lend_loan">ಇದು ಸಾಲವೇ / ಉಧಾರವೇ?</string>
+    <string name="label_who_did_you_lend">ನೀವು ಯಾರಿಗೆ ಸಾಲ ನೀಡಿದ್ದೀರಿ?</string>
+
+    <!-- Descriptions / Subtitles Part 2 -->
+    <string name="desc_add_transaction">ನಿಮ್ಮ ದೈನಂದಿನ ವೆಚ್ಚಗಳನ್ನು ಹಸ್ತಚಾಲಿತವಾಗಿ ದಾಖಲಿಸಿ</string>
+    <string name="desc_add_lend_amount">ಇತರರಿಗೆ ನೀಡಿದ ಹಣವನ್ನು ಟ್ರ್ಯಾಕ್ ಮಾಡಿ</string>
+    <string name="desc_view_lend_history">ಬಾಕಿ ಇರುವ ಮರುಪಾವತಿಗಳನ್ನು ಪರಿಶೀಲಿಸಿ</string>
+    <string name="desc_split_expense">ಸ್ನೇಹಿತರು ಮತ್ತು ಗುಂಪುಗಳೊಂದಿಗೆ ಬಿಲ್‌ಗಳನ್ನು ಹಂಚಿಕೊಳ್ಳಿ</string>
+    <string name="desc_credit_cards">ಕಾರ್ಡ್‌ಗಳು ಮತ್ತು ಪಾವತಿ ಜ್ಞಾಪನೆಗಳನ್ನು ನಿರ್ವಹಿಸಿ</string>
+    <string name="desc_about_app">SpendWise ನಿಮ್ಮ ಹಣಕಾಸು ಒಡನಾಡಿಯಾಗಿದ್ದು, ವೆಚ್ಚಗಳನ್ನು ಪತ್ತೆಹಚ್ಚಲು ಮತ್ತು ಆರ್ಥಿಕ ಸ್ವಾತಂತ್ರ್ಯ ಸಾಧಿಸಲು ಸಹಾಯ ಮಾಡುತ್ತದೆ.</string>
+    <string name="desc_feedback">SpendWise ಅನ್ನು ಉತ್ತಮಗೊಳಿಸಲು ನಿಮ್ಮ ಆಲೋಚನೆಗಳನ್ನು ಹಂಚಿಕೊಳ್ಳಿ.</string>
+
+    <!-- Content Descriptions -->
+    <string name="cd_pending_review">ಪರಿಶೀಲನೆಗಾಗಿ ಬಾಕಿ ಇರುವ ವಹಿವಾಟು</string>
+    <string name="cd_edit_name">ಹೆಸರನ್ನು ಸಂಪಾದಿಸಿ</string>
+    <string name="cd_capture_bill">ಬಿಲ್ ಸೆರೆಹಿಡಿಯಿರಿ</string>
+    <string name="cd_start_voice_recording">ಧ್ವನಿ ರೆಕಾರ್ಡಿಂಗ್ ಪ್ರಾರಂಭಿಸಿ</string>
+
+    <!-- Channels -->
+    <string name="channel_transaction_alerts_name">ವಹಿವಾಟು ಎಚ್ಚರಿಕೆಗಳು</string>
+    <string name="channel_transaction_alerts_desc">ಗುರುತಿಸಲಾದ ಬ್ಯಾಂಕ್ ವಹಿವಾಟುಗಳ ಅಧಿಸೂಚನೆಗಳು</string>
+    <string name="channel_lend_reminders_name">ಸಾಲದ ಜ್ಞಾಪನೆಗಳು</string>
+    <string name="channel_lend_reminders_desc">ಹಣ ಹಿಂತಿರುಗಿಸುವ ಬದ್ಧತೆಗಳಿಗಾಗಿ ಜ್ಞಾಪನೆಗಳು</string>
+    <string name="channel_daily_reminders_name">ದೈನಂದಿನ ಜ್ಞಾಪನೆಗಳು</string>
+    <string name="channel_daily_reminders_desc">ನಿಮ್ಮ ಖರ್ಚನ್ನು ದಾಖಲಿಸಲು ದೈನಂದಿನ ಸೂಚನೆ</string>
+    <string name="channel_budget_alerts_name">ಬಜೆಟ್ ಎಚ್ಚರಿಕೆಗಳು</string>
+    <string name="channel_budget_alerts_desc">ನಿಮ್ಮ ಬಜೆಟ್ ಮಿತಿಯನ್ನು ಮೀರಿದಾಗ ಅಧಿಸೂಚನೆಗಳು.</string>
+
+    <!-- Reasons -->
+    <string name="reason_detected_bank_sms">ಸ್ವಯಂಚಾಲಿತ ವಹಿವಾಟು ಪತ್ತೆ</string>
+    <string name="reason_reminders_alerts">ಜ್ಞಾಪನೆಗಳು ಮತ್ತು ಎಚ್ಚರಿಕೆಗಳು</string>
+
+    <!-- Security Part 2 -->
     <string name="security_enable_lock">ಆಪ್ ಲಾಕ್ ಸಕ್ರಿಯಗೊಳಿಸಿ</string>
     <string name="security_enable_lock_desc">ಆಪ್ ತೆರೆಯಲು PIN ಅಥವಾ ಬಯೋಮೆಟ್ರಿಕ್ ಅಗತ್ಯ</string>
     <string name="security_set_pin">PIN ಹೊಂದಿಸಿ</string>
@@ -125,7 +394,7 @@
     <string name="security_pin_mismatch">PIN ಗಳು ಹೊಂದಿಕೆಯಾಗುತ್ತಿಲ್ಲ</string>
     <string name="security_pin_saved">PIN ಯಶಸ್ವಿಯಾಗಿ ಉಳಿಸಲಾಗಿದೆ</string>
 
-    <!-- Lock Screen -->
+    <!-- Lock Screen Part 2 -->
     <string name="lock_enter_pin">ಅನ್‌ಲಾಕ್ ಮಾಡಲು ನಿಮ್ಮ PIN ನಮೂದಿಸಿ</string>
     <string name="lock_wrong_pin">ತಪ್ಪಾದ PIN. %1$d ಪ್ರಯತ್ನಗಳು ಉಳಿದಿವೆ.</string>
     <string name="lock_too_many_attempts">ಹೆಚ್ಚು ಪ್ರಯತ್ನಗಳು. 30 ಸೆಕೆಂಡುಗಳ ನಂತರ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.</string>
@@ -134,14 +403,8 @@
     <string name="lock_use_pin">PIN ಬಳಸಿ</string>
     <string name="lock_biometric_failed">ದೃಢೀಕರಣ ವಿಫಲವಾಗಿದೆ</string>
 
-    <!-- Budget Alerts -->
-    <string name="budget_info">ನಿಮ್ಮ ಖರ್ಚು ಗುರಿಗಳನ್ನು ಮೀರಿದಾಗ ಅಧಿಸೂಚನೆಗಳನ್ನು ಸ್ವೀಕರಿಸಲು ಬಜೆಟ್ ಮಿತಿಗಳನ್ನು ಹೊಂದಿಸಿ.</string>
-    <string name="overall_monthly_budget">ಒಟ್ಟಾರೆ ಮಾಸಿಕ ಬಜೆಟ್</string>
-    <string name="category_budgets">ವರ್ಗ ಬಜೆಟ್‌ಗಳು</string>
-    <string name="category_budgets_desc">ನಿರ್ದಿಷ್ಟ ವರ್ಗಗಳಿಗೆ ಪ್ರತ್ಯೇಕ ಮಿತಿಗಳನ್ನು ಹೊಂದಿಸಿ</string>
-    <string name="amount">ಮೊತ್ತ</string>
-    <string name="save_budgets">ಬಜೆಟ್‌ಗಳನ್ನು ಉಳಿಸಿ</string>
-    <string name="budgets_saved">ಬಜೆಟ್‌ಗಳನ್ನು ಯಶಸ್ವಿಯಾಗಿ ಉಳಿಸಲಾಗಿದೆ</string>
-    <string name="budget_not_set">ಹೊಂದಿಸಿಲ್ಲ</string>
-    <string name="budget_limit_set">ಮಿತಿ: %1$s</string>
+    <!-- Chips -->
+    <string name="chip_expense">ವೆಚ್ಚ</string>
+    <string name="chip_income">ಆದಾಯ</string>
+
 </resources>

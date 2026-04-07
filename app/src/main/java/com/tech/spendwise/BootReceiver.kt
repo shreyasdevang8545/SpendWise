@@ -43,6 +43,19 @@ class BootReceiver : BroadcastReceiver() {
                                 )
                             }
                         }
+
+                        // 4. Reschedule Credit Card Payback Reminders
+                        val cards = repository.fetchCreditCards()
+                        cards.forEach { card ->
+                            if (card.reminderEnabled && card.id != null) {
+                                ReminderManager.scheduleCreditCardPayback(
+                                    context,
+                                    card.id,
+                                    card.name,
+                                    card.paybackDay
+                                )
+                            }
+                        }
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()

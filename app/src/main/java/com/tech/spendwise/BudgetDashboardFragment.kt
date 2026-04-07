@@ -33,9 +33,21 @@ class BudgetDashboardFragment : Fragment() {
     private val selectedCalendar = Calendar.getInstance()
 
     // Standard hardcoded categories for missing defaults based on mockup
-    private val defaultCategories = listOf(
-        "Food", "Travel", "Shopping", "Entertainment", "Health", "Education", "Bills", "Gifts", "Others", "Utilities", "Transport"
-    )
+    private val defaultCategories by lazy {
+        listOf(
+            getString(R.string.category_food),
+            getString(R.string.category_travel),
+            getString(R.string.category_shopping),
+            getString(R.string.category_entertainment),
+            getString(R.string.category_health),
+            getString(R.string.category_education),
+            getString(R.string.category_bills),
+            getString(R.string.category_gifts),
+            getString(R.string.category_others),
+            getString(R.string.category_utilities),
+            getString(R.string.category_transport)
+        )
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -189,22 +201,22 @@ class BudgetDashboardFragment : Fragment() {
         nf.maximumFractionDigits = 0
 
         binding.tvTotalSpent.text = nf.format(totalSpend)
-        binding.tvTotalLimit.text = "of \u20B9${overallLimit.toInt()}"
+        binding.tvTotalLimit.text = getString(R.string.label_of_amount, overallLimit.toInt().toString())
         
         if (overallLimit > 0) {
             val percentage = ((totalSpend / overallLimit) * 100).coerceAtMost(100.0).toInt()
-            binding.tvPercentage.text = "$percentage% used"
+            binding.tvPercentage.text = getString(R.string.label_percentage_used, percentage)
             binding.tvMaxLimit.text = "\u20B9${overallLimit.toInt()}"
 
             val left = overallLimit - totalSpend
             if (left >= 0) {
-                binding.tvTotalLeft.text = "\u20B9${left.toInt()} left"
+                binding.tvTotalLeft.text = getString(R.string.label_amount_left, left.toInt().toString())
                 binding.tvTotalLeft.setTextColor(Color.WHITE)
                 // Respect black background, use progress color for status
                 binding.vProgressFill.setBackgroundColor(Color.parseColor("#4CAF50")) // Green
             } else {
                 val exceededBy = totalSpend - overallLimit
-                binding.tvTotalLeft.text = "Exceeded by \u20B9${exceededBy.toInt()}"
+                binding.tvTotalLeft.text = getString(R.string.label_exceeded_by, exceededBy.toInt().toString())
                 binding.tvTotalLeft.setTextColor(Color.parseColor("#FF5252")) // Bright Red
                 binding.vProgressFill.setBackgroundColor(Color.parseColor("#FF5252")) // Red
             }
@@ -232,8 +244,8 @@ class BudgetDashboardFragment : Fragment() {
             }
             // Better: use LinearLayout for weight
         } else {
-            binding.tvTotalLeft.text = "Limit not set"
-            binding.tvPercentage.text = "Tap to set"
+            binding.tvTotalLeft.text = getString(R.string.label_limit_not_set)
+            binding.tvPercentage.text = getString(R.string.label_tap_to_set)
             binding.tvMaxLimit.visibility = View.GONE
         }
         
@@ -248,7 +260,7 @@ class BudgetDashboardFragment : Fragment() {
         
         if (allRelevantCats.isEmpty()) {
             val emptyView = TextView(requireContext()).apply {
-                text = "No budget limits tracking yet."
+                text = getString(R.string.msg_no_budget_tracking)
                 setTextColor(Color.GRAY)
                 setPadding(16, 16, 16, 16)
             }
@@ -284,13 +296,13 @@ class BudgetDashboardFragment : Fragment() {
                 
                 val remaining = limit - spend
                 if (remaining >= 0) {
-                    tvRemaining.text = "${nf.format(remaining)} remaining"
+                    tvRemaining.text = getString(R.string.label_amount_remaining, nf.format(remaining))
                     tvRemaining.setTextColor(Color.parseColor("#B0BEC5"))
                     tvSpent.setTextColor(Color.WHITE)
                     progressFill.setBackgroundColor(Color.parseColor("#4CAF50")) // Green
                 } else {
                     val exceeded = spend - limit
-                    tvRemaining.text = "Exceeded by ${nf.format(exceeded)}"
+                    tvRemaining.text = getString(R.string.label_exceeded_by, nf.format(exceeded))
                     tvRemaining.setTextColor(Color.parseColor("#F44336")) // Red text
                     tvSpent.setTextColor(Color.parseColor("#F44336")) // Red spent value
                     progressFill.setBackgroundColor(Color.parseColor("#F44336")) // Red progress bar
@@ -309,7 +321,7 @@ class BudgetDashboardFragment : Fragment() {
             }
         } else {
                 tvLimit.text = ""
-                tvRemaining.text = "No limit set"
+                tvRemaining.text = getString(R.string.label_no_limit_set)
                 progressFill.layoutParams.width = 0
             }
 
@@ -343,16 +355,16 @@ class BudgetDashboardFragment : Fragment() {
         input.inputType = android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
         
         AlertDialog.Builder(requireContext())
-            .setTitle("Set Overall Monthly Budget")
+            .setTitle(getString(R.string.dialog_set_overall_budget_title))
             .setView(input)
-            .setPositiveButton("Save") { _, _ ->
+            .setPositiveButton(getString(R.string.btn_save)) { _, _ ->
                 val amt = input.text.toString().toFloatOrNull() ?: 0f
                 viewLifecycleOwner.lifecycleScope.launch {
                     settingsManager.setFloat(SettingsManager.OVERALL_BUDGET_LIMIT, amt)
                     // No need to call refreshData, collector above will trigger
                 }
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(getString(R.string.btn_cancel), null)
             .show()
     }
 
@@ -361,14 +373,14 @@ class BudgetDashboardFragment : Fragment() {
         val types = defaultCategories.toTypedArray()
         var selectedItem = 0
         AlertDialog.Builder(requireContext())
-            .setTitle("Select Category")
+            .setTitle(getString(R.string.dialog_select_category_title))
             .setSingleChoiceItems(types, 0) { _, which ->
                 selectedItem = which
             }
-            .setPositiveButton("Next") { _, _ ->
+            .setPositiveButton(getString(R.string.btn_next)) { _, _ ->
                 showSetCategoryLimitDialog(types[selectedItem], 0.0)
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(getString(R.string.btn_cancel), null)
             .show()
     }
 
@@ -380,13 +392,13 @@ class BudgetDashboardFragment : Fragment() {
         }
 
         AlertDialog.Builder(requireContext())
-            .setTitle("Set limit for $cat")
+            .setTitle(getString(R.string.dialog_set_category_limit_title, cat))
             .setView(input)
-            .setPositiveButton("Save") { _, _ ->
+            .setPositiveButton(getString(R.string.btn_save)) { _, _ ->
                 val limit = input.text.toString().toDoubleOrNull() ?: 0.0
                 saveCategoryLimit(cat, limit)
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(getString(R.string.btn_cancel), null)
             .show()
     }
 

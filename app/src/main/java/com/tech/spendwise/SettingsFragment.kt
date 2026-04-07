@@ -169,8 +169,8 @@ class SettingsFragment : Fragment() {
     }
 
     private fun showTimePicker() {
-        val picker = com.google.android.material.timepicker.MaterialTimePicker.Builder()
-            .setTimeFormat(com.google.android.material.timepicker.TimeFormat.CLOCK_24H)
+        val picker = MaterialTimePicker.Builder()
+            .setTimeFormat(TimeFormat.CLOCK_24H)
             .setHour(20)
             .setMinute(0)
             .setTitleText(getString(R.string.set_reminder_time))

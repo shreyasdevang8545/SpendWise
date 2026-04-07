@@ -33,7 +33,7 @@ class AboutFragment : Fragment() {
         try {
             val pInfo = requireContext().packageManager.getPackageInfo(requireContext().packageName, 0)
             val version = pInfo.versionName
-            binding.tvVersion.text = "Version $version"
+            binding.tvVersion.text = getString(R.string.label_version_format, version)
         } catch (e: PackageManager.NameNotFoundException) {
             e.printStackTrace()
         }

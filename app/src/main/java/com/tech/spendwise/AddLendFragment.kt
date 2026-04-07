@@ -58,15 +58,15 @@ class AddLendFragment : Fragment() {
                 if (!shouldShowRequestPermissionRationale(Manifest.permission.READ_CONTACTS)) {
                     // Permanently denied
                     com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
-                        .setTitle("Contacts Permission Required")
-                        .setMessage("You have denied contacts access. This is required to pick people directly from your phonebook. Please enable it in app settings.")
-                        .setPositiveButton("Go to Settings") { _, _ -> openAppSettings() }
-                        .setNegativeButton("Cancel", null)
+                        .setTitle(getString(R.string.dialog_contacts_permission_title))
+                        .setMessage(getString(R.string.dialog_contacts_permission_msg))
+                        .setPositiveButton(getString(R.string.btn_go_to_settings)) { _, _ -> openAppSettings() }
+                        .setNegativeButton(getString(R.string.btn_cancel), null)
                         .show()
                 } else {
                     UIUtils.showErrorSnackbar(
                         binding.root,
-                        "Contacts permission needed to pick a person"
+                        getString(R.string.msg_contacts_permission_needed)
                     )
                 }
             }
@@ -97,8 +97,8 @@ class AddLendFragment : Fragment() {
 
         if (lendId != null) {
             // Edit mode
-            binding.toolbar.title            = "Edit Lend Detail"
-            binding.btnSave.text             = "Update Lend Detail"
+            binding.toolbar.title            = getString(R.string.title_edit_lend_detail)
+            binding.btnSave.text             = getString(R.string.btn_update_lend_detail)
             binding.switchSendSms.visibility = View.GONE
             loadLend(lendId)
         } else {
@@ -109,7 +109,7 @@ class AddLendFragment : Fragment() {
             binding.switchSendSms.visibility = View.VISIBLE
 
             // Update switch label to say WhatsApp instead of SMS
-            binding.switchSendSms.text = "Send WhatsApp reminder"
+            binding.switchSendSms.text = getString(R.string.label_send_whatsapp_reminder)
         }
 
         binding.toolbar.setNavigationOnClickListener { findNavController().popBackStack() }
@@ -181,12 +181,12 @@ class AddLendFragment : Fragment() {
             }
             shouldShowRequestPermissionRationale(permission) -> {
                 com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
-                    .setTitle("Contacts Access")
-                    .setMessage("SpendWise needs contacts access to let you pick a person directly from your phonebook and get their phone number for WhatsApp reminders.")
-                    .setPositiveButton("Grant Access") { _, _ ->
+                    .setTitle(getString(R.string.dialog_contacts_access_title))
+                    .setMessage(getString(R.string.dialog_contacts_access_msg))
+                    .setPositiveButton(getString(R.string.btn_grant_access)) { _, _ ->
                         requestContactsPermissionLauncher.launch(permission)
                     }
-                    .setNegativeButton("Not Now", null)
+                    .setNegativeButton(getString(R.string.btn_not_now), null)
                     .show()
             }
             else -> {
@@ -227,7 +227,7 @@ class AddLendFragment : Fragment() {
             if (phoneCursor == null || !phoneCursor.moveToFirst()) {
                 Log.w("AddLendFragment", "No phone number found for $name")
                 contactPhoneNumber                   = null
-                binding.tvSelectedContact.text       = "Selected: $name (no phone number)"
+                binding.tvSelectedContact.text       = getString(R.string.label_selected_contact_no_phone, name)
                 binding.tvSelectedContact.visibility = View.VISIBLE
                 phoneCursor?.close()
                 return
@@ -238,7 +238,7 @@ class AddLendFragment : Fragment() {
                 val cleaned = cleanPhoneNumber(raw)
                 contactPhoneNumber                   = cleaned
                 Log.d("AddLendFragment", "Raw='$raw'  Cleaned='$cleaned'")
-                binding.tvSelectedContact.text       = "Selected: $name ($cleaned)"
+                binding.tvSelectedContact.text       = getString(R.string.label_selected_contact_with_phone, name, cleaned)
                 binding.tvSelectedContact.visibility = View.VISIBLE
             }
         }
@@ -291,13 +291,13 @@ class AddLendFragment : Fragment() {
         val amount    = amountStr.toDoubleOrNull() ?: 0.0
 
         if (name.isEmpty()) {
-            binding.nameLayout.error = "Enter person name"
+            binding.nameLayout.error = getString(R.string.error_enter_name)
             return
         }
         binding.nameLayout.error = null
 
         if (amount <= 0) {
-            binding.amountLayout.error = "Enter valid amount"
+            binding.amountLayout.error = getString(R.string.error_enter_amount)
             return
         }
         binding.amountLayout.error = null
@@ -307,7 +307,7 @@ class AddLendFragment : Fragment() {
         if (wantsWhatsApp && contactPhoneNumber == null) {
             UIUtils.showErrorSnackbar(
                 binding.root,
-                "Please pick a contact to send WhatsApp reminder"
+                getString(R.string.msg_pick_contact_whatsapp)
             )
             return
         }
@@ -315,7 +315,7 @@ class AddLendFragment : Fragment() {
         // ── Auth check ──
         val uid = SupabaseInstance.currentUserId()
         if (uid == null) {
-            UIUtils.showErrorSnackbar(binding.root, "Please login to save")
+            UIUtils.showErrorSnackbar(binding.root, getString(R.string.msg_login_required))
             return
         }
 
@@ -323,7 +323,7 @@ class AddLendFragment : Fragment() {
         val checkedChipId = binding.paymentChipGroup.checkedChipId
         val paymentMode   = if (checkedChipId != View.NO_ID) {
             binding.paymentChipGroup.findViewById<Chip>(checkedChipId).text.toString()
-        } else "Other"
+        } else getString(R.string.label_other_mode)
 
         // ── Build lend object ──
         val lendId = existingId ?: UUID.randomUUID().toString()
@@ -345,14 +345,14 @@ class AddLendFragment : Fragment() {
             requireContext(), lendId, name, amount, selectedReturnDate
         )
 
-        val successMsg = if (existingId != null) "Lend detail updated" else "Lend saved for $name"
+        val successMsg = if (existingId != null) getString(R.string.msg_lend_updated) else getString(R.string.msg_lend_saved_for, name)
 
         // ── Send WhatsApp reminder if requested ──
         if (wantsWhatsApp && contactPhoneNumber != null) {
             val formattedAmount = "%.0f".format(amount)
             val dateText        = binding.etReturnDate.text.toString()
 
-            UIUtils.showSuccessSnackbar(binding.root, "$successMsg · Preparing link...")
+            UIUtils.showSuccessSnackbar(binding.root, getString(R.string.msg_preparing_link, successMsg))
 
             // Shorten URL on background thread, then open WhatsApp
             val longUrl = buildLendPageUrl(lendId, contactPhoneNumber!!, name, formattedAmount, dateText)
@@ -437,7 +437,7 @@ class AddLendFragment : Fragment() {
                 } catch (e3: ActivityNotFoundException) {
                     Toast.makeText(
                         requireContext(),
-                        "WhatsApp is not installed on this device",
+                        getString(R.string.msg_whatsapp_not_installed),
                         Toast.LENGTH_LONG
                     ).show()
                 }
@@ -474,7 +474,7 @@ class AddLendFragment : Fragment() {
             .appendQueryParameter("returnLabel", returnLabel)
             .appendQueryParameter("lentOn", lentOnFormatted)
             .appendQueryParameter("mode", paymentMode)
-            .appendQueryParameter("note", "Lend via SpendWise")
+            .appendQueryParameter("note", getString(R.string.label_lend_via_spendwise))
             .appendQueryParameter("status", "pending")
             .build()
             .toString()
@@ -484,19 +484,6 @@ class AddLendFragment : Fragment() {
      * Builds the WhatsApp message with a (shortened) link to the lend details page.
      */
     private fun buildWhatsAppMessage(name: String, amount: String, date: String, lendPageUrl: String): String {
-        return """
-            Hi $name! 👋
-            
-            Just a quick note — I've lent you ₹$amount and recorded it in SpendWise.
-            
-            📅 Suggested return date: *$date*
-            
-            📋 View full details:
-            $lendPageUrl
-            
-            No rush, just keeping track! 😊
-            
-            — Sent via SpendWise 💚
-        """.trimIndent()
+        return getString(R.string.msg_whatsapp_template, name, amount, date, lendPageUrl)
     }
 }

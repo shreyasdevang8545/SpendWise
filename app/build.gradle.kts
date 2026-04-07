@@ -109,6 +109,8 @@ dependencies {
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)
     implementation(libs.androidx.remote.creation.core)
+    implementation(libs.navigation.fragment.ktx)
+    implementation(libs.navigation.ui.ktx)
 
     // JUnit 4 — kept for existing ExampleUnitTest
     testImplementation(libs.junit)

@@ -183,4 +183,62 @@ object ReminderManager {
             Log.e(TAG, "Failed to schedule snooze: ${e.message}")
         }
     }
+    fun scheduleCreditCardPayback(context: Context, cardId: String, cardName: String, dayOfMonth: Int) {
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val intent = Intent(context, CreditCardReminderReceiver::class.java).apply {
+            putExtra("card_id", cardId)
+            putExtra("card_name", cardName)
+        }
+
+        val requestCode = cardId.hashCode()
+        val pendingIntent = PendingIntent.getBroadcast(
+            context,
+            requestCode,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val calendar = java.util.Calendar.getInstance().apply {
+            timeInMillis = System.currentTimeMillis()
+            set(java.util.Calendar.DAY_OF_MONTH, dayOfMonth)
+            set(java.util.Calendar.HOUR_OF_DAY, 9) // Default to 9 AM
+            set(java.util.Calendar.MINUTE, 0)
+            set(java.util.Calendar.SECOND, 0)
+            
+            // If the day has already passed this month, schedule for next month
+            if (timeInMillis <= System.currentTimeMillis()) {
+                add(java.util.Calendar.MONTH, 1)
+            }
+        }
+
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                if (alarmManager.canScheduleExactAlarms()) {
+                    alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.timeInMillis, pendingIntent)
+                } else {
+                    alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.timeInMillis, pendingIntent)
+                }
+            } else {
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.timeInMillis, pendingIntent)
+            }
+            Log.d(TAG, "Credit card payback reminder scheduled for $cardName on day $dayOfMonth")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to schedule card reminder: ${e.message}")
+        }
+    }
+
+    fun cancelCreditCardReminder(context: Context, cardId: String) {
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val intent = Intent(context, CreditCardReminderReceiver::class.java)
+        val pendingIntent = PendingIntent.getBroadcast(
+            context,
+            cardId.hashCode(),
+            intent,
+            PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
+        )
+        if (pendingIntent != null) {
+            alarmManager.cancel(pendingIntent)
+        }
+    }
 }
+

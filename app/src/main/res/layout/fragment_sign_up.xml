@@ -13,7 +13,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:text="Create Account"
+        android:text="@string/sign_up_title"
         android:textColor="@color/primary_green"
         android:textSize="28sp"
         android:fontFamily="@font/nunito_sans"
@@ -24,7 +24,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="8dp"
-        android:text="Join SpendWise to track your finances"
+        android:text="@string/sign_up_subtitle"
         android:textColor="@color/text_secondary"
         android:textSize="14sp" />
 
@@ -36,7 +36,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="40dp"
         app:errorEnabled="true"
-        android:hint="Full Name">
+        android:hint="@string/hint_full_name">
  
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/nameEditText"
@@ -57,7 +57,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         app:errorEnabled="true"
-        android:hint="Email Address">
+        android:hint="@string/hint_email_address">
  
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/emailEditText"
@@ -77,7 +77,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:hint="Password"
+        android:hint="@string/hint_password"
         app:errorEnabled="true"
         app:passwordToggleEnabled="true">
  
@@ -99,7 +99,7 @@
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:layout_marginTop="32dp"
-        android:text="Create Account"
+        android:text="@string/btn_create_account"
         android:textSize="16sp" />
  
     <!-- Divider -->
@@ -110,7 +110,7 @@
         android:gravity="center_vertical"
         android:orientation="horizontal">
         <View android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1" android:background="#33FFFFFF" />
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:padding="8dp" android:text="OR" android:textColor="@color/text_secondary" android:textSize="12sp" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:padding="8dp" android:text="@string/label_or" android:textColor="@color/text_secondary" android:textSize="12sp" />
         <View android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1" android:background="#33FFFFFF" />
     </LinearLayout>
  
@@ -121,7 +121,7 @@
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:layout_marginTop="8dp"
-        android:text="Continue with Google"
+        android:text="@string/btn_continue_with_google"
         app:icon="@drawable/ic_google"
         app:iconGravity="textStart"
         android:textSize="16sp" />
@@ -142,8 +142,8 @@
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="24dp"
         android:orientation="horizontal">
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Already have an account? " android:textColor="@color/text_secondary" />
-        <TextView android:id="@+id/signInText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Sign In" android:textColor="@color/primary_green" android:textStyle="bold" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/label_already_have_account" android:textColor="@color/text_secondary" />
+        <TextView android:id="@+id/signInText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/btn_sign_in" android:textColor="@color/primary_green" android:textStyle="bold" />
     </LinearLayout>
 
 </LinearLayout>

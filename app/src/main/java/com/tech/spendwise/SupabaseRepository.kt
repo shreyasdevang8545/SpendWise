@@ -36,7 +36,7 @@ class SupabaseRepository {
             val encryptedMap = TransactionCrypto.encryptTransaction(jsonStr, uid)
             val allowedColumns = setOf(
                 "amount", "type", "merchant", "category", "payment_mode", "currency", "saved_at",
-                "is_lend", "lend_name", "phone_number", "note", "return_date", "is_returned", "created_at"
+                "is_lend", "lend_name", "phone_number", "note", "return_date", "is_returned", "created_at", "credit_card_id"
             )
             val json = buildJsonObject {
                 put("uid", uid)
@@ -325,6 +325,56 @@ class SupabaseRepository {
             postgrest.from("feedbacks").delete { filter { eq("uid", uid) } }
         } catch (e: Exception) {
             Log.e(TAG, "Error clearing user data", e)
+        }
+    }
+
+    // ── Credit Cards ─────────────────────────────────────────────────────
+    
+    suspend fun saveCreditCard(card: com.tech.spendwise.models.CreditCard) = withContext(Dispatchers.IO) {
+        val uid = SupabaseInstance.currentUserId() ?: return@withContext
+        try {
+            val encryptedFields = TransactionCrypto.encryptCreditCard(card.name, card.last4, card.limit, uid)
+            val json = buildJsonObject {
+                if (!card.id.isNullOrEmpty()) put("id", card.id)
+                put("uid", uid)
+                put("name", encryptedFields["name"]!!)
+                put("last4", encryptedFields["last4"]!!)
+                put("limit", encryptedFields["limit"]!!)
+                put("payback_day", card.paybackDay)
+                put("reminder_enabled", card.reminderEnabled)
+                put("created_at", formatTimestamp(if (card.createdAt > 0) card.createdAt else System.currentTimeMillis()))
+            }
+            postgrest.from("credit_cards").upsert(json)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error saving credit card", e)
+        }
+    }
+
+    suspend fun fetchCreditCards(): List<com.tech.spendwise.models.CreditCard> = withContext(Dispatchers.IO) {
+        val uid = SupabaseInstance.currentUserId() ?: return@withContext emptyList()
+        try {
+            val result = postgrest.from("credit_cards")
+                .select {
+                    filter { eq("uid", uid) }
+                    order("created_at", Order.DESCENDING)
+                }.decodeList<JsonObject>()
+            
+            result.mapNotNull { obj ->
+                val id = obj["id"]?.jsonPrimitive?.content ?: ""
+                val map = obj.mapValues { it.value.jsonPrimitive.contentOrNull }
+                TransactionCrypto.mapToCreditCard(id, map, uid)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error fetching credit cards", e)
+            emptyList()
+        }
+    }
+
+    suspend fun deleteCreditCard(cardId: String) = withContext(Dispatchers.IO) {
+        try {
+            postgrest.from("credit_cards").delete { filter { eq("id", cardId) } }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error deleting credit card", e)
         }
     }
 

@@ -59,9 +59,9 @@ class ReviewTransactionFragment : Fragment() {
         viewModel.pendingTransactions.observe(viewLifecycleOwner) { list ->
             val count = list.size
             if (count > 1) {
-                binding.btnSave.text = "Save & Next (${count - 1} left)"
+                binding.btnSave.text = getString(R.string.btn_save_next_count, count - 1)
             } else {
-                binding.btnSave.text = "Save & Finish"
+                binding.btnSave.text = getString(R.string.btn_save_finish)
             }
         }
 
@@ -105,16 +105,31 @@ class ReviewTransactionFragment : Fragment() {
         val currency = data["currency"] ?: "INR"
 
         binding.etAmount.setText(amount)
-        binding.amountLayout.hint = "Amount ($currency)"
+        binding.amountLayout.hint = getString(R.string.hint_amount_currency, currency)
         binding.etMerchant.setText(if (merchant == "UNKNOWN" || merchant.isBlank()) "" else merchant)
 
         // Categories
-        val categories = arrayOf("Food", "Entertainment", "Shopping", "Transport", "Bills", "Health", "Investment", "Others")
+        val categories = arrayOf(
+            getString(R.string.category_food),
+            getString(R.string.category_entertainment),
+            getString(R.string.category_shopping),
+            getString(R.string.category_transport),
+            getString(R.string.category_bills),
+            getString(R.string.category_health),
+            getString(R.string.category_investment),
+            getString(R.string.category_others)
+        )
         val categoryAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, categories)
         binding.actvCategory.setAdapter(categoryAdapter)
 
         // Payment Modes
-        val modes = listOf("UPI", "Credit Card", "Debit Card", "Cash", "Other")
+        val modes = listOf(
+            getString(R.string.label_upi),
+            getString(R.string.label_credit_card),
+            getString(R.string.label_debit_card),
+            getString(R.string.label_cash),
+            getString(R.string.label_other_mode)
+        )
         binding.paymentGroup.removeAllViews()
         modes.forEach { mode ->
             val chip = Chip(requireContext()).apply {
@@ -127,7 +142,7 @@ class ReviewTransactionFragment : Fragment() {
         binding.paymentGroup.setOnCheckedStateChangeListener { group, checkedIds ->
             if (checkedIds.isNotEmpty()) {
                 val selectedChip = group.findViewById<Chip>(checkedIds[0])
-                if (selectedChip.text == "Other") {
+                if (selectedChip.text == getString(R.string.label_other_mode)) {
                     binding.otherModeLayout.visibility = View.VISIBLE
                 } else {
                     binding.otherModeLayout.visibility = View.GONE
@@ -140,7 +155,7 @@ class ReviewTransactionFragment : Fragment() {
         if (type == "UNKNOWN") {
             binding.typeContainer.visibility = View.VISIBLE
             binding.typeGroup.removeAllViews()
-            listOf("CREDIT", "DEBIT").forEach { t ->
+            listOf(getString(R.string.label_credit), getString(R.string.label_debit)).forEach { t ->
                 val chip = Chip(requireContext()).apply {
                     text = t
                     isCheckable = true
@@ -157,7 +172,7 @@ class ReviewTransactionFragment : Fragment() {
             val drawable = android.graphics.drawable.GradientDrawable().apply {
                 shape = android.graphics.drawable.GradientDrawable.RECTANGLE
                 cornerRadius = 24f
-                setColor(ContextCompat.getColor(requireContext(), if (type == "CREDIT") R.color.primary_green else R.color.error_red))
+                setColor(ContextCompat.getColor(requireContext(), if (type == getString(R.string.label_credit)) R.color.primary_green else R.color.error_red))
             }
             binding.typeBadge.background = drawable
         }
@@ -181,12 +196,21 @@ class ReviewTransactionFragment : Fragment() {
     }
 
     private fun validate() {
-        val categories = listOf("Food", "Entertainment", "Shopping", "Transport", "Bills", "Health", "Investment", "Others")
+        val categories = listOf(
+            getString(R.string.category_food),
+            getString(R.string.category_entertainment),
+            getString(R.string.category_shopping),
+            getString(R.string.category_transport),
+            getString(R.string.category_bills),
+            getString(R.string.category_health),
+            getString(R.string.category_investment),
+            getString(R.string.category_others)
+        )
         val isCategorySelected = binding.actvCategory.text.isNotEmpty() && categories.contains(binding.actvCategory.text.toString())
         val isPaymentSelected = binding.paymentGroup.checkedChipId != View.NO_ID
         val isOtherValid = if (binding.paymentGroup.checkedChipId != View.NO_ID) {
             val selectedChip = binding.paymentGroup.findViewById<Chip>(binding.paymentGroup.checkedChipId)
-            if (selectedChip.text == "Other") binding.etOtherMode.text?.isNotEmpty() == true else true
+            if (selectedChip.text == getString(R.string.label_other_mode)) binding.etOtherMode.text?.isNotEmpty() == true else true
         } else false
         
         val isTypeSelected = if (binding.typeContainer.visibility == View.VISIBLE) {
@@ -207,7 +231,7 @@ class ReviewTransactionFragment : Fragment() {
 
         val selectedModeId = binding.paymentGroup.checkedChipId
         val selectedMode = binding.paymentGroup.findViewById<Chip>(selectedModeId).text.toString()
-        val finalPaymentMode = if (selectedMode == "Other") binding.etOtherMode.text.toString() else selectedMode
+        val finalPaymentMode = if (selectedMode == getString(R.string.label_other_mode)) binding.etOtherMode.text.toString() else selectedMode
 
         val finalType = if (initialType == "UNKNOWN") {
             val selectedTypeId = binding.typeGroup.checkedChipId
@@ -258,7 +282,7 @@ class ReviewTransactionFragment : Fragment() {
 
         UIUtils.showSuccessSnackbar(
             binding.root,
-            if (isLend) "Lend saved for $lendName" else "Saved: ₹$finalAmount as $finalType at $finalMerchant"
+            if (isLend) getString(R.string.msg_lend_saved_for, lendName) else getString(R.string.msg_saved_details, finalAmount, finalType, finalMerchant)
         )
 
         handleCompletion()

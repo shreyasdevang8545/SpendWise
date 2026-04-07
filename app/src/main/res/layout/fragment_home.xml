@@ -76,7 +76,7 @@
             android:layout_height="40dp"
             android:background="@drawable/bg_profile_circle"
             android:clipToOutline="true"
-            android:contentDescription="Settings"
+            android:contentDescription="@string/label_settings"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
@@ -112,7 +112,7 @@
                     android:textSize="12sp"
                     android:textStyle="bold"
                     android:letterSpacing="0.05"
-                    android:text="Main Balance"
+                    android:text="@string/label_main_balance"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/greetingText" />
 
@@ -417,6 +417,37 @@
 
             </LinearLayout>
 
+            <!-- Credit Cards Section -->
+            <LinearLayout
+                android:id="@+id/layoutCreditCards"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="16dp"
+                android:paddingTop="24dp"
+                android:paddingBottom="12dp"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/label_your_credit_cards"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.08"
+                    android:layout_marginBottom="12dp" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvCreditCards"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                    tools:listitem="@layout/item_credit_card" />
+            </LinearLayout>
+
             <LinearLayout
                 android:id="@+id/transactionsContainer"
                 android:layout_width="match_parent"
@@ -435,7 +466,7 @@
                     app:cardElevation="4dp"
                     app:strokeColor="@color/primary_green"
                     app:strokeWidth="1dp"
-                    android:contentDescription="Pending transaction for review"
+                    android:contentDescription="@string/cd_pending_review"
                     tools:visibility="visible">
 
                     <LinearLayout
@@ -557,7 +588,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Ready for a fresh start?"
+                    android:text="@string/home_empty_title"
                     android:textColor="@color/text_primary"
                     android:fontFamily="@font/nunito_sans"
                     android:textSize="22sp"
@@ -568,7 +599,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:gravity="center"
-                    android:text="Add your first transaction to begin tracking your spending journey with SpendWise."
+                    android:text="@string/home_empty_subtitle"
                     android:textColor="@color/text_secondary"
                     android:fontFamily="@font/nunito_sans"
                     android:lineSpacingExtra="4dp"
@@ -581,7 +612,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="32dp"
                     android:paddingHorizontal="24dp"
-                    android:text="Add Transaction" />
+                    android:text="@string/btn_add_transaction" />
 
             </LinearLayout>
 

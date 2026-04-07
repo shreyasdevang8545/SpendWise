@@ -13,6 +13,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.tech.spendwise.SupabaseInstance
 import com.tech.spendwise.utils.UIUtils
 import com.tech.spendwise.databinding.FragmentHomeBinding
+import androidx.recyclerview.widget.PagerSnapHelper
+import android.view.animation.AnimationUtils
+
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -33,6 +36,8 @@ class HomeFragment : Fragment() {
 
     private val viewModel: TransactionViewModel by activityViewModels()
     private val adapter = TransactionListAdapter()
+    private lateinit var cardAdapter: CreditCardAdapter
+
 
     private val autoScrollHandler = Handler(Looper.getMainLooper())
     private var isUserTouching = false
@@ -70,7 +75,20 @@ class HomeFragment : Fragment() {
         binding.recentTransactionsList.layoutManager = LinearLayoutManager(requireContext())
         binding.recentTransactionsList.adapter = adapter
 
+        // Setup Credit Card RV
+        cardAdapter = CreditCardAdapter(emptyList(), emptyMap())
+        binding.rvCreditCards.adapter = cardAdapter
+        
+        // Add snapping behavior for cards
+        val snapHelper = PagerSnapHelper()
+        snapHelper.attachToRecyclerView(binding.rvCreditCards)
+        
+        // Entrance animation
+        binding.rvCreditCards.layoutAnimation = AnimationUtils.loadLayoutAnimation(requireContext(), R.anim.item_animation_fall_down)
+
         setupAdapterCallbacks()
+
+
 
         // Fetch cloud transactions when screen opens
         viewModel.fetchFromFirestore()
@@ -104,6 +122,11 @@ class HomeFragment : Fragment() {
         viewModel.lends.observe(viewLifecycleOwner) { _ ->
             refreshSummary()
         }
+
+        viewModel.creditCards.observe(viewLifecycleOwner) { _ ->
+            refreshSummary()
+        }
+
 
         viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
             if (isLoading) {
@@ -181,9 +204,9 @@ class HomeFragment : Fragment() {
         }
         
         val message = if (!name.isNullOrBlank()) {
-            "$greeting, ${name.split(" ")[0]}!"
+            getString(R.string.label_greeting_name, greeting, name.split(" ")[0])
         } else {
-            "$greeting!"
+            getString(R.string.label_greeting_simple, greeting)
         }
         
         binding.greetingText.text = message
@@ -289,13 +312,8 @@ class HomeFragment : Fragment() {
             val totalOutflow = totalSpent + totalLent
             val mainBalance  = totalIncome - totalOutflow
             
-            if (totalIncome == 0.0 && totalOutflow > 0.0) {
-                binding.mainBalanceLabel.text = "TOTAL SPENDING"
-                binding.mainBalanceText.text = formatAmount(Math.abs(totalOutflow), merged.firstOrNull())
-            } else {
-                binding.mainBalanceLabel.text = "MAIN BALANCE"
-                binding.mainBalanceText.text = formatAmount(mainBalance, merged.firstOrNull())
-            }
+            binding.mainBalanceLabel.text = getString(R.string.label_total_spending)
+            binding.mainBalanceText.text = formatAmount(totalSpent, merged.firstOrNull())
             
             val formattedIncome = getString(R.string.home_income, formatAmount(totalIncome, merged.firstOrNull()))
             val formattedSpent = getString(R.string.home_spent, formatAmount(totalSpent, merged.firstOrNull()))
@@ -313,8 +331,32 @@ class HomeFragment : Fragment() {
             binding.headerMonthLabel.text = monthLabel(cal).uppercase()
             
             // initials removal - no logic needed here anymore as we use ic_settings
+            
+            // ── Credit Cards Section ──────────────────────────────────────────
+            val cards = viewModel.creditCards.value ?: emptyList()
+            if (cards.isNotEmpty()) {
+                binding.layoutCreditCards.visibility = View.VISIBLE
+                
+                // Calculate spent per card
+                val cardSpentMap = mutableMapOf<String, Double>()
+                merged.forEach { json ->
+                    val data = parseSimpleJson(json)
+                    val cardId = data["credit_card_id"]
+                    val amount = data["amount"]?.toDoubleOrNull() ?: 0.0
+                    val type = data["type"] ?: ""
+                    
+                    if (!cardId.isNullOrEmpty() && type.equals("DEBIT", ignoreCase = true)) {
+                        cardSpentMap[cardId] = (cardSpentMap[cardId] ?: 0.0) + amount
+                    }
+                }
+                
+                cardAdapter.updateData(cards, cardSpentMap)
+            } else {
+                binding.layoutCreditCards.visibility = View.GONE
+            }
         }
     }
+
 
     private fun setupAdapterCallbacks() {
         adapter.onTransactionClick = { json ->
@@ -360,7 +402,16 @@ class HomeFragment : Fragment() {
         editAmount.setText(data["amount"])
         editCategory.setText(data["category"])
 
-        val categories = arrayOf("Food", "Entertainment", "Shopping", "Transport", "Bills", "Health", "Investment", "Others")
+        val categories = arrayOf(
+            getString(R.string.category_food),
+            getString(R.string.category_entertainment),
+            getString(R.string.category_shopping),
+            getString(R.string.category_transport),
+            getString(R.string.category_bills),
+            getString(R.string.category_health),
+            getString(R.string.category_investment),
+            getString(R.string.category_others)
+        )
         val catAdapter = android.widget.ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, categories)
         editCategory.setAdapter(catAdapter)
 
@@ -439,8 +490,10 @@ class HomeFragment : Fragment() {
 
     private fun monthLabel(cal: Calendar): String {
         val months = arrayOf(
-            "January","February","March","April","May","June",
-            "July","August","September","October","November","December"
+            getString(R.string.month_january), getString(R.string.month_february), getString(R.string.month_march),
+            getString(R.string.month_april), getString(R.string.month_may), getString(R.string.month_june),
+            getString(R.string.month_july), getString(R.string.month_august), getString(R.string.month_september),
+            getString(R.string.month_october), getString(R.string.month_november), getString(R.string.month_december)
         )
         return "${months[cal.get(Calendar.MONTH)]} ${cal.get(Calendar.YEAR)}"
     }
@@ -465,7 +518,11 @@ class HomeFragment : Fragment() {
         val barDataList = mutableListOf<BarData>()
 
         // Show last 7 days including today
-        val days = arrayOf("S", "M", "T", "W", "T", "F", "S")
+        val days = arrayOf(
+            getString(R.string.day_s), getString(R.string.day_m), getString(R.string.day_t),
+            getString(R.string.day_w), getString(R.string.day_t), getString(R.string.day_f),
+            getString(R.string.day_s)
+        )
         for (i in 6 downTo 0) {
             val targetCal = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, -i) }
             val dayName = days[targetCal.get(Calendar.DAY_OF_WEEK) - 1]

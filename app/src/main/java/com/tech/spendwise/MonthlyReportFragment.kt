@@ -55,7 +55,12 @@ class MonthlyReportFragment : Fragment() {
     }
 
     private fun setupSpinners() {
-        val months = arrayOf("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December")
+        val months = arrayOf(
+            getString(R.string.month_january), getString(R.string.month_february), getString(R.string.month_march),
+            getString(R.string.month_april), getString(R.string.month_may), getString(R.string.month_june),
+            getString(R.string.month_july), getString(R.string.month_august), getString(R.string.month_september),
+            getString(R.string.month_october), getString(R.string.month_november), getString(R.string.month_december)
+        )
         val monthAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, months)
         binding.spinnerMonth.setAdapter(monthAdapter)
         
@@ -100,7 +105,12 @@ class MonthlyReportFragment : Fragment() {
         val selectedMonthName = binding.spinnerMonth.text.toString()
         val selectedYear = binding.spinnerYear.text.toString().toIntOrNull() ?: Calendar.getInstance().get(Calendar.YEAR)
         
-        val months = arrayOf("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December")
+        val months = arrayOf(
+            getString(R.string.month_january), getString(R.string.month_february), getString(R.string.month_march),
+            getString(R.string.month_april), getString(R.string.month_may), getString(R.string.month_june),
+            getString(R.string.month_july), getString(R.string.month_august), getString(R.string.month_september),
+            getString(R.string.month_october), getString(R.string.month_november), getString(R.string.month_december)
+        )
         val selectedMonthIndex = months.indexOf(selectedMonthName)
 
         binding.progressBar.visibility = View.VISIBLE
@@ -121,7 +131,7 @@ class MonthlyReportFragment : Fragment() {
                 binding.btnGenerate.isEnabled = true
 
                 if (filteredTransactions.isEmpty()) {
-                    Toast.makeText(requireContext(), "No transactions found for $selectedMonthName $selectedYear", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), getString(R.string.msg_no_transactions_found_period, selectedMonthName, selectedYear), Toast.LENGTH_SHORT).show()
                 } else {
                     saveAndOpenHtmlReport(filteredTransactions, selectedMonthName, selectedYear)
                 }
@@ -147,10 +157,10 @@ class MonthlyReportFragment : Fragment() {
                 setDataAndType(uri, "text/html")
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
-            startActivity(Intent.createChooser(intent, "Open Report in Browser"))
+            startActivity(Intent.createChooser(intent, getString(R.string.title_open_report)))
             
         } catch (e: Exception) {
-            Toast.makeText(requireContext(), "Error: ${e.message}", Toast.LENGTH_LONG).show()
+            Toast.makeText(requireContext(), getString(R.string.error_updating_name, e.localizedMessage ?: getString(R.string.label_unknown)), Toast.LENGTH_LONG).show()
         }
     }
 
@@ -194,7 +204,7 @@ class MonthlyReportFragment : Fragment() {
         for (tx in transactions) {
             val amount = tx["amount"]?.jsonPrimitive?.content?.toDoubleOrNull() ?: 0.0
             val type = tx["type"]?.jsonPrimitive?.content ?: "Expense"
-            val category = tx["category"]?.jsonPrimitive?.content ?: "Uncategorized"
+            val category = tx["category"]?.jsonPrimitive?.content ?: getString(R.string.label_unknown)
 
             if (type == "Income") {
                 totalIncome += amount
@@ -259,6 +269,20 @@ class MonthlyReportFragment : Fragment() {
         val savings = totalIncome - totalExpense
         val savingsColor = if (savings >= 0) "#1565C0" else "#C62828"
 
+        val labelExportPdf = getString(R.string.btn_export_pdf)
+        val labelReport = getString(R.string.title_report)
+        val labelSummary = getString(R.string.label_summary)
+        val labelTotalIncome = getString(R.string.label_total_income)
+        val labelTotalExpense = getString(R.string.label_total_expense)
+        val labelNetSavings = if (savings >= 0) getString(R.string.label_net_savings) else getString(R.string.label_deficit)
+        val labelCategoryBreakdown = getString(R.string.label_category_breakdown)
+        val labelTransactions = getString(R.string.label_transactions)
+        val labelDate = getString(R.string.label_date)
+        val labelMerchant = getString(R.string.label_merchant)
+        val labelCategory = getString(R.string.label_category)
+        val labelAmount = getString(R.string.label_amount)
+        val msgGeneratedAt = getString(R.string.msg_generated_by_spendwise, SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault()).format(Date()))
+
         return """
             <html>
             <head>
@@ -293,40 +317,40 @@ class MonthlyReportFragment : Fragment() {
                 </style>
             </head>
             <body>
-                <button class="export-btn" onclick="window.print()">Export as PDF</button>
+                <button class="export-btn" onclick="window.print()">$labelExportPdf</button>
 
                 <div class="header">
-                    ${if (base64Logo.isNotEmpty()) "<img class='logo' src='data:image/png;base64,$base64Logo'>" else ""}
-                    <h1 style="margin: 0; color: #2E7D32; font-weight: 700;">SpendWise Report</h1>
-                    <p style="margin: 5px 0; color: #666;">$month $year Summary</p>
+                    ${if (base64Logo.isNotEmpty()) "<img class='logo' src='data:image/png;base64,$base64Logo'>" else}
+                    <h1 style="margin: 0; color: #2E7D32; font-weight: 700;">$labelReport</h1>
+                    <p style="margin: 5px 0; color: #666;">$month $year $labelSummary</p>
                 </div>
                 
                 <div class="summary-card">
                     <div class="summary-item">
-                        <div style="color: #666; font-size: 12px; letter-spacing: 1px;">TOTAL INCOME</div>
+                        <div style="color: #666; font-size: 12px; letter-spacing: 1px;">$labelTotalIncome</div>
                         <div class="summary-value income">₹${totalIncome.toInt()}</div>
                     </div>
                     <div class="summary-item">
-                        <div style="color: #666; font-size: 12px; letter-spacing: 1px;">TOTAL EXPENSE</div>
+                        <div style="color: #666; font-size: 12px; letter-spacing: 1px;">$labelTotalExpense</div>
                         <div class="summary-value expense">₹${totalExpense.toInt()}</div>
                     </div>
                     <div class="summary-item">
-                        <div style="color: #666; font-size: 12px; letter-spacing: 1px;">${if (savings >= 0) "NET SAVINGS" else "DEFICIT"}</div>
+                        <div style="color: #666; font-size: 12px; letter-spacing: 1px;">$labelNetSavings</div>
                         <div class="summary-value savings">₹${Math.abs(savings).toInt()}</div>
                     </div>
                 </div>
 
-                <div class="section-title">Category Breakdown</div>
+                <div class="section-title">$labelCategoryBreakdown</div>
                 $categoryRows
 
-                <div class="section-title">Transactions</div>
+                <div class="section-title">$labelTransactions</div>
                 <table>
                     <thead>
                         <tr>
-                            <th>Date</th>
-                            <th>Merchant</th>
-                            <th>Category</th>
-                            <th>Amount</th>
+                            <th>$labelDate</th>
+                            <th>$labelMerchant</th>
+                            <th>$labelCategory</th>
+                            <th>$labelAmount</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -335,7 +359,7 @@ class MonthlyReportFragment : Fragment() {
                 </table>
                 
                 <div style="margin-top: 50px; text-align: center; color: #aaa; font-size: 12px;">
-                    Generated by SpendWise on ${SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault()).format(Date())}
+                    $msgGeneratedAt
                 </div>
             </body>
             </html>

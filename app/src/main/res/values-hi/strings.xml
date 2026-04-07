@@ -1,6 +1,6 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">SpendWise</string>
+    <string name="app_tagline">ट्रैक · सहेजें · बढ़ें 💚</string>
 
     <!-- Settings Sections -->
     <string name="settings_title">सेटिंग्स</string>
@@ -9,6 +9,7 @@
     <string name="section_notifications">सूचनाएं</string>
     <string name="section_data_privacy">डेटा और गोपनीयता</string>
     <string name="section_support">सहायता</string>
+    <string name="section_app_settings">एप्लिकेशन सेटिंग</string>
 
     <!-- General Section -->
     <string name="title_profile">प्रोफाइल और खाता</string>
@@ -35,12 +36,16 @@
     <!-- Notifications Section -->
     <string name="title_transaction_alerts">लेनदेन अलर्ट</string>
     <string name="subtitle_transaction_alerts">एसएमएस लेनदेन का पता चलने पर सूचित करें</string>
-    <string name="title_budget_alerts">बजट अलर्ट</string>
-    <string name="subtitle_budget_alerts" formatted="false">सीमा के 75%, 90%, 100% पर चेतावनी दें</string>
     <string name="title_monthly_summary">मासिक सारांश</string>
     <string name="subtitle_monthly_summary">प्रत्येक महीने की 1 तारीख को रिपोर्ट भेजें</string>
+    <string name="title_monthly_report">मासिक रिपोर्ट</string>
+    <string name="subtitle_monthly_report">वित्तीय सारांश देखें और निर्यात करें</string>
     <string name="title_daily_reminder">दैनिक खर्च अनुस्मारक</string>
     <string name="subtitle_daily_reminder">खर्चों को लॉग करने के लिए शाम को याद दिलाएं</string>
+    <string name="title_budget_alerts">बजट अलर्ट</string>
+    <string name="subtitle_budget_alerts">सीमा के 75%, 90%, 100% पर चेतावनी दें</string>
+    <string name="set_reminder_time">अनुस्मारक समय चुनें</string>
+    <string name="reminder_scheduled_at">अनुस्मारक %1$02d:%2$02d पर सेट है</string>
 
     <!-- Data & Privacy Section -->
     <string name="title_backup_restore">बैकअप और पुनर्स्थापना</string>
@@ -90,6 +95,61 @@
     <string name="home_lent">उधार %1$s</string>
     <string name="home_transaction_found_single">1 लेनदेन मिला। समीक्षा करने के लिए टैप करें।</string>
     <string name="home_transaction_found_plural">%1$d लेनदेन मिले। समीक्षा करने के लिए टैप करें।</string>
+    <string name="home_empty_title">एक नई शुरुआत के लिए तैयार हैं?</string>
+    <string name="home_empty_subtitle">SpendWise के साथ अपनी खर्च यात्रा शुरू करने के लिए अपना पहला लेनदेन जोड़ें।</string>
+
+    <!-- Action Buttons -->
+    <string name="btn_save">सहेजें</string>
+    <string name="btn_cancel">रद्द करें</string>
+    <string name="btn_delete">हटाएं</string>
+    <string name="btn_edit">संपादित करें</string>
+    <string name="btn_next">अगला</string>
+    <string name="btn_review">समीक्षा करें</string>
+    <string name="btn_ignore">अनदेखा करें</string>
+    <string name="btn_grant_access">पहुंच प्रदान करें</string>
+    <string name="btn_not_now">अभी नहीं</string>
+    <string name="btn_go_to_settings">सेटिंग्स में जाएं</string>
+    <string name="btn_mark_returned">लौटाए गए के रूप में चिह्नित करें</string>
+    <string name="btn_edit_detail">विवरण संपादित करें</string>
+    <string name="btn_submit_feedback">प्रतिक्रिया भेजें</string>
+    <string name="btn_export_pdf">PDF के रूप में निर्यात करें</string>
+    <string name="btn_discard">खारिज करें</string>
+    <string name="btn_save_continue">सहेजें और जारी रखें</string>
+    <string name="btn_upload_now">अभी अपलोड करें</string>
+    <string name="btn_create_account">खाता बनाएं</string>
+    <string name="btn_sign_in">साइन इन करें</string>
+    <string name="btn_continue_with_google">गूगल के साथ जारी रखें</string>
+    <string name="btn_add_transaction">लेनदेन जोड़ें</string>
+    <string name="btn_save_next_count">सहेजें और अगला (%1$d शेष)</string>
+    <string name="btn_save_finish">सहेजें और समाप्त करें</string>
+
+    <!-- Messages -->
+    <string name="msg_filled_from_voice">\"%1$s\" से भरा गया</string>
+    <string name="msg_saved_and_synced">सहेजा गया और सिंक किया गया: ₹%1$s · %2$s</string>
+    <string name="msg_bill_extracted">बिल विवरण निकाले गए!</string>
+    <string name="msg_new_transaction_found">नया लेनदेन मिला</string>
+    <string name="msg_test_action_received">SpendWise: टेस्ट एक्शन प्राप्त हुआ!</string>
+    <string name="msg_new_transaction_detected">नया लेनदेन पाया गया</string>
+    <string name="msg_transaction_found_details">%1$s लेनदेन %2$s %3$s के लिए मिला। अधिक विवरण जोड़ने के लिए टैप करें।</string>
+    <string name="msg_no_transactions_found_period">%1$s %2$d के लिए कोई लेनदेन नहीं मिला</string>
+    <string name="msg_generated_by_spendwise">SpendWise द्वारा %1$s पर जनरेट किया गया</string>
+    <string name="msg_name_updated">नाम सफलतापूर्वक अपडेट किया गया</string>
+    <string name="msg_cloud_sync_active">क्लाउड सिंक सक्रिय है</string>
+    <string name="msg_support_coming_soon">सहायता जल्द ही आ रही है!</string>
+    <string name="msg_lend_saved_for">%1$s के लिए ऋण सहेजा गया</string>
+    <string name="msg_saved_details">सहेजा गया: ₹%1$s %2$s के रूप में %3$s पर</string>
+    <string name="msg_contacts_permission_needed">व्यक्ति चुनने के लिए संपर्क अनुमति की आवश्यकता है</string>
+    <string name="msg_pick_contact_whatsapp">व्हाट्सएप रिमाइंडर भेजने के लिए कृपया एक संपर्क चुनें</string>
+    <string name="msg_login_required">सहेजने के लिए कृपया लॉगिन करें</string>
+    <string name="msg_preparing_link">%1$s · लिंक तैयार किया जा रहा है...</string>
+    <string name="msg_whatsapp_not_installed">इस डिवाइस पर व्हाट्सएप इंस्टॉल नहीं है</string>
+    <string name="msg_whatsapp_template">नमस्ते %1$s! 👋\n\nबस एक छोटी सी बात — मैंने आपको ₹%2$s उधार दिए हैं और इसे SpendWise में रिकॉर्ड किया है।\n\n📅 सुझावित वापसी की तारीख: *%3$s*\n\n📋 पूरा विवरण देखें:\n%4$s\n\nकोई जल्दी नहीं है, बस ट्रैक रख रहा हूँ! 😊\n\n— SpendWise के माध्यम से भेजा गया 💚</string>
+    <string name="msg_lend_updated">उधार विवरण अपडेट किया गया</string>
+    <string name="msg_money_return_content">%1$s को ₹%2$s वापस करना था।</string>
+    <string name="msg_log_spending_today">आज के लिए अपना खर्च दर्ज करना न भूलें!</string>
+    <string name="msg_lend_manual">स्वाइप जेस्चर:\n\n👉 दाएं स्वाइप करें:\n• लौटाए गए के रूप में चिह्नित करें: स्थिति को जल्दी से अपडेट करें।\n• विवरण संपादित करें: राशि या तिथि बदलें।\n\n👈 बाएं स्वाइप करें:\n• हटाएं: रिकॉर्ड को स्थायी रूप से हटा दें।\n\nनोट: रिकॉर्ड हटाने से कोई भी लंबित सूचनाएं भी रद्द हो जाती हैं।</string>
+    <string name="msg_no_budget_tracking">अभी तक कोई बजट सीमा ट्रैकिंग नहीं है।</string>
+    <string name="msg_data_cleared">सारा डेटा सफलतापूर्वक साफ़ किया गया</string>
 
     <!-- Dialogs -->
     <string name="dialog_edit_transaction">लेनदेन संपादित करें</string>
@@ -104,8 +164,217 @@
     <string name="dialog_edit">संपादित करें</string>
     <string name="dialog_offline_transaction">ऑफ़लाइन लेनदेन</string>
     <string name="dialog_transaction_options">लेनदेन विकल्प</string>
+    <string name="dialog_add_transaction">लेनदेन जोड़ें</string>
+    <string name="dialog_clear_all_title">सारा डेटा साफ़ करें?</string>
+    <string name="dialog_clear_all_message">यह आपके डिवाइस और क्लाउड से आपके सभी लेनदेन, उधार और स्प्लिटवाइज रिकॉर्ड को स्थायी रूप से हटा देगा। यह कार्य पूर्ववत नहीं किया जा सकता।</string>
+    <string name="dialog_set_overall_budget_title">कुल मासिक बजट निर्धारित करें</string>
+    <string name="dialog_select_category_title">श्रेणी चुनें</string>
+    <string name="dialog_set_category_limit_title">%1$s के लिए सीमा निर्धारित करें</string>
+    <string name="dialog_notifications_permission_title">सूचना अनुमति</string>
+    <string name="dialog_notifications_permission_msg">SpendWise को आपको दैनिक अनुस्मारक, उधार वापसी अलर्ट और बजट चेतावनी भेजने के लिए सूचना पहुंच की आवश्यकता है।</string>
+    <string name="dialog_sms_access_title">SMS पहुंच</string>
+    <string name="dialog_sms_access_msg">SMS अनुमति SpendWise को आपके संदेशों से बैंक लेनदेन का स्वचालित रूप से पता लगाने की अनुमति देती है।</string>
+    <string name="dialog_contacts_permission_title">संपर्क अनुमति आवश्यक</string>
+    <string name="dialog_contacts_permission_msg">सीधे आपके फोनबुक से लोगों को चुनने के लिए आवश्यक है।</string>
+    <string name="dialog_contacts_access_title">संपर्क पहुंच</string>
+    <string name="dialog_contacts_access_msg">SpendWise को आपके फोनबुक से सीधे एक व्यक्ति को चुनने देने के लिए संपर्क पहुंच की आवश्यकता है।</string>
+    <string name="dialog_permission_required_title">%1$s अनुमति आवश्यक</string>
+    <string name="dialog_permission_required_msg">आपने %1$s पहुंच अस्वीकार कर दी है। यह %2$s के लिए आवश्यक है।</string>
+    <string name="dialog_delete_transactions_batch_title">लेनदेन हटाए</string>
+    <string name="dialog_delete_transactions_batch_msg">क्या आप वाकई इन %1$d लेनदेन को हटाना चाहते हैं?</string>
 
-    <!-- Security & Lock -->
+    <!-- Hints -->
+    <string name="hint_merchant">मर्चेंट / नोट</string>
+    <string name="hint_category">श्रेणी</string>
+    <string name="hint_amount">राशि</string>
+    <string name="hint_amount_currency">राशि (%1$s)</string>
+    <string name="hint_date_time">दिनांक और समय</string>
+    <string name="hint_full_name">पूरा नाम</string>
+    <string name="hint_email_address">ईमेल पता</string>
+    <string name="hint_password">पासवर्ड</string>
+    <string name="hint_feedback">आपकी प्रतिक्रिया</string>
+
+    <!-- Greetings -->
+    <string name="label_greeting_name">%1$s, %2$s!</string>
+    <string name="label_greeting_simple">%1$s!</string>
+    <string name="greeting_morning">सुप्रभात</string>
+    <string name="greeting_afternoon">नमस्कार</string>
+    <string name="greeting_evening">शुभ संध्या</string>
+    <string name="greeting_night">शुभ रात्रि</string>
+
+    <!-- Status -->
+    <string name="status_pending">लंबित</string>
+    <string name="label_status_pending">लंबित</string>
+    <string name="label_status_replied">उत्तर दिया गया</string>
+    <string name="status_loading">लोड हो रहा है...</string>
+
+    <!-- Titles -->
+    <string name="title_review_transaction">लेनदेन की समीक्षा करें</string>
+    <string name="title_edit_lend_detail">उधार विवरण संपादित करें</string>
+    <string name="title_transaction_history">लेनदेन इतिहास</string>
+    <string name="title_offline_transaction">ऑफ़लाइन लेनदेन</string>
+    <string name="title_transaction_options">लेनदेन विकल्प</string>
+    <string name="title_edit_transaction">लेनदेन संपादित करें</string>
+    <string name="title_lend_history">उधार इतिहास</string>
+    <string name="title_cloud_sync">क्लाउड सिंक्रोनाइज़ेशन</string>
+    <string name="title_help_support">सहायता और समर्थन</string>
+    <string name="title_update_name">नाम अपडेट करें</string>
+    <string name="title_my_profile">मेरी प्रोफाइल</string>
+    <string name="title_choose_action">कार्य चुनें</string>
+    <string name="title_report">SpendWise रिपोर्ट</string>
+    <string name="title_open_report">ब्राउज़र में रिपोर्ट खोलें</string>
+    <string name="title_feedback_hero">हम आपसे सुनना पसंद करेंगे!</string>
+    <string name="title_previous_feedbacks">पिछली प्रतिक्रियाएं</string>
+    <string name="title_lend_manual">उपयोगकर्ता नियमावली: ऋण इतिहास</string>
+    <string name="title_action_for">%1$s के लिए कार्रवाई</string>
+    <string name="title_delete_record">रिकॉर्ड हटाएं</string>
+    <string name="title_money_return_reminder">पैसा वापसी अनुस्मारक</string>
+    <string name="title_add_your_expenses">अपना खर्च जोड़ें</string>
+    <string name="title_voice_entry">वॉइस एंट्री</string>
+    <string name="title_sign_up">खाता बनाएं</string>
+
+    <!-- Errors -->
+    <string name="error_no_text_in_bill">छवि में कोई टेक्स्ट नहीं मिला। कृपया स्पष्ट फोटो के साथ पुनः प्रयास करें।</string>
+    <string name="error_analysis_failed">विश्लेषण विफल रहा: %1$s</string>
+    <string name="error_feedback_empty">कृपया अपनी प्रतिक्रिया दर्ज करें</string>
+    <string name="error_extract_failed">कोई लेनदेन विवरण नहीं निकाला जा सका।</string>
+    <string name="error_updating_name">नाम अपडेट करने में त्रुटि: %1$s</string>
+    <string name="error_name_empty">नाम खाली नहीं हो सकता</string>
+    <string name="error_name_not_provided">नाम नहीं दिया गया</string>
+    <string name="error_enter_name">व्यक्ति का नाम दर्ज करें</string>
+    <string name="error_enter_amount">मान्य राशि दर्ज करें</string>
+
+    <!-- Categories -->
+    <string name="category_food">भोजन</string>
+    <string name="category_entertainment">मनोरंजन</string>
+    <string name="category_shopping">खरीदारी</string>
+    <string name="category_transport">परिवहन</string>
+    <string name="category_bills">बिल</string>
+    <string name="category_health">स्वास्थ्य</string>
+    <string name="category_investment">निवेश</string>
+    <string name="category_others">अन्य</string>
+    <string name="category_groceries">किराना</string>
+    <string name="category_lend_repayment">उधार वापसी</string>
+    <string name="category_income">आय</string>
+    <string name="category_travel">यात्रा</string>
+    <string name="category_education">शिक्षा</string>
+    <string name="category_gifts">उपहार</string>
+    <string name="category_utilities">उपयोगिताएँ</string>
+
+    <!-- Months -->
+    <string name="month_january">जनवरी</string>
+    <string name="month_february">फरवरी</string>
+    <string name="month_march">मार्च</string>
+    <string name="month_april">अप्रैल</string>
+    <string name="month_may">मई</string>
+    <string name="month_june">जून</string>
+    <string name="month_july">जुलाई</string>
+    <string name="month_august">अगस्त</string>
+    <string name="month_september">सितंबर</string>
+    <string name="month_october">अक्टूबर</string>
+    <string name="month_november">नवंबर</string>
+    <string name="month_december">दिसंबर</string>
+
+    <!-- Days -->
+    <string name="day_s">र</string>
+    <string name="day_m">सो</string>
+    <string name="day_t">मं</string>
+    <string name="day_w">बु</string>
+    <string name="day_f">शु</string>
+
+    <!-- Misc Labels -->
+    <string name="label_unknown">अज्ञात</string>
+    <string name="label_version">संस्करण 1.0.0</string>
+    <string name="label_version_format">संस्करण %1$s</string>
+    <string name="label_category_breakdown">श्रेणी विवरण</string>
+    <string name="label_summary">सारांश</string>
+    <string name="label_total_income">कुल आय</string>
+    <string name="label_total_expense">कुल खर्च</string>
+    <string name="label_net_savings">शुद्ध बचत</string>
+    <string name="label_deficit">घाटा</string>
+    <string name="label_transactions">लेनदेन</string>
+    <string name="label_date">तारीख</string>
+    <string name="label_merchant">मर्चेंट</string>
+    <string name="label_developed_by">द्वारा विकसित</string>
+    <string name="label_dev_team">टेक टीम</string>
+    <string name="label_copyright">© 2026 SpendWise. सर्वाधिकार सुरक्षित।</string>
+    <string name="label_upi">UPI</string>
+    <string name="label_settings">सेटिंग्स</string>
+    <string name="label_main_balance">कुल शेष</string>
+    <string name="label_your_credit_cards">आपके क्रेडिट कार्ड</string>
+    <string name="label_amount_remaining">%1$s शेष</string>
+    <string name="label_no_limit_set">कोई सीमा निर्धारित नहीं है</string>
+    <string name="label_of_amount">%1$s में से</string>
+    <string name="label_percentage_used">%1$d%% उपयोग किया गया</string>
+    <string name="label_amount_left">%1$s शेष</string>
+    <string name="label_exceeded_by">%1$s अधिक खर्च</string>
+    <string name="label_limit_not_set">सीमा निर्धारित नहीं है</string>
+    <string name="label_tap_to_set">सेट करने के लिए टैप करें</string>
+    <string name="label_or">या</string>
+    <string name="label_already_have_account">पहले से ही एक खाता है? </string>
+    <string name="label_total_lent">कुल उधार</string>
+    <string name="label_lent_on">उधार दिया गया</string>
+    <string name="label_return_date">वापसी की तारीख</string>
+    <string name="label_note">नोट</string>
+    <string name="label_total_spent_short">कुल खर्च</string>
+    <string name="label_quick_add">त्वरित जोड़ें</string>
+    <string name="label_total_spending">कुल खर्च</string>
+    <string name="label_add_transaction">लेनदेन जोड़ें</string>
+    <string name="label_add_lend_amount">उधार राशि जोड़ें</string>
+    <string name="label_view_lend_history">उधार इतिहास देखें</string>
+    <string name="label_split_expense">खर्च विभाजित करें</string>
+    <string name="label_credit_cards">क्रेडिट कार्ड</string>
+    <string name="label_send_whatsapp_reminder">व्हाट्सएप रिमाइंडर भेजें</string>
+    <string name="label_lend_via_spendwise">SpendWise के माध्यम से उधार</string>
+    <string name="label_selected_contact_no_phone">चयनित: %1$s (कोई फ़ोन नंबर नहीं)</string>
+    <string name="label_selected_contact_with_phone">चयनित: %1$s (%2$s)</string>
+    <string name="label_n_selected">%1$d चयनित</string>
+    <string name="label_add_name_for_handle">अपना हैंडल देखने के लिए एक नाम जोड़ें</string>
+    <string name="label_card_chip">%1$s (*%2$s)</string>
+    <string name="label_credit">क्रेडिट</string>
+    <string name="label_debit">डेबिट</string>
+    <string name="label_debit_card">डेबिट कार्ड</string>
+    <string name="label_cash">नकद</string>
+    <string name="label_other_mode">अन्य</string>
+    <string name="label_type">लेनदेन का प्रकार</string>
+    <string name="label_payment_mode">भुगतान का तरीका</string>
+    <string name="label_merchant_billing">मर्चेंट / बिलिंग इकाई</string>
+    <string name="label_transaction_type">लेनदेन का प्रकार</string>
+    <string name="label_payment_method">भुगतान का तरीका</string>
+    <string name="label_specify_other_method">अन्य तरीका बताएं</string>
+    <string name="label_is_lend_loan">क्या यह उधार / ऋण है?</string>
+    <string name="label_who_did_you_lend">आपने किसे उधार दिया?</string>
+
+    <!-- Descriptions / Subtitles Part 2 -->
+    <string name="desc_add_transaction">अपना दैनिक खर्च मैन्युअल रूप से दर्ज करें</string>
+    <string name="desc_add_lend_amount">दूसरों को दिए गए पैसे को ट्रैक करें</string>
+    <string name="desc_view_lend_history">लंबित वापसी और अभिलेखागार की जाँच करें</string>
+    <string name="desc_split_expense">दोस्तों और समूहों के साथ बिल विभाजित करें</string>
+    <string name="desc_credit_cards">कार्ड और भुगतान अनुस्मारक प्रबंधित करें</string>
+    <string name="desc_about_app">SpendWise आपका व्यक्तिगत वित्त साथी है, जो आपको खर्चों को ट्रैक करने, बजट प्रबंधित करने और वित्तीय स्वतंत्रता प्राप्त करने में मदद करने के लिए डिज़ाइन किया गया है।</string>
+    <string name="desc_feedback">SpendWise को बेहतर बनाने में हमारी मदद करने के लिए अपने विचार साझा करें।</string>
+
+    <!-- Content Descriptions -->
+    <string name="cd_pending_review">समीक्षा के लिए लंबित लेनदेन</string>
+    <string name="cd_edit_name">नाम संपादित करें</string>
+    <string name="cd_capture_bill">बिल कैप्चर करें</string>
+    <string name="cd_start_voice_recording">वॉइस रिकॉर्डिंग शुरू करें</string>
+
+    <!-- Channels -->
+    <string name="channel_transaction_alerts_name">लेनदेन अलर्ट</string>
+    <string name="channel_transaction_alerts_desc">बैंक लेनदेन का पता चलने पर सूचनाएं</string>
+    <string name="channel_lend_reminders_name">उधार अनुस्मारक</string>
+    <string name="channel_lend_reminders_desc">पैसा वापसी की प्रतिबद्धताओं के लिए अनुस्मारक</string>
+    <string name="channel_daily_reminders_name">दैनिक अनुस्मारक</string>
+    <string name="channel_daily_reminders_desc">अपना खर्च दर्ज करने के लिए दैनिक संकेत</string>
+    <string name="channel_budget_alerts_name">बजट अलर्ट</string>
+    <string name="channel_budget_alerts_desc">बजट सीमा पार होने पर सूचनाएं।</string>
+
+    <!-- Reasons -->
+    <string name="reason_detected_bank_sms">स्वचालित लेनदेन पहचान</string>
+    <string name="reason_reminders_alerts">रिमाइंडर और अलर्ट</string>
+
+    <!-- Security Part 2 -->
     <string name="security_enable_lock">ऐप लॉक सक्षम करें</string>
     <string name="security_enable_lock_desc">ऐप खोलने के लिए PIN या बायोमेट्रिक आवश्यक</string>
     <string name="security_set_pin">PIN सेट करें</string>
@@ -125,7 +394,7 @@
     <string name="security_pin_mismatch">PIN मेल नहीं खाते</string>
     <string name="security_pin_saved">PIN सफलतापूर्वक सहेजा गया</string>
 
-    <!-- Lock Screen -->
+    <!-- Lock Screen Part 2 -->
     <string name="lock_enter_pin">अनलॉक करने के लिए अपना PIN दर्ज करें</string>
     <string name="lock_wrong_pin">गलत PIN। %1$d प्रयास शेष।</string>
     <string name="lock_too_many_attempts">बहुत अधिक प्रयास। 30 सेकंड बाद पुन: प्रयास करें।</string>
@@ -134,14 +403,8 @@
     <string name="lock_use_pin">PIN का उपयोग करें</string>
     <string name="lock_biometric_failed">प्रमाणीकरण विफल</string>
 
-    <!-- Budget Alerts -->
-    <string name="budget_info">अपने खर्च लक्ष्यों को पार करने पर सूचनाएं प्राप्त करने के लिए बजट सीमा निर्धारित करें।</string>
-    <string name="overall_monthly_budget">कुल मासिक बजट</string>
-    <string name="category_budgets">श्रेणी बजट</string>
-    <string name="category_budgets_desc">विशिष्ट श्रेणियों के लिए अलग-अलग सीमाएँ निर्धारित करें</string>
-    <string name="amount">राशि</string>
-    <string name="save_budgets">बजट सहेजें</string>
-    <string name="budgets_saved">बजट सफलतापूर्वक सहेजे गए</string>
-    <string name="budget_not_set">सेट नहीं है</string>
-    <string name="budget_limit_set">सीमा: %1$s</string>
+    <!-- Chips -->
+    <string name="chip_expense">खर्च</string>
+    <string name="chip_income">आय</string>
+
 </resources>

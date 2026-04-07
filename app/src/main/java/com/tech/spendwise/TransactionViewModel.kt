@@ -35,6 +35,10 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
     private val _lends = MutableLiveData<List<com.tech.spendwise.models.LendTransaction>>(emptyList())
     val lends: LiveData<List<com.tech.spendwise.models.LendTransaction>> = _lends
 
+    // Credit Cards fetched from Firestore
+    private val _creditCards = MutableLiveData<List<com.tech.spendwise.models.CreditCard>>(emptyList())
+    val creditCards: LiveData<List<com.tech.spendwise.models.CreditCard>> = _creditCards
+
     // Loading state for Firestore fetch
     private val _isLoading = MutableLiveData<Boolean>(false)
     val isLoading: LiveData<Boolean> = _isLoading
@@ -120,6 +124,9 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
                 
                 val lends = supabaseRepository.fetchLends()
                 _lends.postValue(lends)
+
+                val cards = supabaseRepository.fetchCreditCards()
+                _creditCards.postValue(cards)
             } catch (e: Exception) {
                 Log.e("TransactionVM", "Fetch failed: ${e.message}")
             } finally {
@@ -210,6 +217,26 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
             }
         }
     }
+
+    fun saveCreditCard(card: com.tech.spendwise.models.CreditCard) {
+        viewModelScope.launch {
+            _isLoading.postValue(true)
+            try {
+                supabaseRepository.saveCreditCard(card)
+                fetchFromFirestore()
+            } finally {
+                _isLoading.postValue(false)
+            }
+        }
+    }
+
+    fun deleteCreditCard(id: String) {
+        viewModelScope.launch {
+            supabaseRepository.deleteCreditCard(id)
+            fetchFromFirestore()
+        }
+    }
+
 
     /**
      * Removes the oldest transaction (the one currently being reviewed).

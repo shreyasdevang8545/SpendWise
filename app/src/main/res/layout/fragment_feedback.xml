@@ -17,7 +17,7 @@
             android:layout_height="?attr/actionBarSize"
             style="@style/Widget.SpendWise.Toolbar"
             app:navigationIcon="@drawable/ic_back"
-            app:title="Send Feedback"
+            app:title="@string/title_feedback"
             app:titleCentered="true" />
 
     </com.google.android.material.appbar.AppBarLayout>
@@ -49,7 +49,7 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="We'd love to hear from you!"
+                        android:text="@string/title_feedback_hero"
                         android:textColor="@color/primary_green"
                         android:textSize="18dp"
                         android:textStyle="bold" />
@@ -58,7 +58,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:text="Share your thoughts, report issues, or suggest improvements to help us make SpendWise better."
+                        android:text="@string/desc_feedback"
                         android:textColor="@color/text_secondary"
                         android:textSize="14dp" />
 
@@ -68,7 +68,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="20dp"
-                        android:hint="Your Feedback"
+                        android:hint="@string/hint_feedback"
                         app:boxStrokeColor="@color/primary_green"
                         app:hintTextColor="@color/primary_green">
 
@@ -88,7 +88,7 @@
                         android:layout_height="60dp"
                         android:layout_marginTop="16dp"
                         android:backgroundTint="@color/primary_green"
-                        android:text="Send Feedback"
+                        android:text="@string/btn_submit_feedback"
                         android:textAllCaps="false"
                         android:textColor="#FFFFFF"
                         android:textStyle="bold"
@@ -103,7 +103,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="32dp"
-                android:text="Previous Feedbacks"
+                android:text="@string/title_previous_feedbacks"
                 android:textColor="@color/primary_green"
                 android:textSize="16dp"
                 android:textStyle="bold"

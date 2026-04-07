@@ -209,6 +209,40 @@
                     android:checkable="true" />
             </com.google.android.material.chip.ChipGroup>
 
+            <!-- Credit Card Sub-selection -->
+            <LinearLayout
+                android:id="@+id/layoutCreditCardSelection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="24dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Which Credit Card?"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="13sp"
+                    android:layout_marginBottom="8dp" />
+
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:scrollbars="none">
+
+                    <com.google.android.material.chip.ChipGroup
+                        android:id="@+id/creditCardChipGroup"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:singleLine="true"
+                        app:singleSelection="true">
+                        <!-- Chips will be added dynamically -->
+                    </com.google.android.material.chip.ChipGroup>
+                </HorizontalScrollView>
+            </LinearLayout>
+
+
             <!-- Date & Time -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/dateLayout"

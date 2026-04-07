@@ -71,15 +71,9 @@ class LendHistoryFragment : Fragment() {
     private fun showManualDialog() {
         UIUtils.showAlertDialog(
             requireContext(),
-            "User Manual: Lend History",
-            "Swipe Gestures:\n\n" +
-                    "👉 Swipe RIGHT:\n" +
-                    "• Mark as Returned: Quickly update status.\n" +
-                    "• Edit Detail: Change amount or date.\n\n" +
-                    "👈 Swipe LEFT:\n" +
-                    "• Delete: Remove record permanently.\n\n" +
-                    "Note: Deleting a record also cancels any pending notifications.",
-            "Got it",
+            getString(R.string.title_lend_manual),
+            getString(R.string.msg_lend_manual),
+            getString(R.string.btn_got_it),
             null
         )
     }
@@ -107,15 +101,15 @@ class LendHistoryFragment : Fragment() {
 
     private fun showActionMenu(lend: LendTransaction, position: Int) {
         val options = if (lend.isReturned) {
-            arrayOf("Edit Detail")
+            arrayOf(getString(R.string.btn_edit_detail))
         } else {
-            arrayOf("Mark as Returned", "Edit Detail")
+            arrayOf(getString(R.string.btn_mark_returned), getString(R.string.btn_edit_detail))
         }
 
-        UIUtils.showListDialog(requireContext(), "Action for ${lend.name}", options) { which ->
+        UIUtils.showListDialog(requireContext(), getString(R.string.title_action_for, lend.name), options) { which ->
             when (options[which]) {
-                "Mark as Returned" -> markAsReturned(lend)
-                "Edit Detail" -> {
+                getString(R.string.btn_mark_returned) -> markAsReturned(lend)
+                getString(R.string.btn_edit_detail) -> {
                     val bundle = Bundle().apply {
                         putString("lendId", lend.id)
                     }
@@ -143,10 +137,10 @@ class LendHistoryFragment : Fragment() {
     private fun showDeleteConfirmation(lend: LendTransaction, position: Int) {
         UIUtils.showAlertDialog(
             requireContext(),
-            "Delete Record",
-            "Are you sure you want to delete this lend record for ${lend.name}?",
-            "Delete",
-            "Cancel"
+            getString(R.string.title_delete_record),
+            getString(R.string.msg_delete_lend_confirm, lend.name),
+            getString(R.string.btn_delete),
+            getString(R.string.btn_cancel)
         ) {
             val uid = SupabaseInstance.currentUserId() ?: return@showAlertDialog
             lifecycleScope.launch {

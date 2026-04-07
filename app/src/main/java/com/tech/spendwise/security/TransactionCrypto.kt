@@ -107,6 +107,54 @@ object TransactionCrypto {
         return buildJson(result)
     }
 
+    // ── Credit Card Helpers ───────────────────────────────────────────────
+
+    /**
+     * Encrypts sensitive fields for a CreditCard.
+     */
+    fun encryptCreditCard(name: String, last4: String, limit: Double, uid: String): Map<String, String> {
+        return mapOf(
+            "name" to encryptField(name, uid),
+            "last4" to encryptField(last4, uid),
+            "limit" to encryptField(limit.toString(), uid)
+        )
+    }
+
+    /**
+     * Decrypts a database map into a CreditCard object.
+     */
+    fun mapToCreditCard(id: String, map: Map<String, Any?>, uid: String): com.tech.spendwise.models.CreditCard? {
+        return try {
+            val nameRaw = map["name"]?.toString() ?: ""
+            val last4Raw = map["last4"]?.toString() ?: ""
+            val limitRaw = map["limit"]?.toString() ?: ""
+            val paybackDay = (map["payback_day"]?.toString()?.toDoubleOrNull() ?: 1.0).toInt()
+            val reminderEnabled = map["reminder_enabled"]?.toString()?.toBoolean() ?: true
+            val createdAtRaw = map["created_at"]?.toString() ?: "0"
+
+            fun parse(raw: String): Long {
+                return raw.toLongOrNull() ?: try {
+                    java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.getDefault()).parse(raw.take(19))?.time ?: 0L
+                } catch (e: Exception) { 0L }
+            }
+
+            com.tech.spendwise.models.CreditCard(
+                id = id,
+                name = if (nameRaw.isNotEmpty()) decryptField(nameRaw, uid) else "",
+                last4 = if (last4Raw.isNotEmpty()) decryptField(last4Raw, uid) else "",
+                limit = if (limitRaw.isNotEmpty()) decryptField(limitRaw, uid).toDoubleOrNull() ?: 0.0 else 0.0,
+                paybackDay = paybackDay,
+                reminderEnabled = reminderEnabled,
+                uid = uid,
+                createdAt = parse(createdAtRaw)
+            )
+        } catch (e: Exception) {
+            android.util.Log.e("TransactionCrypto", "Error in mapToCreditCard for id=$id", e)
+            null
+        }
+    }
+
+
     /**
      * Converts a database map into a LendTransaction object.
      */

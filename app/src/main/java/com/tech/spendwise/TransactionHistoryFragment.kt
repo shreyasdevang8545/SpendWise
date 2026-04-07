@@ -212,7 +212,7 @@ class TransactionHistoryFragment : Fragment() {
     private fun exitSelectionMode() {
         selectionActionMode = false
         adapter.isSelectionMode = false
-        binding.toolbar.title = "Transaction History"
+        binding.toolbar.title = getString(R.string.title_transaction_history)
         binding.toolbar.navigationIcon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_back)
         binding.toolbar.menu.clear()
         binding.toolbar.setNavigationOnClickListener {
@@ -221,7 +221,7 @@ class TransactionHistoryFragment : Fragment() {
     }
 
     private fun updateSelectionTitle() {
-        binding.toolbar.title = "${adapter.selectedIds.size} selected"
+        binding.toolbar.title = getString(R.string.label_n_selected, adapter.selectedIds.size)
     }
 
     private fun showEditDeleteDialog(json: String) {
@@ -229,12 +229,12 @@ class TransactionHistoryFragment : Fragment() {
         val id = data["id"]
         val isOffline = id == null
         
-        val options = if (isOffline) arrayOf("Upload Now", "Delete") else arrayOf("Edit", "Delete")
-        UIUtils.showListDialog(requireContext(), if (isOffline) "Offline Transaction" else "Transaction Options", options) { which ->
+        val options = if (isOffline) arrayOf(getString(R.string.btn_upload_now), getString(R.string.btn_delete)) else arrayOf(getString(R.string.btn_edit), getString(R.string.btn_delete))
+        UIUtils.showListDialog(requireContext(), if (isOffline) getString(R.string.title_offline_transaction) else getString(R.string.title_transaction_options), options) { which ->
             when (options[which]) {
-                "Upload Now" -> viewModel.uploadOfflineTransaction(json)
-                "Edit" -> showEditDialog(id!!, json)
-                "Delete" -> if (isOffline) {
+                getString(R.string.btn_upload_now) -> viewModel.uploadOfflineTransaction(json)
+                getString(R.string.btn_edit) -> showEditDialog(id!!, json)
+                getString(R.string.btn_delete) -> if (isOffline) {
                     viewModel.deleteLocalTransaction(json)
                 } else {
                     confirmSingleDelete(id!!)
@@ -257,13 +257,22 @@ class TransactionHistoryFragment : Fragment() {
         editCategory.setText(data["category"])
         
         // Setup category dropdown (simulated for now)
-        val categories = arrayOf("Food", "Entertainment", "Shopping", "Transport", "Bills", "Health", "Investment", "Others")
+        val categories = arrayOf(
+            getString(R.string.category_food),
+            getString(R.string.category_entertainment),
+            getString(R.string.category_shopping),
+            getString(R.string.category_transport),
+            getString(R.string.category_bills),
+            getString(R.string.category_health),
+            getString(R.string.category_investment),
+            getString(R.string.category_others)
+        )
         val adapter = android.widget.ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, categories)
         editCategory.setAdapter(adapter)
 
         builder.setView(dialogView)
-            .setTitle("Edit Transaction")
-            .setPositiveButton("Save") { _, _ ->
+            .setTitle(getString(R.string.title_edit_transaction))
+            .setPositiveButton(getString(R.string.btn_save)) { _, _ ->
                 val newMerchant = editMerchant.text.toString()
                 val newAmount = editAmount.text.toString().toDoubleOrNull() ?: 0.0
                 val newCategory = editCategory.text.toString()
@@ -275,7 +284,7 @@ class TransactionHistoryFragment : Fragment() {
                 
                 viewModel.updateTransaction(id, buildJsonString(updatedData))
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(getString(R.string.btn_cancel), null)
             .show()
     }
 
@@ -289,10 +298,10 @@ class TransactionHistoryFragment : Fragment() {
     private fun confirmSingleDelete(id: String) {
         UIUtils.showAlertDialog(
             requireContext(),
-            "Delete Transaction",
-            "Are you sure you want to delete this transaction?",
-            "Delete",
-            "Cancel"
+            getString(R.string.dialog_delete_transaction_title),
+            getString(R.string.dialog_delete_transaction_msg),
+            getString(R.string.btn_delete),
+            getString(R.string.btn_cancel)
         ) {
             viewModel.deleteTransaction(id)
         }
@@ -304,10 +313,10 @@ class TransactionHistoryFragment : Fragment() {
 
         UIUtils.showAlertDialog(
             requireContext(),
-            "Delete Transactions",
-            "Are you sure you want to delete these $count transactions?",
-            "Delete",
-            "Cancel"
+            getString(R.string.dialog_delete_transactions_batch_title),
+            getString(R.string.dialog_delete_transactions_batch_msg, count),
+            getString(R.string.btn_delete),
+            getString(R.string.btn_cancel)
         ) {
             viewModel.deleteTransactionsBatch(adapter.selectedIds.toList())
             exitSelectionMode()

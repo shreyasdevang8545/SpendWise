@@ -46,7 +46,7 @@ class SmsReceiver : BroadcastReceiver() {
         if (intent?.action == "com.tech.spendwise.TEST_ACTION") {
             Log.i(TAG, "Test action received!")
             if (context != null) {
-                android.widget.Toast.makeText(context, "SpendWise: TEST Action Received!", android.widget.Toast.LENGTH_LONG).show()
+                android.widget.Toast.makeText(context, context.getString(R.string.msg_test_action_received), android.widget.Toast.LENGTH_LONG).show()
             }
             return
         }
@@ -207,8 +207,8 @@ class SmsReceiver : BroadcastReceiver() {
         val currency = data["currency"] ?: "INR"
         val type = data["type"] ?: "UNKNOWN"
 
-        val typePrefix = if (type != "UNKNOWN") "$type " else ""
-        val contentText = "${typePrefix}transaction found for $currency $amount. Tap to add more details."
+        val typePrefix = if (type != "UNKNOWN") type else ""
+        val contentText = context.getString(R.string.msg_transaction_found_details, typePrefix, currency, amount)
 
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
         
@@ -236,12 +236,12 @@ class SmsReceiver : BroadcastReceiver() {
 
         val notification = androidx.core.app.NotificationCompat.Builder(context, MainActivity.TRANSACTION_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_account_balance)
-            .setContentTitle("New Transaction Detected")
+            .setContentTitle(context.getString(R.string.msg_new_transaction_detected))
             .setContentText(contentText)
             .setPriority(androidx.core.app.NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
-            .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Ignore", ignorePendingIntent)
+            .addAction(android.R.drawable.ic_menu_close_clear_cancel, context.getString(R.string.btn_ignore), ignorePendingIntent)
             .build()
 
         notificationManager.notify(notificationId, notification)

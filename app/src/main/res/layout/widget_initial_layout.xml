@@ -10,7 +10,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Quick Add"
+        android:text="@string/label_quick_add"
         android:textColor="@color/text_primary"
         android:textStyle="bold"
         android:textSize="18sp" />
@@ -18,7 +18,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Loading..."
+        android:text="@string/status_loading"
         android:textColor="@color/text_secondary"
         android:textSize="14sp" />
 </LinearLayout>

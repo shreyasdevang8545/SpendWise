@@ -18,7 +18,7 @@
             android:layout_height="?attr/actionBarSize"
             style="@style/Widget.SpendWise.Toolbar"
             app:navigationIcon="@drawable/ic_close"
-            app:title="Review Transaction" />
+            app:title="@string/title_review_transaction" />
     </com.google.android.material.appbar.AppBarLayout>
 
     <ScrollView
@@ -40,7 +40,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                android:hint="Amount"
+                android:hint="@string/label_amount"
                 app:prefixText="₹"
                 app:prefixTextColor="@color/primary_green"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
@@ -61,7 +61,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                android:hint="Merchant / Billing Entity"
+                android:hint="@string/label_merchant_billing"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -78,8 +78,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                android:hint="Category"
-                app:helperText="Mandatory selection required"
+                android:hint="@string/label_category"
+                app:helperText="@string/helper_category_mandatory"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
 
                 <AutoCompleteTextView
@@ -102,7 +102,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Transaction Type"
+                    android:text="@string/label_transaction_type"
                     android:textColor="@color/text_secondary"
                     android:textSize="13sp"
                     android:layout_marginBottom="8dp" />
@@ -135,7 +135,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Payment Method"
+                android:text="@string/label_payment_method"
                 android:textColor="@color/text_secondary"
                 android:textSize="13sp"
                 android:layout_marginBottom="8dp" />
@@ -154,7 +154,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                android:hint="Specify Other Method"
+                android:hint="@string/label_specify_other_method"
                 android:visibility="gone"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
@@ -176,7 +176,7 @@
                 android:id="@+id/switchLend"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Is this a Lend / Loan?"
+                android:text="@string/label_is_lend_loan"
                 android:textColor="@color/text_primary"
                 android:textSize="16sp"
                 android:textStyle="bold"
@@ -196,7 +196,7 @@
                     android:id="@+id/lendNameLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Who did you lend to?"
+                    android:hint="@string/label_who_did_you_lend"
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                     <com.google.android.material.textfield.TextInputEditText
@@ -227,7 +227,7 @@
             android:layout_width="0dp"
             android:layout_height="56dp"
             android:layout_weight="1"
-            android:text="Discard"
+            android:text="@string/btn_discard"
             android:textColor="@color/text_secondary" />
 
         <com.google.android.material.button.MaterialButton
@@ -237,7 +237,7 @@
             android:layout_height="56dp"
             android:layout_marginStart="16dp"
             android:layout_weight="2"
-            android:text="Save &amp; Continue"
+            android:text="@string/btn_save_continue"
             android:textStyle="bold" />
     </LinearLayout>
 

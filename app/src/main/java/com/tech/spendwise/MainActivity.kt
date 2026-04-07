@@ -70,7 +70,7 @@ class MainActivity : AppCompatActivity() {
                 Log.w(TAG, "Notification permission denied")
                 if (!shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)) {
                     // Permanently denied
-                    showPermanentDenialDialog("Notifications", "reminders and alerts")
+                    showPermanentDenialDialog(getString(R.string.title_notifications), getString(R.string.reason_reminders_alerts))
                 }
             }
         }
@@ -90,7 +90,7 @@ class MainActivity : AppCompatActivity() {
                 
                 // Show Snackbar
                 val rootView = findViewById<View>(android.R.id.content)
-                UIUtils.showActionSnackbar(rootView, "New Transaction Found", "Review") {
+                UIUtils.showActionSnackbar(rootView, getString(R.string.msg_new_transaction_found), getString(R.string.btn_review)) {
                     val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
                     navHostFragment.navController.navigate(R.id.reviewTransactionFragment)
                 }
@@ -114,7 +114,7 @@ class MainActivity : AppCompatActivity() {
                     !granted && !shouldShowRequestPermissionRationale(perm)
                 }
                 if (deniedAnyPermanently) {
-                    showPermanentDenialDialog("SMS", "automatic transaction detection")
+                    showPermanentDenialDialog(getString(R.string.title_sms), getString(R.string.reason_detected_bank_sms))
                 }
             }
         }
@@ -175,7 +175,10 @@ class MainActivity : AppCompatActivity() {
                             navController.navigate(R.id.lendHistoryFragment)
                         SelectionBottomSheet.SelectionOption.SPLITWISE ->
                             navController.navigate(R.id.splitGroupsFragment)
+                        SelectionBottomSheet.SelectionOption.CREDIT_CARD ->
+                            navController.navigate(R.id.addCreditCardFragment)
                     }
+
                 }.show(supportFragmentManager, SelectionBottomSheet.TAG)
                 false // We handle the selection ourselves for this item
             } else {
@@ -265,8 +268,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val name = "Transaction Alerts"
-            val descriptionText = "Notifications for detected bank transactions"
+            val name = getString(R.string.channel_transaction_alerts_name)
+            val descriptionText = getString(R.string.channel_transaction_alerts_desc)
             val importance = NotificationManager.IMPORTANCE_HIGH
             val channel = NotificationChannel(TRANSACTION_CHANNEL_ID, name, importance).apply {
                 description = descriptionText
@@ -278,29 +281,29 @@ class MainActivity : AppCompatActivity() {
             // Create Lend Remainder channel
             val lendChannel = NotificationChannel(
                 "lend_reminders",
-                "Lend Reminders",
+                getString(R.string.channel_lend_reminders_name),
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = "Reminders for money return commitments"
+                description = getString(R.string.channel_lend_reminders_desc)
             }
             notificationManager.createNotificationChannel(lendChannel)
 
             // Create Daily Reminder channel
             val dailyChannel = NotificationChannel(
                 "daily_reminders",
-                "Daily Reminders",
+                getString(R.string.channel_daily_reminders_name),
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = "Daily nudge to log your spending"
+                description = getString(R.string.channel_daily_reminders_desc)
             }
             notificationManager.createNotificationChannel(dailyChannel)
             // 4. Budget Alerts channel
             val budgetChannel = NotificationChannel(
                 "budget_alerts_channel",
-                "Budget Alerts",
+                getString(R.string.channel_budget_alerts_name),
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = "Notifications when you exceed your set budget limits."
+                description = getString(R.string.channel_budget_alerts_desc)
             }
             notificationManager.createNotificationChannel(budgetChannel)
         }
@@ -335,8 +338,8 @@ class MainActivity : AppCompatActivity() {
                 }
                 shouldShowRequestPermissionRationale(permission) -> {
                     showPermissionRationaleDialog(
-                        title = "Notifications Permission",
-                        message = "SpendWise needs notification access to send you daily reminders, lend return alerts, and budget warnings.",
+                        title = getString(R.string.dialog_notifications_permission_title),
+                        message = getString(R.string.dialog_notifications_permission_msg),
                         onConfirm = { requestNotificationPermissionLauncher.launch(permission) }
                     )
                 }
@@ -437,8 +440,8 @@ class MainActivity : AppCompatActivity() {
             val shouldShowRationale = missingPermissions.any { shouldShowRequestPermissionRationale(it) }
             if (shouldShowRationale) {
                 showPermissionRationaleDialog(
-                    title = "SMS Access",
-                    message = "SMS permission allows SpendWise to automatically detect bank transactions from your messages, saving you time on manual logging.",
+                    title = getString(R.string.dialog_sms_access_title),
+                    message = getString(R.string.dialog_sms_access_msg),
                     onConfirm = { requestSmsPermissionsLauncher.launch(missingPermissions.toTypedArray()) }
                 )
             } else {
@@ -451,17 +454,17 @@ class MainActivity : AppCompatActivity() {
         AlertDialog.Builder(this)
             .setTitle(title)
             .setMessage(message)
-            .setPositiveButton("Grant Access") { _, _ -> onConfirm() }
-            .setNegativeButton("Not Now", null)
+            .setPositiveButton(getString(R.string.btn_grant_access)) { _, _ -> onConfirm() }
+            .setNegativeButton(getString(R.string.btn_not_now), null)
             .show()
     }
 
     private fun showPermanentDenialDialog(featureName: String, reason: String) {
         AlertDialog.Builder(this)
-            .setTitle("$featureName Permission Required")
-            .setMessage("You have denied $featureName access. This is required for $reason. Please enable it in app settings.")
-            .setPositiveButton("Go to Settings") { _, _ -> openAppSettings() }
-            .setNegativeButton("Cancel", null)
+            .setTitle(getString(R.string.dialog_permission_required_title, featureName))
+            .setMessage(getString(R.string.dialog_permission_required_msg, featureName, reason))
+            .setPositiveButton(getString(R.string.btn_go_to_settings)) { _, _ -> openAppSettings() }
+            .setNegativeButton(getString(R.string.dialog_cancel), null)
             .show()
     }
 

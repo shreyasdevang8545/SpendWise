@@ -43,7 +43,7 @@ class FeedbackFragment : Fragment() {
         binding.btnSubmit.setOnClickListener {
             val message = binding.etFeedback.text.toString().trim()
             if (message.isEmpty()) {
-                binding.tilFeedback.error = "Please enter your feedback"
+                binding.tilFeedback.error = getString(R.string.error_feedback_empty)
                 return@setOnClickListener
             }
             binding.tilFeedback.error = null
@@ -60,7 +60,7 @@ class FeedbackFragment : Fragment() {
             binding.loadingIndicator.visibility = View.VISIBLE
             repository.saveFeedback(message)
             binding.etFeedback.text?.clear()
-            UIUtils.showSuccessSnackbar(binding.root, "Feedback sent successfully!")
+            UIUtils.showSuccessSnackbar(binding.root, getString(R.string.msg_feedback_sent))
             loadFeedbacks()
             binding.btnSubmit.isEnabled = true
             binding.loadingIndicator.visibility = View.GONE
@@ -113,7 +113,7 @@ class FeedbackFragment : Fragment() {
             holder.binding.tvMessage.text = message
             holder.binding.tvDate.text = SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault()).format(Date(createdAt))
             
-            holder.binding.tvStatus.text = status.replaceFirstChar { it.uppercase() }
+            holder.binding.tvStatus.text = if (status == "replied") getString(R.string.label_status_replied) else getString(R.string.label_status_pending)
             if (status == "replied") {
                 holder.binding.tvStatus.setTextColor(0xFF2E7D32.toInt())
                 holder.binding.tvStatus.backgroundTintList = android.content.res.ColorStateList.valueOf(0x332E7D32.toInt())

@@ -20,7 +20,7 @@
             android:layout_height="?attr/actionBarSize"
             style="@style/Widget.SpendWise.Toolbar"
             app:navigationIcon="@drawable/ic_close"
-            app:title="Voice Entry" />
+            app:title="@string/title_voice_entry" />
     </com.google.android.material.appbar.AppBarLayout>
 
     <!-- Mic pulse ring (decorative) -->
@@ -53,7 +53,7 @@
         android:id="@+id/btnMic"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:contentDescription="Start voice recording"
+        android:contentDescription="@string/cd_start_voice_recording"
         android:src="@drawable/ic_mic"
         app:backgroundTint="@color/primary_green"
         app:tint="@color/white"
@@ -68,7 +68,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
-        android:text="Tap the mic to start"
+        android:text="@string/label_tap_mic_to_start"
         android:textColor="@color/text_secondary"
         android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -112,7 +112,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="32dp"
-        android:text="Cancel"
+        android:text="@string/dialog_cancel"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

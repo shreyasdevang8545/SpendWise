@@ -115,13 +115,13 @@ class ReminderReceiver : BroadcastReceiver() {
 
         val notification = NotificationCompat.Builder(context, LEND_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_account_balance)
-            .setContentTitle("Money Return Reminder")
-            .setContentText("${lend.name} was supposed to return ₹${lend.amount}.")
+            .setContentTitle(context.getString(R.string.title_money_return_reminder))
+            .setContentText(context.getString(R.string.msg_money_return_content, lend.name, lend.amount.toString()))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .setContentIntent(mainPendingIntent)
-            .addAction(android.R.drawable.ic_menu_edit, "Mark Returned", returnPendingIntent)
-            .addAction(android.R.drawable.ic_menu_recent_history, "Remind Tomorrow", tomorrowPendingIntent)
+            .addAction(android.R.drawable.ic_menu_edit, context.getString(R.string.action_mark_returned), returnPendingIntent)
+            .addAction(android.R.drawable.ic_menu_recent_history, context.getString(R.string.action_remind_tomorrow), tomorrowPendingIntent)
             .build()
 
         Log.d("ReminderReceiver", "Sending notification to manager for id: ${lend.id}. Channel: ${LEND_CHANNEL_ID}")
@@ -150,8 +150,8 @@ class ReminderReceiver : BroadcastReceiver() {
 
         val notification = NotificationCompat.Builder(context, DAILY_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_account_balance)
-            .setContentTitle("Add Your Expenses")
-            .setContentText("Don't forget to log your spending for today!")
+            .setContentTitle(context.getString(R.string.title_add_your_expenses))
+            .setContentText(context.getString(R.string.msg_log_spending_today))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .setContentIntent(mainPendingIntent)

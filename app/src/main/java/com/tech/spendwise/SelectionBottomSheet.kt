@@ -12,8 +12,9 @@ class SelectionBottomSheet(
 ) : BottomSheetDialogFragment() {
 
     enum class SelectionOption {
-        TRANSACTION, LEND, HISTORY, SPLITWISE
+        TRANSACTION, LEND, HISTORY, SPLITWISE, CREDIT_CARD
     }
+
 
     private var _binding: BottomSheetSelectionBinding? = null
     private val binding get() = _binding!!
@@ -49,6 +50,12 @@ class SelectionBottomSheet(
             onOptionSelected(SelectionOption.SPLITWISE)
             dismiss()
         }
+
+        binding.optionCreditCard.setOnClickListener {
+            onOptionSelected(SelectionOption.CREDIT_CARD)
+            dismiss()
+        }
+
     }
 
     override fun onDestroyView() {

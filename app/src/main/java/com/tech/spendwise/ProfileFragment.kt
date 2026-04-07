@@ -58,15 +58,15 @@ class ProfileFragment : Fragment() {
         if (SupabaseInstance.isLoggedIn()) {
             val name = SupabaseInstance.currentUserDisplayName()
             if (name.isNullOrEmpty()) {
-                binding.userName.text = "NAME NOT PROVIDED"
-                binding.userHandle.text = "Add a name to see your handle"
+                binding.userName.text = getString(R.string.error_name_not_provided)
+                binding.userHandle.text = getString(R.string.label_add_name_for_handle)
                 binding.profileInitials.text = "?"
             } else {
                 binding.userName.text = name
                 
                 // Generate handle: lowercase name without spaces
                 val handle = "@${name.lowercase(Locale.ROOT).replace(" ", "")}"
-                binding.userHandle.text = "$handle · SpendWise"
+                binding.userHandle.text = getString(R.string.label_handle_format, handle, getString(R.string.app_name))
 
                 // Set initials
                 binding.profileInitials.text = name.trim().split(" ").let {
@@ -85,25 +85,25 @@ class ProfileFragment : Fragment() {
         // Transaction History
         binding.itemHistory.apply {
             optionIcon.setImageResource(R.drawable.ic_history)
-            optionTitle.text = "Transaction History"
+            optionTitle.text = getString(R.string.title_transaction_history)
         }
 
         // Lend History
         binding.itemLendHistory.apply {
             optionIcon.setImageResource(R.drawable.ic_lend)
-            optionTitle.text = "Lend History"
+            optionTitle.text = getString(R.string.title_lend_history)
         }
 
         // Sync Settings
         binding.itemSync.apply {
             optionIcon.setImageResource(R.drawable.ic_sync)
-            optionTitle.text = "Cloud Synchronization"
+            optionTitle.text = getString(R.string.title_cloud_sync)
         }
 
         // Support
         binding.itemSupport.apply {
             optionIcon.setImageResource(R.drawable.ic_help)
-            optionTitle.text = "Help & Support"
+            optionTitle.text = getString(R.string.title_help_support)
         }
     }
 
@@ -117,11 +117,11 @@ class ProfileFragment : Fragment() {
         }
 
         binding.itemSync.root.setOnClickListener {
-            Toast.makeText(requireContext(), "Cloud Sync is active", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.msg_cloud_sync_active), Toast.LENGTH_SHORT).show()
         }
 
         binding.itemSupport.root.setOnClickListener {
-            Toast.makeText(requireContext(), "Support coming soon!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.msg_support_coming_soon), Toast.LENGTH_SHORT).show()
         }
 
         binding.logoutButton.setOnClickListener {
@@ -144,9 +144,9 @@ class ProfileFragment : Fragment() {
         editNameField.setText(name)
 
         AlertDialog.Builder(requireContext(), R.style.CustomAlertDialog)
-            .setTitle("Update Name")
+            .setTitle(getString(R.string.title_update_name))
             .setView(dialogView)
-            .setPositiveButton("Save") { _, _ ->
+            .setPositiveButton(getString(R.string.dialog_save)) { _, _ ->
                 val newName = editNameField.text.toString().trim()
                 if (newName.isNotEmpty()) {
                     lifecycleScope.launch {
@@ -158,16 +158,16 @@ class ProfileFragment : Fragment() {
                                 }
                             }
                             setupUserDetails()
-                            Toast.makeText(requireContext(), "Name updated successfully", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(requireContext(), getString(R.string.msg_name_updated), Toast.LENGTH_SHORT).show()
                         } catch (e: Exception) {
-                            Toast.makeText(requireContext(), "Error updating name: ${e.message}", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(requireContext(), getString(R.string.error_updating_name, e.localizedMessage ?: getString(R.string.label_unknown)), Toast.LENGTH_SHORT).show()
                         }
                     }
                 } else {
-                    Toast.makeText(requireContext(), "Name cannot be empty", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), getString(R.string.error_name_empty), Toast.LENGTH_SHORT).show()
                 }
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(getString(R.string.dialog_cancel), null)
             .show()
     }
 
