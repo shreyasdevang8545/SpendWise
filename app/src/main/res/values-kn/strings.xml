@@ -43,7 +43,7 @@
     <string name="title_daily_reminder">ದೈನಂದಿನ ಖರ್ಚು ಜ್ಞಾಪನೆ</string>
     <string name="subtitle_daily_reminder">ಖರ್ಚುಗಳನ್ನು ದಾಖಲಿಸಲು ಸಾಯಂಕಾಲ ನೆನಪಿಸಿ</string>
     <string name="title_budget_alerts">ಬಜೆಟ್ ಎಚ್ಚರಿಕೆಗಳು</string>
-    <string name="subtitle_budget_alerts">ಮಿತಿಯ 75%, 90%, 100% ನಲ್ಲಿ ಎಚ್ಚರಿಸಿ</string>
+    <string name="subtitle_budget_alerts" formatted="false">ಮಿತಿಯ 75%, 90%, 100% ನಲ್ಲಿ ಎಚ್ಚರಿಸಿ</string>
     <string name="set_reminder_time">ಜ್ಞಾಪನೆ ಸಮಯವನ್ನು ಆಯ್ಕೆಮಾಡಿ</string>
     <string name="reminder_scheduled_at">ಜ್ಞಾಪನೆಯನ್ನು %1$02d:%2$02d ಕ್ಕೆ ಹೊಂದಿಸಲಾಗಿದೆ</string>
 
@@ -371,7 +371,7 @@
     <string name="channel_budget_alerts_desc">ನಿಮ್ಮ ಬಜೆಟ್ ಮಿತಿಯನ್ನು ಮೀರಿದಾಗ ಅಧಿಸೂಚನೆಗಳು.</string>
 
     <!-- Reasons -->
-    <string name="reason_detected_bank_sms">ಸ್ವಯಂಚಾಲಿತ ವಹಿವಾಟು ಪತ್ತೆ</string>
+    <string name="reason_detected_bank_sms">ಬ್ಯಾಂಕ್ ವಹಿವಾಟು SMS ಅನ್ನು ಪತ್ತೆಹಚ್ಚಲು ಮತ್ತು ವೆಚ್ಚಗಳನ್ನು ಸ್ವಯಂಚಾಲಿತವಾಗಿ ದಾಖಲಿಸಲು.</string>
     <string name="reason_reminders_alerts">ಜ್ಞಾಪನೆಗಳು ಮತ್ತು ಎಚ್ಚರಿಕೆಗಳು</string>
 
     <!-- Security Part 2 -->
@@ -406,5 +406,28 @@
     <!-- Chips -->
     <string name="chip_expense">ವೆಚ್ಚ</string>
     <string name="chip_income">ಆದಾಯ</string>
+    <string name="amount">ಮೊತ್ತ</string>
+    <string name="label_amount">ಮೊತ್ತ</string>
+    <string name="label_category">ವರ್ಗ</string>
+    <string name="helper_category_mandatory">ದಯವಿಟ್ಟು ಒಂದು ವರ್ಗವನ್ನು ಆಯ್ಕೆಮಾಡಿ</string>
+    <string name="sign_up_title">SpendWise ಗೆ ಸೇರಿ</string>
+    <string name="sign_up_subtitle">ನಮ್ಮೊಂದಿಗೆ ನಿಮ್ಮ ಹಣಕಾಸಿನ ಪ್ರಯಾಣವನ್ನು ಪ್ರಾರಂಭಿಸಿ</string>
+    <string name="label_tap_mic_to_start">ಪ್ರಾರಂಭಿಸಲು ಮೈಕ್ರೊಫೋನ್ ಟ್ಯಾಪ್ ಮಾಡಿ</string>
+    <string name="budget_limit_set">ಮಿತಿ ನಿಗದಿಪಡಿಸಲಾಗಿದೆ</string>
+    <string name="action_clear_everything">ಎಲ್ಲವನ್ನೂ ಅಳಿಸಿ</string>
+    <string name="google_web_client_id">YOUR_WEB_CLIENT_ID_HERE</string>
+    <string name="dialog_delete_transaction_title">ವಹಿವಾಟನ್ನು ಅಳಿಸಿ</string>
+    <string name="dialog_delete_transaction_msg">ಈ ವಹಿವಾಟನ್ನು ಅಳಿಸಲು ನೀವು ಖಚಿತವಾಗಿ ಬಯಸುವಿರಾ?</string>
+    <string name="title_sms">SMS ಪ್ರವೇಶ</string>
+    <string name="label_handle_format">%1$s %2$s ನಲ್ಲಿ</string>
+    <string name="action_mark_returned">ಹಿಂತಿರುಗಿಸಲಾಗಿದೆ ಎಂದು ಗುರುತಿಸಿ</string>
+    <string name="action_remind_tomorrow">ನಾಳೆ ನೆನಪಿಸಿ</string>
+    <string name="action_snooze">ಸ್ನೂಜ್</string>
+    <string name="label_credit_card">ಕ್ರೆಡಿಟ್ ಕಾರ್ಡ್</string>
+    <string name="btn_update_lend_detail">ವಿವರಗಳನ್ನು ನವೀಕರಿಸಿ</string>
+    <string name="msg_feedback_sent">ಪ್ರತಿಕ್ರಿಯೆಯನ್ನು ಯಶಸ್ವಿಯಾಗಿ ಸಲ್ಲಿಸಲಾಗಿದೆ! ಧನ್ಯವಾದಗಳು.</string>
+    <string name="btn_got_it">ಸರಿ</string>
+    <string name="msg_delete_lend_confirm">%1$s ಗಾಗಿ ದಾಖಲೆಯನ್ನು ಅಳಿಸಲು ನೀವು ಖಚಿತವಾಗಿ ಬಯಸುವಿರಾ?</string>
+    <string name="title_notifications">ಅಧಿಸೂಚನೆಗಳು</string>
 
 </resources>

@@ -320,7 +320,7 @@ class MonthlyReportFragment : Fragment() {
                 <button class="export-btn" onclick="window.print()">$labelExportPdf</button>
 
                 <div class="header">
-                    ${if (base64Logo.isNotEmpty()) "<img class='logo' src='data:image/png;base64,$base64Logo'>" else}
+                    ${if (base64Logo.isNotEmpty()) "<img class='logo' src='data:image/png;base64,$base64Logo'>" else ""}
                     <h1 style="margin: 0; color: #2E7D32; font-weight: 700;">$labelReport</h1>
                     <p style="margin: 5px 0; color: #666;">$month $year $labelSummary</p>
                 </div>

@@ -17,6 +17,7 @@ import com.google.android.material.timepicker.TimeFormat
 import androidx.fragment.app.activityViewModels
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.tech.spendwise.utils.UIUtils
+import android.content.DialogInterface
 
 class SettingsFragment : Fragment() {
 
@@ -248,7 +249,7 @@ class SettingsFragment : Fragment() {
             .setTitle(R.string.dialog_clear_all_title)
             .setMessage(R.string.dialog_clear_all_message)
             .setNegativeButton(R.string.dialog_cancel, null)
-            .setPositiveButton(R.string.action_clear_everything) { _, _ ->
+            .setPositiveButton(R.string.action_clear_everything) { _: DialogInterface, _: Int ->
                 performClearAll()
             }
             .show()

@@ -43,7 +43,7 @@
     <string name="title_daily_reminder">दैनिक खर्च अनुस्मारक</string>
     <string name="subtitle_daily_reminder">खर्चों को लॉग करने के लिए शाम को याद दिलाएं</string>
     <string name="title_budget_alerts">बजट अलर्ट</string>
-    <string name="subtitle_budget_alerts">सीमा के 75%, 90%, 100% पर चेतावनी दें</string>
+    <string name="subtitle_budget_alerts" formatted="false">सीमा के 75%, 90%, 100% पर चेतावनी दें</string>
     <string name="set_reminder_time">अनुस्मारक समय चुनें</string>
     <string name="reminder_scheduled_at">अनुस्मारक %1$02d:%2$02d पर सेट है</string>
 
@@ -371,7 +371,7 @@
     <string name="channel_budget_alerts_desc">बजट सीमा पार होने पर सूचनाएं।</string>
 
     <!-- Reasons -->
-    <string name="reason_detected_bank_sms">स्वचालित लेनदेन पहचान</string>
+    <string name="reason_detected_bank_sms">बैंक लेनदेन SMS का पता लगाने और खर्चों को ऑटो-लॉग करने के लिए।</string>
     <string name="reason_reminders_alerts">रिमाइंडर और अलर्ट</string>
 
     <!-- Security Part 2 -->
@@ -406,5 +406,28 @@
     <!-- Chips -->
     <string name="chip_expense">खर्च</string>
     <string name="chip_income">आय</string>
+    <string name="amount">राशि</string>
+    <string name="label_amount">राशि</string>
+    <string name="label_category">श्रेणी</string>
+    <string name="helper_category_mandatory">कृपया एक श्रेणी चुनें</string>
+    <string name="sign_up_title">SpendWise से जुड़ें</string>
+    <string name="sign_up_subtitle">हमारे साथ अपनी वित्तीय यात्रा शुरू करें</string>
+    <string name="label_tap_mic_to_start">शुरू करने के लिए माइक्रोफ़ोन पर टैप करें</string>
+    <string name="budget_limit_set">सीमा निर्धारित</string>
+    <string name="action_clear_everything">सब कुछ साफ़ करें</string>
+    <string name="google_web_client_id">YOUR_WEB_CLIENT_ID_HERE</string>
+    <string name="dialog_delete_transaction_title">लेनदेन हटाएं</string>
+    <string name="dialog_delete_transaction_msg">क्या आप वाकई इस लेनदेन को हटाना चाहते हैं?</string>
+    <string name="title_sms">SMS एक्सेस</string>
+    <string name="label_handle_format">%1$s %2$s पर</string>
+    <string name="action_mark_returned">लौटाया गया चिह्नित करें</string>
+    <string name="action_remind_tomorrow">कल याद दिलाएं</string>
+    <string name="action_snooze">स्नूज़</string>
+    <string name="label_credit_card">क्रेडिट कार्ड</string>
+    <string name="btn_update_lend_detail">विवरण अपडेट करें</string>
+    <string name="msg_feedback_sent">प्रतिक्रिया सफलतापूर्वक भेजी गई! धन्यवाद।</string>
+    <string name="btn_got_it">समझ गया</string>
+    <string name="msg_delete_lend_confirm">क्या आप वाकई %1$s का रिकॉर्ड हटाना चाहते हैं?</string>
+    <string name="title_notifications">सूचनाएं</string>
 
 </resources>

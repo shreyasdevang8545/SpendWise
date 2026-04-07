@@ -43,7 +43,7 @@
     <string name="title_daily_reminder">Daily spending reminder</string>
     <string name="subtitle_daily_reminder">Evening nudge to log expenses</string>
     <string name="title_budget_alerts">Budget Alerts</string>
-    <string name="subtitle_budget_alerts">Notify at 75%, 90%, 100% of limit</string>
+    <string name="subtitle_budget_alerts" formatted="false">Notify at 75%, 90%, 100% of limit</string>
     <string name="set_reminder_time">Select Reminder Time</string>
     <string name="reminder_scheduled_at">Reminder set for %1$02d:%2$02d</string>
 
@@ -371,7 +371,7 @@
     <string name="channel_budget_alerts_desc">Notifications when you exceed your set budget limits.</string>
 
     <!-- Reasons -->
-    <string name="reason_detected_bank_sms">automatic transaction detection</string>
+    <string name="reason_detected_bank_sms">To detect bank transaction SMS and auto-log expenses.</string>
     <string name="reason_reminders_alerts">reminders and alerts</string>
 
     <!-- Security Part 2 -->
@@ -406,5 +406,28 @@
     <!-- Chips -->
     <string name="chip_expense">Expense</string>
     <string name="chip_income">Income</string>
+    <string name="amount">Amount</string>
+    <string name="label_amount">Amount</string>
+    <string name="label_category">Category</string>
+    <string name="helper_category_mandatory">Please select a category</string>
+    <string name="sign_up_title">Join SpendWise</string>
+    <string name="sign_up_subtitle">Start your financial journey with us</string>
+    <string name="label_tap_mic_to_start">Tap microphone to start</string>
+    <string name="budget_limit_set">Limit set</string>
+    <string name="action_clear_everything">Clear Everything</string>
+    <string name="google_web_client_id">YOUR_WEB_CLIENT_ID_HERE</string>
+    <string name="dialog_delete_transaction_title">Delete Transaction</string>
+    <string name="dialog_delete_transaction_msg">Are you sure you want to delete this transaction?</string>
+    <string name="title_sms">SMS Access</string>
+    <string name="label_handle_format">%1$s on %2$s</string>
+    <string name="action_mark_returned">Mark as Returned</string>
+    <string name="action_remind_tomorrow">Remind Tomorrow</string>
+    <string name="action_snooze">Snooze</string>
+    <string name="label_credit_card">Credit Card</string>
+    <string name="btn_update_lend_detail">Update Details</string>
+    <string name="msg_feedback_sent">Feedback sent successfully! Thank you.</string>
+    <string name="btn_got_it">Got it</string>
+    <string name="msg_delete_lend_confirm">Are you sure you want to delete the record for %1$s?</string>
+    <string name="title_notifications">Notifications</string>
 
 </resources>
