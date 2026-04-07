@@ -1,0 +1,25 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="40dp"
+    android:height="30dp"
+    android:viewportWidth="40"
+    android:viewportHeight="30">
+    <group>
+        <!-- Outer Chip Body -->
+        <path
+            android:fillColor="#FFD700"
+            android:pathData="M5,2h30c1.65,0 3,1.35 3,3v20c0,1.65 -1.35,3 -3,3H5c-1.65,0 -3,-1.35 -3,-3V5c0,-1.65 1.35,-3 3,-3z"
+            android:strokeWidth="1"
+            android:strokeColor="#B8860B" />
+        
+        <!-- Chip Circuitry Lines -->
+        <path
+            android:strokeColor="#B8860B"
+            android:strokeWidth="1.2"
+            android:pathData="M2,15h36 M15,2v26 M25,2v26 M2,9h36 M2,21h36" />
+            
+        <!-- Subtle Interior Details -->
+        <path
+            android:fillColor="#DAA520"
+            android:pathData="M8,7h6v5h-6z M26,7h6v5h-6z M8,18h6v5h-6z M26,18h6v5h-6z" />
+    </group>
+</vector>
