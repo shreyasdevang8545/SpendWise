@@ -36,7 +36,7 @@ class HomeFragment : Fragment() {
 
     private val viewModel: TransactionViewModel by activityViewModels()
     private val adapter = TransactionListAdapter()
-    private lateinit var cardAdapter: CreditCardAdapter
+    // private lateinit var cardAdapter: CreditCardAdapter // Commented for Release
 
 
     private val autoScrollHandler = Handler(Looper.getMainLooper())
@@ -75,6 +75,7 @@ class HomeFragment : Fragment() {
         binding.recentTransactionsList.layoutManager = LinearLayoutManager(requireContext())
         binding.recentTransactionsList.adapter = adapter
 
+        /* Commented for Release
         // Setup Credit Card RV
         cardAdapter = CreditCardAdapter(emptyList(), emptyMap())
         binding.rvCreditCards.adapter = cardAdapter
@@ -85,6 +86,7 @@ class HomeFragment : Fragment() {
         
         // Entrance animation
         binding.rvCreditCards.layoutAnimation = AnimationUtils.loadLayoutAnimation(requireContext(), R.anim.item_animation_fall_down)
+        */
 
         setupAdapterCallbacks()
 
@@ -127,9 +129,11 @@ class HomeFragment : Fragment() {
             refreshSummary()
         }
 
+        /* Commented for Release
         viewModel.creditCards.observe(viewLifecycleOwner) { _ ->
             refreshSummary()
         }
+        */
 
 
         viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
@@ -339,6 +343,7 @@ class HomeFragment : Fragment() {
             
             // initials removal - no logic needed here anymore as we use ic_settings
             
+            /* Commented for Release
             // ── Credit Cards Section ──────────────────────────────────────────
             val cards = viewModel.creditCards.value ?: emptyList()
             if (cards.isNotEmpty()) {
@@ -361,6 +366,7 @@ class HomeFragment : Fragment() {
             } else {
                 binding.layoutCreditCards.visibility = View.GONE
             }
+            */
         }
     }
 

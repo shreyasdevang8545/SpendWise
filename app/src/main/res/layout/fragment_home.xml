@@ -422,7 +422,7 @@
 
             </LinearLayout>
 
-            <!-- Credit Cards Section -->
+            <!-- Credit Cards Section Commented Out for Release
             <LinearLayout
                 android:id="@+id/layoutCreditCards"
                 android:layout_width="match_parent"
@@ -452,6 +452,7 @@
                     app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                     tools:listitem="@layout/item_credit_card" />
             </LinearLayout>
+            -->
 
             <LinearLayout
                 android:id="@+id/transactionsContainer"

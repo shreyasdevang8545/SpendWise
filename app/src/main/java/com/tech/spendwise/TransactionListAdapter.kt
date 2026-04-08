@@ -151,7 +151,7 @@ class TransactionListAdapter :
         "bills"         -> "📄"
         "health"        -> "💊"
         "investment"    -> "📈"
-        else            -> "💳"
+        else            -> "💰"
     }
 
     private fun categoryIconColor(category: String): Int = when (category.lowercase()) {

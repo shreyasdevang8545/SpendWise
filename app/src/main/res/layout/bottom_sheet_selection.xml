@@ -245,6 +245,7 @@
         android:layout_marginBottom="12dp"
         android:clickable="true"
         android:focusable="true"
+        android:visibility="gone"
         app:cardBackgroundColor="#1AFFFFFF"
         app:cardCornerRadius="20dp"
         app:cardElevation="0dp"

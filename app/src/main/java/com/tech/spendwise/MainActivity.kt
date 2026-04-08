@@ -175,8 +175,10 @@ class MainActivity : AppCompatActivity() {
                             navController.navigate(R.id.lendHistoryFragment)
                         SelectionBottomSheet.SelectionOption.SPLITWISE ->
                             navController.navigate(R.id.splitGroupsFragment)
+                        /* Commented for Release
                         SelectionBottomSheet.SelectionOption.CREDIT_CARD ->
                             navController.navigate(R.id.addCreditCardFragment)
+                        */
                     }
 
                 }.show(supportFragmentManager, SelectionBottomSheet.TAG)

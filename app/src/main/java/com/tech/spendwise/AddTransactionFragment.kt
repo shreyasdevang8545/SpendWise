@@ -101,11 +101,14 @@ class AddTransactionFragment : Fragment() {
         binding.actvCategory.addTextChangedListener(simpleWatcher { validate() })
         binding.typeChipGroup.setOnCheckedStateChangeListener { _, _ -> validate() }
         binding.paymentChipGroup.setOnCheckedStateChangeListener { _, checkedIds -> 
+            /* Commented for Release
             val isCreditSelected = checkedIds.contains(binding.chipCredit.id)
             binding.layoutCreditCardSelection.visibility = if (isCreditSelected) View.VISIBLE else View.GONE
+            */
             validate() 
         }
 
+        /* Commented for Release
         // Observe Credit Cards
         viewModel.creditCards.observe(viewLifecycleOwner) { cards ->
             binding.creditCardChipGroup.removeAllViews()
@@ -120,6 +123,7 @@ class AddTransactionFragment : Fragment() {
                 binding.creditCardChipGroup.addView(chip)
             }
         }
+        */
 
         validate()
 
@@ -193,9 +197,12 @@ class AddTransactionFragment : Fragment() {
         val categoryOk = binding.actvCategory.text?.toString()?.let { it in categories } == true
         val typeOk = binding.typeChipGroup.checkedChipId != View.NO_ID
         val paymentOk = binding.paymentChipGroup.checkedChipId != View.NO_ID
+        /* Commented for Release
         val creditCardOk = if (binding.chipCredit.isChecked) {
             binding.creditCardChipGroup.checkedChipId != View.NO_ID
         } else true
+        */
+        val creditCardOk = true
         
         binding.btnSave.isEnabled = amountOk && categoryOk && typeOk && paymentOk && creditCardOk
     }
@@ -212,13 +219,15 @@ class AddTransactionFragment : Fragment() {
         }
         val paymentMode = paymentChip?.text?.toString() ?: getString(R.string.label_upi)
         
-        // Handle Credit Card ID
+        // Handle Credit Card ID (Commented for Release)
         var creditCardIdStr = ""
+        /*
         if (binding.chipCredit.isChecked) {
             val selectedChipId = binding.creditCardChipGroup.checkedChipId
             val selectedChip = binding.creditCardChipGroup.findViewById<com.google.android.material.chip.Chip>(selectedChipId)
             creditCardIdStr = selectedChip?.tag?.toString() ?: ""
         }
+        */
 
         // Build standard JSON for storage and sync
         val timestamp = storageFormat.format(calendar.time)

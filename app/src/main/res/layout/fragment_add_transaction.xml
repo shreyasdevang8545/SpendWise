@@ -176,6 +176,7 @@
                     android:checkable="true"
                     android:checked="true" />
 
+                <!--
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipCredit"
                     style="@style/Widget.SpendWise.Chip"
@@ -183,6 +184,7 @@
                     android:layout_height="wrap_content"
                     android:text="Credit Card"
                     android:checkable="true" />
+                -->
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipDebit"
@@ -209,7 +211,7 @@
                     android:checkable="true" />
             </com.google.android.material.chip.ChipGroup>
 
-            <!-- Credit Card Sub-selection -->
+            <!-- Credit Card Sub-selection Commented Out for Release
             <LinearLayout
                 android:id="@+id/layoutCreditCardSelection"
                 android:layout_width="match_parent"
@@ -237,10 +239,10 @@
                         android:layout_height="wrap_content"
                         app:singleLine="true"
                         app:singleSelection="true">
-                        <!-- Chips will be added dynamically -->
                     </com.google.android.material.chip.ChipGroup>
                 </HorizontalScrollView>
             </LinearLayout>
+            -->
 
 
             <!-- Date & Time -->
