@@ -428,6 +428,12 @@
     <string name="msg_feedback_sent">Feedback sent successfully! Thank you.</string>
     <string name="btn_got_it">Got it</string>
     <string name="msg_delete_lend_confirm">Are you sure you want to delete the record for %1$s?</string>
+
     <string name="title_notifications">Notifications</string>
+
+    <!-- No Internet Flow -->
+    <string name="title_no_internet">No Internet Connection</string>
+    <string name="msg_no_internet">Please check your network settings and try again. The app requires an active connection for real-time updates.</string>
+    <string name="btn_retry">Retry</string>
 
 </resources>

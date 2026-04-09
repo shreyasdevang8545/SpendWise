@@ -13,4 +13,6 @@
         app:defaultNavHost="true"
         app:navGraph="@navigation/auth_nav_graph" />
 
+    <include layout="@layout/layout_no_internet" />
+
 </FrameLayout>

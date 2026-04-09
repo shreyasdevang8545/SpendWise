@@ -41,6 +41,7 @@ import com.google.firebase.messaging.FirebaseMessaging
 
 import androidx.activity.viewModels
 import com.tech.spendwise.utils.UIUtils
+import com.tech.spendwise.utils.NetworkMonitor
 import androidx.navigation.NavDeepLinkRequest
 import android.net.Uri
 import androidx.navigation.fragment.NavHostFragment
@@ -198,6 +199,26 @@ class MainActivity : AppCompatActivity() {
 
         // Handle intent if app was opened via notification
         handleIntent(intent)
+
+        setupNetworkMonitoring()
+    }
+
+    private fun setupNetworkMonitoring() {
+        val networkMonitor = NetworkMonitor(this)
+        val noInternetOverlay = findViewById<View>(R.id.no_internet_container)
+        val retryButton = findViewById<View>(R.id.btn_retry_internet)
+
+        lifecycleScope.launch {
+            networkMonitor.isConnected.collect { isConnected ->
+                noInternetOverlay.visibility = if (isConnected) View.GONE else View.VISIBLE
+                Log.d(TAG, "Network status: ${if (isConnected) "Connected" else "Disconnected"}")
+            }
+        }
+
+        retryButton.setOnClickListener {
+            // The monitor is automatic, but we can log or show a toast to indicate we're checking
+            Toast.makeText(this, getString(R.string.status_loading), Toast.LENGTH_SHORT).show()
+        }
     }
 
     // Helper for DP to PX

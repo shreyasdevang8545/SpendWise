@@ -8,8 +8,12 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 // FirebaseAuth removed
-import com.tech.spendwise.databinding.ActivityAuthBinding
 import com.tech.spendwise.SupabaseInstance
+import com.tech.spendwise.utils.NetworkMonitor
+import android.view.View
+import android.util.Log
+import android.widget.Toast
+import com.tech.spendwise.databinding.ActivityAuthBinding
 
 /**
  * Entry-point activity for phone-number authentication.
@@ -37,7 +41,25 @@ class AuthActivity : AppCompatActivity() {
                 // If not logged in, THEN inflate and show the login UI
                 binding = ActivityAuthBinding.inflate(layoutInflater)
                 setContentView(binding.root)
+                setupNetworkMonitoring()
             }
+        }
+    }
+
+    private fun setupNetworkMonitoring() {
+        val networkMonitor = NetworkMonitor(this)
+        val noInternetOverlay = findViewById<View>(R.id.no_internet_container)
+        val retryButton = findViewById<View>(R.id.btn_retry_internet)
+
+        lifecycleScope.launch {
+            networkMonitor.isConnected.collect { isConnected ->
+                noInternetOverlay.visibility = if (isConnected) View.GONE else View.VISIBLE
+                Log.d("AuthActivity", "Network status: ${if (isConnected) "Connected" else "Disconnected"}")
+            }
+        }
+
+        retryButton.setOnClickListener {
+            Toast.makeText(this, getString(R.string.status_loading), Toast.LENGTH_SHORT).show()
         }
     }
 
