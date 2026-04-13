@@ -116,6 +116,7 @@ class SettingsFragment : Fragment() {
 
     private fun populateNotificationsSection() {
         lifecycleScope.launch {
+            // Transaction Alerts
             binding.itemTransactionAlerts.apply {
                 rowTitle.text = getString(R.string.title_transaction_alerts)
                 rowSubtitle.text = getString(R.string.subtitle_transaction_alerts)
@@ -124,7 +125,10 @@ class SettingsFragment : Fragment() {
                 rowSwitch.setOnCheckedChangeListener { _, isChecked ->
                     lifecycleScope.launch { settingsManager.setBoolean(SettingsManager.TRANSACTION_ALERTS, isChecked) }
                 }
+                root.setOnClickListener { rowSwitch.toggle() }
             }
+
+            // Monthly Summary
             binding.itemMonthlySummary.apply {
                 rowTitle.text = getString(R.string.title_monthly_summary)
                 rowSubtitle.text = getString(R.string.subtitle_monthly_summary)
@@ -133,38 +137,38 @@ class SettingsFragment : Fragment() {
                 rowSwitch.setOnCheckedChangeListener { _, isChecked ->
                     lifecycleScope.launch { settingsManager.setBoolean(SettingsManager.MONTHLY_SUMMARY, isChecked) }
                 }
+                root.setOnClickListener { rowSwitch.toggle() }
             }
+
+            // Daily Reminder
             binding.itemDailyReminder.apply {
                 rowTitle.text = getString(R.string.title_daily_reminder)
                 rowIcon.setImageResource(R.drawable.ic_schedule)
                 
-                lifecycleScope.launch {
-                    val isEnabled = settingsManager.dailyReminder.first()
-                    
-                    // Set initial state without triggering listener (listener not set yet)
-                    rowSwitch.isChecked = isEnabled
-                    
-                    if (isEnabled) {
-                        val hour = settingsManager.dailyReminderHour.first()
-                        val minute = settingsManager.dailyReminderMinute.first()
-                        rowSubtitle.text = getString(R.string.reminder_scheduled_at, hour, minute)
-                    } else {
-                        rowSubtitle.text = getString(R.string.subtitle_daily_reminder)
-                    }
+                val isEnabled = settingsManager.dailyReminder.first()
+                rowSwitch.isChecked = isEnabled
+                
+                if (isEnabled) {
+                    val hour = settingsManager.dailyReminderHour.first()
+                    val minute = settingsManager.dailyReminderMinute.first()
+                    rowSubtitle.text = getString(R.string.reminder_scheduled_at, hour, minute)
+                } else {
+                    rowSubtitle.text = getString(R.string.subtitle_daily_reminder)
+                }
 
-                    // Set listener AFTER initial state is set
-                    rowSwitch.setOnCheckedChangeListener { _, isChecked ->
-                        if (isChecked) {
-                            showTimePicker()
-                        } else {
-                            lifecycleScope.launch {
-                                settingsManager.setBoolean(SettingsManager.DAILY_REMINDER, false)
-                                ReminderManager.cancelDailyReminder(requireContext())
-                                rowSubtitle.text = getString(R.string.subtitle_daily_reminder)
-                            }
+                rowSwitch.setOnCheckedChangeListener { _, isChecked ->
+                    if (isChecked) {
+                        showTimePicker()
+                    } else {
+                        lifecycleScope.launch {
+                            settingsManager.setBoolean(SettingsManager.DAILY_REMINDER, false)
+                            ReminderManager.cancelDailyReminder(requireContext())
+                            rowSubtitle.text = getString(R.string.subtitle_daily_reminder)
                         }
                     }
                 }
+                
+                root.setOnClickListener { rowSwitch.toggle() }
             }
         }
     }
@@ -172,7 +176,7 @@ class SettingsFragment : Fragment() {
     private fun showTimePicker() {
         val picker = MaterialTimePicker.Builder()
             .setTimeFormat(TimeFormat.CLOCK_24H)
-            .setHour(20)
+            .setHour(18)
             .setMinute(0)
             .setTitleText(getString(R.string.set_reminder_time))
             .build()

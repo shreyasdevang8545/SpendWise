@@ -38,6 +38,9 @@ googleid = "1.1.1"
 remoteCreationCore = "1.0.0-alpha07"
 navigationFragmentKtx = "2.9.7"
 navigationUiKtx = "2.9.7"
+lottie = "6.4.0"
+mpandroidchart = "v3.1.0"
+generativeai = "0.9.0"
 
 [libraries]
 androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "biometric" }
@@ -97,6 +100,9 @@ googleid = { group = "com.google.android.libraries.identity.googleid", name = "g
 androidx-remote-creation-core = { group = "androidx.compose.remote", name = "remote-creation-core", version.ref = "remoteCreationCore" }
 navigation-fragment-ktx = { group = "androidx.navigation", name = "navigation-fragment-ktx", version.ref = "navigationFragmentKtx" }
 navigation-ui-ktx = { group = "androidx.navigation", name = "navigation-ui-ktx", version.ref = "navigationUiKtx" }
+lottie = { group = "com.airbnb.android", name = "lottie", version.ref = "lottie" }
+mpandroidchart = { group = "com.github.PhilJay", name = "MPAndroidChart", version.ref = "mpandroidchart" }
+generativeai = { group = "com.google.ai.client.generativeai", name = "generativeai", version.ref = "generativeai" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

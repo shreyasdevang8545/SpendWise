@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    app:cardCornerRadius="12dp"
+    app:cardBackgroundColor="#1A1A1A"
+    app:cardElevation="0dp"
+    app:strokeWidth="0dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp">
+
+            <TextView
+                android:id="@+id/tvCategoryName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/white"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:fontFamily="@font/nunito_sans"
+                tools:text="Food &amp; Dining" />
+
+            <TextView
+                android:id="@+id/tvDelta"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:fontFamily="@font/nunito_sans"
+                tools:text="+15%"
+                tools:textColor="#FF5252" />
+        </RelativeLayout>
+
+        <!-- Current Month Bar -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <com.google.android.material.progressindicator.LinearProgressIndicator
+                android:id="@+id/pbThisMonth"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                app:indicatorColor="#43A047"
+                app:trackColor="#3343A047"
+                app:trackThickness="8dp"
+                app:trackCornerRadius="4dp"
+                app:indicatorSize="8dp"
+                tools:progress="60" />
+
+            <TextView
+                android:id="@+id/tvThisMonthAmount"
+                android:layout_width="80dp"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:textColor="@color/white"
+                android:textSize="12sp"
+                android:fontFamily="@font/nunito_sans"
+                android:layout_marginStart="12dp"
+                tools:text="₹4,500" />
+        </LinearLayout>
+
+        <!-- Last Month Bar -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <com.google.android.material.progressindicator.LinearProgressIndicator
+                android:id="@+id/pbLastMonth"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                app:indicatorColor="#808080"
+                app:trackColor="#33808080"
+                app:trackThickness="8dp"
+                app:trackCornerRadius="4dp"
+                app:indicatorSize="8dp"
+                tools:progress="40" />
+
+            <TextView
+                android:id="@+id/tvLastMonthAmount"
+                android:layout_width="80dp"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:textColor="#80FFFFFF"
+                android:textSize="12sp"
+                android:fontFamily="@font/nunito_sans"
+                android:layout_marginStart="12dp"
+                tools:text="₹3,200" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="VS LAST MONTH"
+            android:textColor="#40FFFFFF"
+            android:textSize="10sp"
+            android:fontFamily="@font/nunito_sans"
+            android:letterSpacing="0.1"/>
+
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

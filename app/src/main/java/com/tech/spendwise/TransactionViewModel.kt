@@ -7,6 +7,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.map
+import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.viewModelScope
 import org.json.JSONArray
 import org.json.JSONObject
@@ -58,6 +59,34 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
     // The first transaction to be reviewed (the head of the queue)
     val firstTransaction: LiveData<String?> = pendingTransactions.map { list ->
         list.firstOrNull()
+    }
+
+    // Merged and deduplicated transactions (local + cloud)
+    val allTransactions = MediatorLiveData<List<String>>().apply {
+        fun update() {
+            val local = confirmedTransactions.value ?: emptyList()
+            val cloud = _firestoreTransactions.value ?: emptyList()
+            
+            val seen = mutableSetOf<String>()
+            val merged = mutableListOf<String>()
+            
+            fun getKey(json: String): String {
+                return try {
+                    val obj = JSONObject(json)
+                    obj.optString("saved_at", json)
+                } catch (e: Exception) { json }
+            }
+
+            for (json in cloud) {
+                if (seen.add(getKey(json))) merged.add(json)
+            }
+            for (json in local) {
+                if (seen.add(getKey(json))) merged.add(json)
+            }
+            value = merged
+        }
+        addSource(confirmedTransactions) { update() }
+        addSource(_firestoreTransactions) { update() }
     }
 
     /**
@@ -347,14 +376,7 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
      */
     fun updateWidgetSummary() {
         viewModelScope.launch {
-            val local = repository.confirmedTransactionsFlow.first()
-            val cloud = _firestoreTransactions.value ?: emptyList()
-            
-            // Deduplicate
-            val seen = mutableSetOf<String>()
-            val merged = mutableListOf<String>()
-            for (json in cloud) if (seen.add(json)) merged.add(json)
-            for (json in local) if (seen.add(json)) merged.add(json)
+            val merged = allTransactions.value ?: emptyList()
 
             val cal = Calendar.getInstance()
             val currYear = cal.get(Calendar.YEAR)

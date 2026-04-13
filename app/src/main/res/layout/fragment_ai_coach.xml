@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#1A1A1A"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <View
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:background="#33FFFFFF"
+        android:layout_marginBottom="24dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="AI Financial Coach 🤖"
+        android:textColor="@color/white"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:fontFamily="@font/nunito_sans"
+        android:layout_marginBottom="8dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Ask me anything about your spending, budgets, or financial goals. I'm here to help you save more!"
+        android:textColor="#80FFFFFF"
+        android:textSize="14sp"
+        android:fontFamily="@font/nunito_sans"
+        android:layout_marginBottom="24dp"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvChat"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginBottom="16dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <EditText
+            android:id="@+id/etMessage"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/bg_edittext_curved"
+            android:hint="Type your question..."
+            android:padding="12dp"
+            android:textColor="@color/white"
+            android:textColorHint="#4DFFFFFF"
+            android:fontFamily="@font/nunito_sans"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSend"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="12dp"
+            android:insetLeft="0dp"
+            android:insetTop="0dp"
+            android:insetRight="0dp"
+            android:insetBottom="0dp"
+            app:icon="@drawable/ic_chevron_right"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            app:cornerRadius="24dp"
+            app:backgroundTint="#43A047"/>
+    </LinearLayout>
+
+</LinearLayout>

@@ -120,9 +120,10 @@ class HomeFragment : Fragment() {
             }
         }
 
-        // Observe Firestore transactions — merge with local, deduplicate, show top-10
-        viewModel.firestoreTransactions.observe(viewLifecycleOwner) { _ ->
-            refreshSummary()
+        // Observe merged transactions (local + cloud)
+        viewModel.allTransactions.observe(viewLifecycleOwner) { list ->
+            mergeAndDisplay(list)
+            updateAnalyticsGraph()
         }
 
         viewModel.lends.observe(viewLifecycleOwner) { _ ->
@@ -149,10 +150,6 @@ class HomeFragment : Fragment() {
                 binding.shimmerViewContainer.visibility = View.GONE
                 binding.recentTransactionsList.visibility = View.VISIBLE
             }
-        }
-        // Observe local confirmed transactions — merge with cloud
-        viewModel.confirmedTransactions.observe(viewLifecycleOwner) { _ ->
-            refreshSummary()
         }
         // Navigation
         binding.pendingTransactionCard.setOnClickListener {
@@ -224,34 +221,18 @@ class HomeFragment : Fragment() {
     }
 
     private fun refreshSummary() {
-        val cloudList = viewModel.firestoreTransactions.value ?: emptyList()
-        mergeAndDisplay(cloudList)
+        val list = viewModel.allTransactions.value ?: emptyList()
+        mergeAndDisplay(list)
         updateAnalyticsGraph()
     }
 
     // ── Merge & Display ─────────────────────────────────────────────────────
 
     /**
-     * Merges [cloudList] (Firestore) with local DataStore confirmed transactions.
-     * Deduplicates by `saved_at` timestamp, shows top-10 newest, and updates monthly total.
+     * Updates the summary UI with the provided deduplicated [merged] list.
+     * Shows top-5 newest and updates monthly totals.
      */
-    private fun mergeAndDisplay(cloudList: List<String>) {
-        val localList = viewModel.confirmedTransactions.value ?: emptyList()
-
-        // Build a deduplicated merged list, keyed by saved_at (or full JSON as fallback)
-        val seen    = mutableSetOf<String>()
-        val merged  = mutableListOf<String>()
-
-        // Cloud first (already newest-first from Firestore query)
-        for (json in cloudList) {
-            val savedAt = parseSimpleJson(json)["saved_at"] ?: json
-            if (seen.add(savedAt)) merged.add(json)
-        }
-        // Then local
-        for (json in localList) {
-            val savedAt = parseSimpleJson(json)["saved_at"] ?: json
-            if (seen.add(savedAt)) merged.add(json)
-        }
+    private fun mergeAndDisplay(merged: List<String>) {
 
         val currentMonthLends = viewModel.lends.value ?: emptyList()
         val hasData = merged.isNotEmpty() || currentMonthLends.isNotEmpty()
@@ -522,11 +503,8 @@ class HomeFragment : Fragment() {
         return result
     }
     private fun updateAnalyticsGraph() {
-        val cloudList = viewModel.firestoreTransactions.value ?: emptyList()
-        val localList = viewModel.confirmedTransactions.value ?: emptyList()
+        val mergedTransactions = viewModel.allTransactions.value ?: emptyList()
         val lends = viewModel.lends.value ?: emptyList()
-
-        val mergedTransactions = (cloudList + localList).distinctBy { parseSimpleJson(it)["saved_at"] ?: it }
 
         val barDataList = mutableListOf<BarData>()
 

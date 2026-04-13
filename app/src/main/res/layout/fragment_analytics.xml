@@ -1,0 +1,457 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/black"
+    tools:context=".AnalyticsFragment">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/Widget.SpendWise.AppBarLayout">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            style="@style/Widget.SpendWise.Toolbar"
+            app:navigationIcon="@drawable/ic_back"
+            app:title="Spending Analytics" />
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:paddingBottom="100dp"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- 1. PERIOD SELECTOR -->
+            <HorizontalScrollView
+                android:id="@+id/periodSelectorScroll"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:scrollbars="none"
+                android:layout_marginBottom="24dp">
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/periodChipGroup"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:singleSelection="true"
+                    app:selectionRequired="true"/>
+            </HorizontalScrollView>
+
+            <!-- 2. SUMMARY STATS GRID (2x2) -->
+            <GridLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:columnCount="2"
+                android:rowCount="2"
+                android:layout_marginBottom="24dp">
+
+                <!-- Total Spent -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="4dp"
+                    app:cardCornerRadius="16dp"
+                    app:cardBackgroundColor="#1A1A1A">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Total Spent"
+                            android:textColor="#80FFFFFF"
+                            android:textSize="12sp"
+                            android:fontFamily="@font/nunito_sans"/>
+                        <TextView
+                            android:id="@+id/tvTotalSpent"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="₹0"
+                            android:textColor="@color/white"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:fontFamily="@font/nunito_sans"
+                            android:layout_marginTop="4dp"/>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Savings Rate -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="4dp"
+                    app:cardCornerRadius="16dp"
+                    app:cardBackgroundColor="#1A1A1A">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Savings Rate"
+                            android:textColor="#80FFFFFF"
+                            android:textSize="12sp"
+                            android:fontFamily="@font/nunito_sans"/>
+                        <TextView
+                            android:id="@+id/tvSavingsRate"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0%"
+                            android:textColor="#4CAF50"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:fontFamily="@font/nunito_sans"
+                            android:layout_marginTop="4dp"/>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Daily Average -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="4dp"
+                    app:cardCornerRadius="16dp"
+                    app:cardBackgroundColor="#1A1A1A">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Daily Average"
+                            android:textColor="#80FFFFFF"
+                            android:textSize="12sp"
+                            android:fontFamily="@font/nunito_sans"/>
+                        <TextView
+                            android:id="@+id/tvDailyAverage"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="₹0"
+                            android:textColor="@color/white"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:fontFamily="@font/nunito_sans"
+                            android:layout_marginTop="4dp"/>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Forecasted -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="4dp"
+                    app:cardCornerRadius="16dp"
+                    app:cardBackgroundColor="#1A1A1A">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Forecasted"
+                            android:textColor="#80FFFFFF"
+                            android:textSize="12sp"
+                            android:fontFamily="@font/nunito_sans"/>
+                        <TextView
+                            android:id="@+id/tvForecasted"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="₹0"
+                            android:textColor="@color/white"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:fontFamily="@font/nunito_sans"
+                            android:layout_marginTop="4dp"/>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+            </GridLayout>
+
+            <!-- 3. AI INSIGHTS CARD -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/aiInsightsCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                app:cardCornerRadius="20dp"
+                app:cardBackgroundColor="#E8F5E9"
+                app:strokeWidth="0dp">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="AI Insights ✨"
+                            android:textColor="#2E7D32"
+                            android:textStyle="bold"
+                            android:textSize="16sp"
+                            android:fontFamily="@font/nunito_sans"/>
+                        <ImageButton
+                            android:id="@+id/btnRefreshInsights"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_alignParentEnd="true"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:src="@drawable/ic_sync"
+                            app:tint="#2E7D32"/>
+                    </RelativeLayout>
+                    <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp">
+                        <TextView
+                            android:id="@+id/tvAiInsights"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Analyzing your spending patterns..."
+                            android:textColor="#1B5E20"
+                            android:fontFamily="@font/nunito_sans"
+                            android:lineSpacingExtra="4dp"/>
+                        <com.facebook.shimmer.ShimmerFrameLayout
+                            android:id="@+id/insightsShimmer"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:visibility="gone">
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical">
+                                <View android:layout_width="match_parent" android:layout_height="12dp" android:background="#C8E6C9" android:layout_marginBottom="8dp"/>
+                                <View android:layout_width="match_parent" android:layout_height="12dp" android:background="#C8E6C9" android:layout_marginBottom="8dp"/>
+                                <View android:layout_width="150dp" android:layout_height="12dp" android:background="#C8E6C9"/>
+                            </LinearLayout>
+                        </com.facebook.shimmer.ShimmerFrameLayout>
+                    </FrameLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- 4. SPENDING TREND (LineChart) -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Spending Trend"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:fontFamily="@font/nunito_sans"
+                android:layout_marginBottom="4dp"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Track your daily spending flow and see how it fluctuates."
+                android:textColor="#80FFFFFF"
+                android:textSize="12sp"
+                android:fontFamily="@font/nunito_sans"
+                android:layout_marginBottom="12dp"/>
+            <com.github.mikephil.charting.charts.LineChart
+                android:id="@+id/spendingTrendChart"
+                android:layout_width="match_parent"
+                android:layout_height="250dp"
+                android:layout_marginBottom="32dp"/>
+
+            <!-- 5. CATEGORY BREAKDOWN (PieChart) -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Category Breakdown"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:fontFamily="@font/nunito_sans"
+                android:layout_marginBottom="4dp"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Detailed distribution of your expenses across different categories."
+                android:textColor="#80FFFFFF"
+                android:textSize="12sp"
+                android:fontFamily="@font/nunito_sans"
+                android:layout_marginBottom="12dp"/>
+            <com.github.mikephil.charting.charts.PieChart
+                android:id="@+id/categoryPieChart"
+                android:layout_width="match_parent"
+                android:layout_height="300dp"
+                android:layout_marginBottom="16dp"/>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvCategoryBreakdown"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false"
+                android:layout_marginBottom="32dp"
+                tools:listitem="@layout/item_category_breakdown"/>
+
+            <!-- 6. DAILY HEATMAP -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Activity Heatmap"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:fontFamily="@font/nunito_sans"
+                android:layout_marginBottom="4dp"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Visualize your spending frequency and intensity for each day."
+                android:textColor="#80FFFFFF"
+                android:textSize="12sp"
+                android:fontFamily="@font/nunito_sans"
+                android:layout_marginBottom="12dp"/>
+            <com.tech.spendwise.views.HeatmapView
+                android:id="@+id/dailyHeatmap"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="32dp"/>
+
+            <!-- 7. MONTH COMPARISON -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp">
+                <TextView
+                    android:id="@+id/tvMonthComparisonTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Monthly Comparison"
+                    android:textColor="@color/white"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:fontFamily="@font/nunito_sans"/>
+                
+                <TextView
+                    android:id="@+id/tvTotalComparisonDelta"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:text=""
+                    android:textColor="#FF5252"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:fontFamily="@font/nunito_sans"
+                    tools:text="+₹2,400 (15%)"/>
+            </RelativeLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Detailed side-by-side comparison of your spending across categories vs last month."
+                android:textColor="#80FFFFFF"
+                android:textSize="12sp"
+                android:fontFamily="@font/nunito_sans"
+                android:layout_marginBottom="16dp"/>
+            
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvMonthlyComparison"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false"
+                android:layout_marginBottom="32dp"
+                tools:listitem="@layout/item_comparison_row"/>
+
+            <!-- 8. TOP MERCHANTS LIST -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Top Merchants"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:fontFamily="@font/nunito_sans"
+                android:layout_marginBottom="4dp"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Identifying your most frequent and highest value spending locations."
+                android:textColor="#80FFFFFF"
+                android:textSize="12sp"
+                android:fontFamily="@font/nunito_sans"
+                android:layout_marginBottom="12dp"/>
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvTopMerchants"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false"
+                android:layout_marginBottom="32dp"
+                tools:listitem="@layout/item_top_merchant"/>
+
+            <!-- 9. WEEKDAY PATTERN -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Weekday Pattern"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:fontFamily="@font/nunito_sans"
+                android:layout_marginBottom="4dp"/>
+            <TextView
+                android:id="@+id/tvWeekdayObservation"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="You spend most on Saturday"
+                android:textColor="#80FFFFFF"
+                android:textSize="12sp"
+                android:fontFamily="@font/nunito_sans"
+                android:layout_marginBottom="12dp"/>
+            <com.github.mikephil.charting.charts.BarChart
+                android:id="@+id/weekdayBarChart"
+                android:layout_width="match_parent"
+                android:layout_height="250dp"
+                android:layout_marginBottom="48dp"/>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+<!-- 10. AI COACH BUTTON -->
+<com.google.android.material.button.MaterialButton
+    android:id="@+id/btnAiCoach"
+    android:layout_width="wrap_content"
+    android:layout_height="64dp"
+    android:layout_gravity="bottom|center_horizontal"
+    android:layout_marginBottom="16dp"
+    android:text="Chat with AI Coach"
+    android:textAllCaps="false"
+    android:textSize="16sp"
+    android:textStyle="bold"
+    android:fontFamily="@font/nunito_sans"
+    app:icon="@drawable/ic_robot"
+    app:iconSize="24dp"
+    app:cornerRadius="32dp"
+    android:paddingStart="24dp"
+    android:paddingEnd="24dp"
+    app:backgroundTint="#43A047"
+    android:elevation="8dp"/>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

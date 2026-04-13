@@ -41,7 +41,7 @@ class SettingsManager(private val context: Context) {
     val transactionAlerts: Flow<Boolean> = context.dataStore.data.map { it[TRANSACTION_ALERTS] ?: true }
     val monthlySummary: Flow<Boolean> = context.dataStore.data.map { it[MONTHLY_SUMMARY] ?: true }
     val dailyReminder: Flow<Boolean> = context.dataStore.data.map { it[DAILY_REMINDER] ?: false }
-    val dailyReminderHour: Flow<Int> = context.dataStore.data.map { it[DAILY_REMINDER_HOUR] ?: 20 } // Default 8 PM
+    val dailyReminderHour: Flow<Int> = context.dataStore.data.map { it[DAILY_REMINDER_HOUR] ?: 18 } // Default 6 PM
     val dailyReminderMinute: Flow<Int> = context.dataStore.data.map { it[DAILY_REMINDER_MINUTE] ?: 0 }
     val language: Flow<String> = context.dataStore.data.map { it[LANGUAGE] ?: "en" }
     val appLockEnabled: Flow<Boolean> = context.dataStore.data.map { it[APP_LOCK_ENABLED] ?: false }

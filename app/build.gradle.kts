@@ -18,7 +18,7 @@ android {
         applicationId = "com.tech.spendwise"
         minSdk = 26
         targetSdk = 35
-        versionCode = 3
+        versionCode = 4
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -141,4 +141,8 @@ dependencies {
     testImplementation("org.junit.vintage:junit-vintage-engine:$junitJupiterVersion")
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    
+    // UI & Charts
+    implementation(libs.lottie)
+    implementation(libs.mpandroidchart)
 }

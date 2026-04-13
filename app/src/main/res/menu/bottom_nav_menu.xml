@@ -12,6 +12,10 @@
         android:id="@+id/budgetDashboardFragment"
         android:icon="@drawable/ic_timer"
         android:title="Budget" />
+    <item
+        android:id="@+id/analyticsFragment"
+        android:icon="@drawable/ic_star"
+        android:title="Analytics" />
 <!--
     <item
         android:id="@+id/addCreditCardFragment"
