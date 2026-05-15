@@ -31,23 +31,19 @@ class OnboardingActivity : AppCompatActivity() {
         val slides = listOf(
             OnboardingSlide(
                 "Smart Expense Tracking",
-                "Effortlessly track every penny you spend. SpendWise categorizes your expenses automatically, giving you a clear picture of your finances.",
-                R.drawable.onboarding_track
+                "Take full control of your financial life with SpendWise. Our intelligent tracking system allows you to record expenses in seconds. Whether it's a small coffee or a major bill, every penny is accounted for. Experience real-time categorization that helps you understand exactly where your money goes each month."
             ),
             OnboardingSlide(
-                "Automated SMS Scan",
-                "Stop entering transactions manually! SpendWise securely scans your bank and wallet SMS alerts to record payments instantly as they happen.",
-                R.drawable.onboarding_scan
+                "Automated SMS Scanning",
+                "Eliminate the hassle of manual entry. SpendWise securely scans your incoming bank and wallet SMS alerts, instantly recording transactions as they happen. We support all major banks and digital wallets, ensuring your history is always up-to-date without you ever having to open the app to type a single number."
             ),
             OnboardingSlide(
                 "Secure Cloud Sync",
-                "Your financial data is your own. We encrypt and sync your records to the cloud so you can access your history safely from any device.",
-                R.drawable.onboarding_sync
+                "Your financial data is sensitive and precious. SpendWise uses bank-grade encryption to sync your records to our secure cloud. Access your full financial history from any device, anywhere. Even if you lose your phone, your data remains safe, private, and fully recoverable at any time."
             ),
             OnboardingSlide(
-                "Insightful Analytics",
-                "Visualize your financial health with beautiful charts. Set budgets, track trends, and save more with data-driven insights.",
-                R.drawable.onboarding_insights
+                "AI Financial Insights",
+                "Get more than just numbers. Our AI-driven analytics engine processes your spending habits to provide actionable insights. Set smart budgets, receive overspending alerts, and discover new ways to save. SpendWise isn't just a tracker; it's your personal financial coach designed to help you build wealth."
             )
         )
 
@@ -87,7 +83,7 @@ class OnboardingActivity : AppCompatActivity() {
         }
     }
 
-    data class OnboardingSlide(val title: String, val desc: String, val imageRes: Int)
+    data class OnboardingSlide(val title: String, val desc: String)
 
     inner class OnboardingAdapter(private val slides: List<OnboardingSlide>) :
         RecyclerView.Adapter<OnboardingAdapter.SlideViewHolder>() {
@@ -108,7 +104,6 @@ class OnboardingActivity : AppCompatActivity() {
             fun bind(slide: OnboardingSlide) {
                 itemBinding.titleText.text = slide.title
                 itemBinding.descText.text = slide.desc
-                itemBinding.slideImage.setImageResource(slide.imageRes)
             }
         }
     }

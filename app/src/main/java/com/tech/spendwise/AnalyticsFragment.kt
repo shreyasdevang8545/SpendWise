@@ -35,7 +35,7 @@ class AnalyticsFragment : Fragment() {
 
     private val viewModel: AnalyticsViewModel by activityViewModels()
     private val transactionViewModel: TransactionViewModel by activityViewModels()
-    private val geminiViewModel: GeminiViewModel by activityViewModels()
+
     private var currentMonthsList: List<String> = emptyList()
 
     override fun onCreateView(
@@ -73,13 +73,7 @@ class AnalyticsFragment : Fragment() {
         observeData()
         setupCharts()
 
-        binding.btnAiCoach.setOnClickListener {
-            findNavController().navigate(R.id.aiCoachFragment)
-        }
 
-        binding.btnRefreshInsights.setOnClickListener {
-            generateAiInsights()
-        }
 
         binding.toolbar.setNavigationOnClickListener {
             findNavController().navigateUp()
@@ -179,8 +173,8 @@ class AnalyticsFragment : Fragment() {
             
             updateStats()
             updateCharts()
-            if (transactions.isNotEmpty() && geminiViewModel.insights.value == null) {
-                geminiViewModel.generateInsights(transactions)
+            if (transactions.isNotEmpty()) {
+                // No automatic insights generation for now
             }
         }
 
@@ -189,21 +183,7 @@ class AnalyticsFragment : Fragment() {
             updateCharts()
         }
 
-        geminiViewModel.insights.observe(viewLifecycleOwner) { text ->
-            binding.tvAiInsights.text = formatMarkdown(text)
-        }
 
-        geminiViewModel.isGenerating.observe(viewLifecycleOwner) { isGenerating ->
-            if (isGenerating) {
-                binding.tvAiInsights.visibility = View.GONE
-                binding.insightsShimmer.visibility = View.VISIBLE
-                binding.insightsShimmer.startShimmer()
-            } else {
-                binding.insightsShimmer.stopShimmer()
-                binding.insightsShimmer.visibility = View.GONE
-                binding.tvAiInsights.visibility = View.VISIBLE
-            }
-        }
     }
 
     private fun updateStats() {
@@ -561,12 +541,7 @@ class AnalyticsFragment : Fragment() {
         return categories.mapIndexed { index, _ -> Color.parseColor(colors[index % colors.size]) }
     }
 
-    private fun generateAiInsights() {
-        val transactions = viewModel.transactions.value
-        if (transactions != null && transactions.isNotEmpty()) {
-            geminiViewModel.generateInsights(transactions)
-        }
-    }
+
 
     override fun onDestroyView() {
         super.onDestroyView()

@@ -5,42 +5,18 @@
     android:layout_height="match_parent"
     android:padding="24dp">
 
-    <View
-        android:id="@+id/backgroundDecoration"
-        android:layout_width="300dp"
-        android:layout_height="300dp"
-        android:alpha="0.1"
-        android:background="@drawable/gradient_circle"
-        app:layout_constraintBottom_toTopOf="@+id/titleText"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_chainStyle="packed" />
-
-    <ImageView
-        android:id="@+id/slideImage"
-        android:layout_width="match_parent"
-        android:layout_height="260dp"
-        android:scaleType="fitCenter"
-        android:adjustViewBounds="true"
-        app:layout_constraintBottom_toTopOf="@+id/titleText"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_chainStyle="packed" />
-
     <TextView
         android:id="@+id/titleText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
         android:gravity="center"
         android:textColor="@color/white"
-        android:textSize="28sp"
+        android:textSize="32sp"
         android:textStyle="bold"
         android:fontFamily="@font/nunito_sans"
         app:layout_constraintBottom_toTopOf="@+id/descText"
-        app:layout_constraintTop_toBottomOf="@+id/slideImage" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_chainStyle="packed" />
 
     <TextView
         android:id="@+id/descText"

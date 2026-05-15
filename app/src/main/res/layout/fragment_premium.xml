@@ -240,7 +240,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
-                    android:text="AI Financial Coach &amp; Analytics"
+                    android:text="Premium Spending Analytics"
                     android:textColor="@color/white"
                     android:textSize="16sp"
                     android:textStyle="bold" />
