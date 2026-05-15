@@ -15,7 +15,7 @@ object TransactionExtractor {
 
     /** Matches: INR 1,200.50  |  AED 451.20  |  Rs 800  |  Rs. 17987.32 | ₹ 500 */
     private val AMOUNT_PATTERN: Pattern = Pattern.compile(
-        """(?i)(?:INR|AED|Rs\.?|₹)\s*([\d,]+(?:\.\d+)?)"""
+        """(?i)(?:INR|AED|Rs\.?|₹|USD|Rs)\s*[:\s\-]*([\d,]+(?:\.\d{1,2})?)"""
     )
 
     /** Matches the currency code/keyword itself. */
@@ -31,10 +31,10 @@ object TransactionExtractor {
     // ── Transaction Type ─────────────────────────────────────────────────────
 
     private val CREDIT_PATTERN: Pattern = Pattern.compile(
-        """(?i)\b(credited|credit|received|deposited)\b"""
+        """(?i)\b(credited|credit|received|deposited|refunded|added|incoming|cashback)\b"""
     )
     private val DEBIT_PATTERN: Pattern = Pattern.compile(
-        """(?i)\b(debited|debit|spent|purchase|paid)\b"""
+        """(?i)\b(debited|debit|spent|purchase|paid|withdrawn|transferred|outgoing|payment|txn)\b"""
     )
 
     // ── Entity (Merchant / Person) ───────────────────────────────────────────
@@ -138,32 +138,39 @@ object TransactionExtractor {
      */
     fun isBankTransaction(message: String, sender: String? = null): Boolean {
         if (message.isBlank()) return false
+        val lowerMsg = message.lowercase()
 
         // 1. Must have a currency and an amount
         val hasAmount = AMOUNT_PATTERN.matcher(message).find()
         if (!hasAmount) return false
 
-        // 2. Must have a transaction type (Credit/Debit)
+        // 2. Must have a transaction type (Credit/Debit) or strong bank keywords
         val isCredit = CREDIT_PATTERN.matcher(message).find()
         val isDebit = DEBIT_PATTERN.matcher(message).find()
-        if (!isCredit && !isDebit) return false
+        
+        val bankKeywords = listOf("a/c", "account", "vpa", "upi", "imps", "neft", "rtgs", "bank", "card", "wallet", "txn")
+        var hasBankKeyword = false
+        for (kw in bankKeywords) {
+            if (lowerMsg.contains(kw)) {
+                hasBankKeyword = true
+                break
+            }
+        }
 
-        // 3. Exclude promotional content
+        if (!isCredit && !isDebit && !hasBankKeyword) return false
+
+        // 3. Exclude promotional content (be careful not to exclude real transactions)
         val promoKeywords = listOf(
-            "offer", "discount", "cashback", "apply now", "limited time",
+            "offer", "discount", "apply now", "limited time",
             "congratulations", "win", "gift", "voucher", "click here",
-            "subscription", "upgrade", "pre-approved", "loan", "emi starting",
+            "subscription", "upgrade", "pre-approved", "emi starting",
             "recharge", "payment due", "bill due", "reminder", "overdue"
         )
-        val lowerMsg = message.lowercase()
+        
         for (keyword in promoKeywords) {
             if (lowerMsg.contains(keyword)) {
-                // Special case: "cashback" might be in a credit message, but usually "cashback credited"
-                // is still a transaction. However, "Get 10% cashback" is promo.
-                // For now, if it's a very clear promo, skip.
-                if (keyword == "cashback" && isCredit) continue // Allow "Cashback credited"
-                if (keyword == "loan" && (isCredit || isDebit)) continue // Allow "Loan EMI debited"
-                
+                // If it contains "debited" or "credited", it's likely a real transaction even if it has a keyword like "recharge"
+                if (isCredit || isDebit) continue
                 return false
             }
         }
@@ -277,7 +284,7 @@ object TransactionExtractor {
                 }
 
                 return if (normalizedTime != "UNKNOWN") {
-                    "$normalizedDate $normalizedTime IST"
+                    "$normalizedDate $normalizedTime"
                 } else {
                     normalizedDate
                 }
@@ -287,14 +294,7 @@ object TransactionExtractor {
     }
 
     /**
-     * Normalizes various date formats to DD-MM-YYYY.
-     *
-     * Handles:
-     * - YYYY-MM-DD → DD-MM-YYYY
-     * - DD-MM-YYYY → DD-MM-YYYY (as-is)
-     * - DD-MMM-YYYY → DD-MM-YYYY
-     * - DD-MMMMMMMM-YYYY → DD-MM-YYYY
-     * - DD-MM-YY → DD-MM-YYYY (adds century: 25 → 2025)
+     * Normalizes various date formats to YYYY-MM-DD.
      */
     private fun normalizeDate(dateStr: String): String {
         val trimmed = dateStr.trim()
@@ -305,7 +305,7 @@ object TransactionExtractor {
             val year = isoMatch.group(1)!!
             val month = isoMatch.group(2)!!
             val day = isoMatch.group(3)!!
-            return "$day-$month-$year"  // Convert to DD-MM-YYYY
+            return "$year-$month-$day"
         }
 
         // Try European format: DD-MM-YYYY or DD/MM/YYYY or DD.MM.YYYY (4-digit year)
@@ -314,7 +314,7 @@ object TransactionExtractor {
             val day = euroMatch.group(1)!!
             val month = euroMatch.group(2)!!
             val year = euroMatch.group(3)!!
-            return "$day-$month-$year"
+            return "$year-$month-$day"
         }
 
         // Try with month name (abbreviated): DD-MMM-YYYY or DD/MMM/YYYY or DD MMM YYYY
@@ -328,34 +328,18 @@ object TransactionExtractor {
             val year = monthAbbrevMatch.group(3)!!
             val monthNum = getMonthNumber(monthName)
             if (monthNum != "00") {
-                return "$day-$monthNum-$year"
+                return "$year-$monthNum-$day"
             }
         }
 
-        // Try with month name (full): DD-MMMMMMMM-YYYY or DD MMMMMMMM YYYY
-        val monthFullMatch = Pattern.compile(
-            """(\d{2})[-/\s]([A-Za-z]{4,})[-/\s](\d{4})""",
-            Pattern.CASE_INSENSITIVE
-        ).matcher(trimmed)
-        if (monthFullMatch.find()) {
-            val day = monthFullMatch.group(1)!!
-            val monthName = monthFullMatch.group(2)!!.lowercase()
-            val year = monthFullMatch.group(3)!!
-            val monthNum = getMonthNumber(monthName)
-            if (monthNum != "00") {
-                return "$day-$monthNum-$year"
-            }
-        }
-
-        // Try short format: DD-MM-YY or DD/MM/YY (2-digit year, assumes 20XX)
+        // Try short format: DD-MM-YY or DD/MM/YY
         val shortMatch = Pattern.compile("""(\d{2})[-/](\d{2})[-/](\d{2})$""").matcher(trimmed)
         if (shortMatch.find()) {
             val day = shortMatch.group(1)!!
             val month = shortMatch.group(2)!!
             val year = shortMatch.group(3)!!.toInt()
-            // Assume 2000s for years 00-99
             val fullYear = if (year <= 99) 2000 + year else 1900 + year
-            return "$day-$month-$fullYear"
+            return "$fullYear-$month-$day"
         }
 
         return "UNKNOWN"

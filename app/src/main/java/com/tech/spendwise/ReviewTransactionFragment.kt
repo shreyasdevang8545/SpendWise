@@ -152,30 +152,33 @@ class ReviewTransactionFragment : Fragment() {
         }
 
         // Transaction Type
-        if (type == "UNKNOWN") {
-            binding.typeContainer.visibility = View.VISIBLE
-            binding.typeGroup.removeAllViews()
-            listOf(getString(R.string.label_credit), getString(R.string.label_debit)).forEach { t ->
-                val chip = Chip(requireContext()).apply {
-                    text = t
-                    isCheckable = true
-                }
-                binding.typeGroup.addView(chip)
-            }
-            binding.typeGroup.setOnCheckedStateChangeListener { _, _ -> validate() }
-        } else {
-            binding.typeBadge.visibility = View.VISIBLE
-            binding.typeBadge.text = type
-            binding.typeBadge.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
-            
-            // Set background with rounded corners for the badge
-            val drawable = android.graphics.drawable.GradientDrawable().apply {
-                shape = android.graphics.drawable.GradientDrawable.RECTANGLE
-                cornerRadius = 24f
-                setColor(ContextCompat.getColor(requireContext(), if (type == getString(R.string.label_credit)) R.color.primary_green else R.color.error_red))
-            }
-            binding.typeBadge.background = drawable
+        binding.typeContainer.visibility = View.VISIBLE
+        binding.typeBadge.visibility = View.GONE
+        binding.typeGroup.removeAllViews()
+
+        val incomeChip = Chip(requireContext()).apply {
+            text = getString(R.string.chip_income)
+            isCheckable = true
+            id = View.generateViewId()
+            tag = "CREDIT"
         }
+        val expenseChip = Chip(requireContext()).apply {
+            text = getString(R.string.chip_expense)
+            isCheckable = true
+            id = View.generateViewId()
+            tag = "DEBIT"
+        }
+        binding.typeGroup.addView(incomeChip)
+        binding.typeGroup.addView(expenseChip)
+
+        if (type == "CREDIT") {
+            incomeChip.isChecked = true
+        } else if (type == "DEBIT" || type != "UNKNOWN") {
+            // Default to expense if not credit, or if type is known but not credit
+            expenseChip.isChecked = true
+        }
+
+        binding.typeGroup.setOnCheckedStateChangeListener { _, _ -> validate() }
 
         binding.switchLend.setOnCheckedChangeListener { _, isChecked ->
             binding.lendDetailContainer.visibility = if (isChecked) View.VISIBLE else View.GONE
@@ -233,10 +236,10 @@ class ReviewTransactionFragment : Fragment() {
         val selectedMode = binding.paymentGroup.findViewById<Chip>(selectedModeId).text.toString()
         val finalPaymentMode = if (selectedMode == getString(R.string.label_other_mode)) binding.etOtherMode.text.toString() else selectedMode
 
-        val finalType = if (initialType == "UNKNOWN") {
-            val selectedTypeId = binding.typeGroup.checkedChipId
-            if (selectedTypeId != View.NO_ID) binding.typeGroup.findViewById<Chip>(selectedTypeId).text.toString() else "UNKNOWN"
-        } else initialType
+        val selectedTypeId = binding.typeGroup.checkedChipId
+        val finalType = if (selectedTypeId != View.NO_ID) {
+            binding.typeGroup.findViewById<Chip>(selectedTypeId).tag.toString()
+        } else "UNKNOWN"
 
         // Determine currency from the current pending transaction
         val firstJson = viewModel.firstTransaction.value ?: ""

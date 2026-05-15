@@ -15,6 +15,12 @@ import com.tech.spendwise.utils.UIUtils
 import com.tech.spendwise.databinding.FragmentHomeBinding
 import androidx.recyclerview.widget.PagerSnapHelper
 import android.view.animation.AnimationUtils
+import androidx.biometric.BiometricPrompt
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
+import androidx.core.content.ContextCompat
+import java.util.concurrent.Executor
 
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
@@ -24,6 +30,11 @@ import android.os.Handler
 import android.os.Looper
 import android.view.MotionEvent
 import com.tech.spendwise.views.SummaryBarGraph.BarData
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.result.contract.ActivityResultContracts
+
 
 /**
  * Main screen showing the monthly spend summary, 10 most recent transactions,
@@ -31,12 +42,23 @@ import com.tech.spendwise.views.SummaryBarGraph.BarData
  */
 class HomeFragment : Fragment() {
 
+    companion object {
+        private var hasCheckedPermissionThisSession = false
+        private const val PREFS_NAME = "notification_prefs"
+        private const val KEY_HAS_REQUESTED = "has_requested_notifications"
+    }
+
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
 
     private val viewModel: TransactionViewModel by activityViewModels()
     private val adapter = TransactionListAdapter()
-    // private lateinit var cardAdapter: CreditCardAdapter // Commented for Release
+    private lateinit var settingsManager: SettingsManager
+    private var isBalanceHidden = false
+    private var lastFormattedBalance = ""
+    private var lastFormattedIncome = ""
+    private var lastFormattedSpentBadge = ""
+    private var lastFormattedLent = ""
 
 
     private val autoScrollHandler = Handler(Looper.getMainLooper())
@@ -63,13 +85,41 @@ class HomeFragment : Fragment() {
         }
     }
 
+    private val requestNotificationPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
+            val prefs = requireContext().getSharedPreferences(PREFS_NAME, android.content.Context.MODE_PRIVATE)
+            prefs.edit().putBoolean(KEY_HAS_REQUESTED, true).apply()
+
+            if (isGranted) {
+                // Permission granted
+            } else {
+                // Permission denied
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    if (!shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)) {
+                        // Permanently denied - only show if this was a user-initiated or important flow
+                        // For now, we'll avoid the automatic popup to prevent harassment
+                        // showPermanentDenialDialog(getString(R.string.title_notifications), getString(R.string.reason_reminders_alerts))
+                    }
+                }
+            }
+        }
+
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
+        settingsManager = SettingsManager(requireContext())
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        
+        // Observe Pro status for badge
+        viewLifecycleOwner.lifecycleScope.launch {
+            settingsManager.isProUser.collect { isPro ->
+                _binding?.proBadge?.visibility = if (isPro) View.VISIBLE else View.GONE
+            }
+        }
 
         // Set up the RecyclerView
         binding.recentTransactionsList.layoutManager = LinearLayoutManager(requireContext())
@@ -124,6 +174,18 @@ class HomeFragment : Fragment() {
         viewModel.allTransactions.observe(viewLifecycleOwner) { list ->
             mergeAndDisplay(list)
             updateAnalyticsGraph()
+        }
+
+        // Observe balance visibility
+        lifecycleScope.launchWhenStarted {
+            settingsManager.balanceHidden.collect { hidden ->
+                isBalanceHidden = hidden
+                updateBalanceDisplay()
+            }
+        }
+
+        binding.btnToggleBalanceVisibility.setOnClickListener {
+            handleBalanceVisibilityToggle()
         }
 
         viewModel.lends.observe(viewLifecycleOwner) { _ ->
@@ -197,7 +259,67 @@ class HomeFragment : Fragment() {
         }
 
         showGreeting()
+        checkAndRequestNotificationPermission()
     }
+
+    private fun checkAndRequestNotificationPermission() {
+        if (hasCheckedPermissionThisSession) return
+        hasCheckedPermissionThisSession = true
+        
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val permission = Manifest.permission.POST_NOTIFICATIONS
+            val isGranted = ContextCompat.checkSelfPermission(requireContext(), permission) == PackageManager.PERMISSION_GRANTED
+            
+            if (isGranted) return
+
+            val prefs = requireContext().getSharedPreferences(PREFS_NAME, android.content.Context.MODE_PRIVATE)
+            val hasRequestedBefore = prefs.getBoolean(KEY_HAS_REQUESTED, false)
+
+            when {
+                shouldShowRequestPermissionRationale(permission) -> {
+                    showPermissionRationaleDialog(
+                        title = getString(R.string.dialog_notifications_permission_title),
+                        message = getString(R.string.dialog_notifications_permission_msg),
+                        onConfirm = { requestNotificationPermissionLauncher.launch(permission) }
+                    )
+                }
+                !hasRequestedBefore -> {
+                    // First time asking
+                    requestNotificationPermissionLauncher.launch(permission)
+                }
+                else -> {
+                    // Permanently denied. Don't show automatic popup every time.
+                    // User can enable it from settings if they want.
+                }
+            }
+        }
+    }
+
+    private fun showPermissionRationaleDialog(title: String, message: String, onConfirm: () -> Unit) {
+        AlertDialog.Builder(requireContext())
+            .setTitle(title)
+            .setMessage(message)
+            .setPositiveButton(getString(R.string.btn_grant_access)) { _, _ -> onConfirm() }
+            .setNegativeButton(getString(R.string.btn_not_now), null)
+            .show()
+    }
+
+    private fun showPermanentDenialDialog(featureName: String, reason: String) {
+        AlertDialog.Builder(requireContext())
+            .setTitle(getString(R.string.dialog_permission_required_title, featureName))
+            .setMessage(getString(R.string.dialog_permission_required_msg, featureName, reason))
+            .setPositiveButton(getString(R.string.btn_go_to_settings)) { _, _ -> openAppSettings() }
+            .setNegativeButton(getString(R.string.dialog_cancel), null)
+            .show()
+    }
+
+    private fun openAppSettings() {
+        val intent = android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+            data = android.net.Uri.fromParts("package", requireContext().packageName, null)
+        }
+        startActivity(intent)
+    }
+
 
     private fun showGreeting() {
         val name = SupabaseInstance.currentUserDisplayName()
@@ -245,6 +367,7 @@ class HomeFragment : Fragment() {
             // Hide budget details in header when empty
             binding.mainBalanceLabel.visibility = View.GONE
             binding.mainBalanceText.visibility = View.GONE
+            binding.btnToggleBalanceVisibility.visibility = View.GONE
             binding.headerMonthLabel.visibility = View.GONE
             binding.badgeScrollView.visibility = View.GONE
         } else {
@@ -255,6 +378,7 @@ class HomeFragment : Fragment() {
             // Show budget details in header when data present
             binding.mainBalanceLabel.visibility = View.VISIBLE
             binding.mainBalanceText.visibility = View.VISIBLE
+            binding.btnToggleBalanceVisibility.visibility = View.VISIBLE
             binding.headerMonthLabel.visibility = View.VISIBLE
             binding.badgeScrollView.visibility = View.VISIBLE
             binding.viewAllBadge.visibility     = if (merged.size > 3) View.VISIBLE else View.GONE
@@ -311,16 +435,13 @@ class HomeFragment : Fragment() {
             val formattedSpent = getString(R.string.home_spent, formatAmount(totalSpent, merged.firstOrNull()))
             val formattedLent = getString(R.string.home_lent, formatAmount(totalLent, merged.firstOrNull()))
             
-            // Set first set
-            binding.incomeTotalText.text = formattedIncome
-            binding.spentTotalText.text  = formattedSpent
-            binding.lentTotalText.text   = formattedLent
+            lastFormattedIncome = formattedIncome
+            lastFormattedSpentBadge = formattedSpent
+            lastFormattedLent = formattedLent
+            lastFormattedBalance = formatAmount(totalSpent, merged.firstOrNull())
             
-            // Set second set for seamless loop
-            binding.incomeTotalText2.text = formattedIncome
-            binding.spentTotalText2.text  = formattedSpent
-            binding.lentTotalText2.text   = formattedLent
             binding.headerMonthLabel.text = monthLabel(cal).uppercase()
+            updateBalanceDisplay()
             
             // initials removal - no logic needed here anymore as we use ic_settings
             
@@ -391,10 +512,15 @@ class HomeFragment : Fragment() {
         val editMerchant = dialogView.findViewById<android.widget.EditText>(R.id.editMerchant)
         val editAmount = dialogView.findViewById<android.widget.EditText>(R.id.editAmount)
         val editCategory = dialogView.findViewById<android.widget.AutoCompleteTextView>(R.id.editCategory)
+        val chipIncome = dialogView.findViewById<com.google.android.material.chip.Chip>(R.id.chipIncome)
+        val chipExpense = dialogView.findViewById<com.google.android.material.chip.Chip>(R.id.chipExpense)
 
         editMerchant.setText(data["merchant"])
         editAmount.setText(data["amount"])
         editCategory.setText(data["category"])
+
+        val currentType = data["type"] ?: "DEBIT"
+        if (currentType == "CREDIT") chipIncome.isChecked = true else chipExpense.isChecked = true
 
         val categories = arrayOf(
             getString(R.string.category_food),
@@ -415,11 +541,13 @@ class HomeFragment : Fragment() {
                 val newMerchant = editMerchant.text.toString()
                 val newAmount = editAmount.text.toString().toDoubleOrNull() ?: 0.0
                 val newCategory = editCategory.text.toString()
+                val newType = if (chipIncome.isChecked) "CREDIT" else "DEBIT"
 
                 val updatedData = data.toMutableMap()
                 updatedData["merchant"] = newMerchant
                 updatedData["amount"] = newAmount.toString()
                 updatedData["category"] = newCategory
+                updatedData["type"] = newType
 
                 viewModel.updateTransaction(id, buildJsonString(updatedData))
             }
@@ -444,6 +572,108 @@ class HomeFragment : Fragment() {
             if (k == "amount") "\"$k\":$v" else "\"$k\":\"$v\""
         }
         return "{$entries}"
+    }
+
+    // ── Balance Visibility ──────────────────────────────────────────────────
+
+    private fun updateBalanceDisplay() {
+        if (isBalanceHidden) {
+            binding.mainBalanceText.text = "••••••••"
+            
+            val maskedIncome = getString(R.string.home_income, "••••••••")
+            val maskedSpent = getString(R.string.home_spent, "••••••••")
+            val maskedLent = getString(R.string.home_lent, "••••••••")
+            
+            binding.incomeTotalText.text = maskedIncome
+            binding.spentTotalText.text  = maskedSpent
+            binding.lentTotalText.text   = maskedLent
+            binding.incomeTotalText2.text = maskedIncome
+            binding.spentTotalText2.text  = maskedSpent
+            binding.lentTotalText2.text   = maskedLent
+            
+            binding.btnToggleBalanceVisibility.setImageResource(R.drawable.ic_visibility_off)
+        } else {
+            binding.mainBalanceText.text = lastFormattedBalance
+            
+            binding.incomeTotalText.text = lastFormattedIncome
+            binding.spentTotalText.text  = lastFormattedSpentBadge
+            binding.lentTotalText.text   = lastFormattedLent
+            binding.incomeTotalText2.text = lastFormattedIncome
+            binding.spentTotalText2.text  = lastFormattedSpentBadge
+            binding.lentTotalText2.text   = lastFormattedLent
+            
+            binding.btnToggleBalanceVisibility.setImageResource(R.drawable.ic_visibility)
+        }
+    }
+
+    private fun handleBalanceVisibilityToggle() {
+        val biometricManager = androidx.biometric.BiometricManager.from(requireContext())
+        val authenticators = androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG or androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
+        
+        when (biometricManager.canAuthenticate(authenticators)) {
+            androidx.biometric.BiometricManager.BIOMETRIC_SUCCESS -> {
+                if (isBalanceHidden) {
+                    // Need authentication to unhide
+                    showBiometricPrompt()
+                } else {
+                    // Just hide it
+                    lifecycleScope.launch {
+                        settingsManager.setBoolean(SettingsManager.BALANCE_HIDDEN, true)
+                    }
+                }
+            }
+            androidx.biometric.BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> {
+                showSetupAuthDialog()
+            }
+            else -> {
+                // If it's something like NO_HARDWARE but they also haven't set a PIN
+                showSetupAuthDialog()
+            }
+        }
+    }
+
+    private fun showSetupAuthDialog() {
+        UIUtils.showAlertDialog(
+            requireContext(),
+            getString(R.string.auth_required_title),
+            getString(R.string.auth_required_msg),
+            getString(R.string.btn_go_to_settings),
+            getString(R.string.dialog_cancel)
+        ) {
+            val intent = android.content.Intent(android.provider.Settings.ACTION_SECURITY_SETTINGS)
+            startActivity(intent)
+        }
+    }
+
+    private fun showBiometricPrompt() {
+        val executor = ContextCompat.getMainExecutor(requireContext())
+        val biometricPrompt = BiometricPrompt(this, executor,
+            object : BiometricPrompt.AuthenticationCallback() {
+                override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                    super.onAuthenticationError(errorCode, errString)
+                    UIUtils.showErrorSnackbar(binding.root, "Authentication error: $errString")
+                }
+
+                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                    super.onAuthenticationSucceeded(result)
+                    lifecycleScope.launch {
+                        settingsManager.setBoolean(SettingsManager.BALANCE_HIDDEN, false)
+                    }
+                }
+
+                override fun onAuthenticationFailed() {
+                    super.onAuthenticationFailed()
+                    UIUtils.showErrorSnackbar(binding.root, "Authentication failed")
+                }
+            })
+
+        val promptInfo = BiometricPrompt.PromptInfo.Builder()
+            .setTitle(getString(R.string.biometric_unhide_title))
+            .setSubtitle(getString(R.string.biometric_unhide_subtitle))
+            .setAllowedAuthenticators(androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG or androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL)
+            .build()
+
+        biometricPrompt.authenticate(promptInfo)
     }
 
     // ── Sign-out ────────────────────────────────────────────────────────────

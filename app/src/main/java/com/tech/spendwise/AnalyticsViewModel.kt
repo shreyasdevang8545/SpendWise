@@ -136,21 +136,33 @@ class AnalyticsViewModel(application: Application) : AndroidViewModel(applicatio
     fun getWeekdayPattern(): Map<Int, Double> {
         val month = _selectedMonth.value ?: return emptyMap()
         val year = _selectedYear.value ?: return emptyMap()
-        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         val pattern = mutableMapOf<Int, Double>()
         
         _transactions.value?.filter { 
             it.type == "DEBIT" && isSameMonth(it.savedAt, year, month + 1)
         }?.forEach { t ->
-            try {
-                val date = sdf.parse(t.savedAt.substring(0, 10))
+            val date = parseRobustly(t.savedAt)
+            if (date != null) {
                 val cal = Calendar.getInstance()
-                cal.time = date!!
+                cal.time = date
                 val dow = cal.get(Calendar.DAY_OF_WEEK) // 1=Sun, 2=Mon...
                 pattern[dow] = (pattern[dow] ?: 0.0) + t.amount
-            } catch (e: Exception) {}
+            }
         }
         return pattern
+    }
+
+    private fun parseRobustly(savedAt: String): Date? {
+        if (savedAt.length < 10) return null
+        val formats = listOf("yyyy-MM-dd", "dd-MM-yyyy", "yyyy/MM/dd", "dd/MM/yyyy")
+        for (f in formats) {
+            try {
+                val sdf = SimpleDateFormat(f, Locale.getDefault())
+                sdf.isLenient = false
+                return sdf.parse(savedAt.substring(0, 10))
+            } catch (e: Exception) {}
+        }
+        return null
     }
 
     fun getTopMerchants(): List<Triple<String, Int, Double>> {
@@ -206,9 +218,17 @@ class AnalyticsViewModel(application: Application) : AndroidViewModel(applicatio
     private fun isSameMonth(savedAt: String, year: Int, month: Int): Boolean {
         if (savedAt.length < 7) return false
         return try {
-            val y = savedAt.substring(0, 4).toInt()
-            val m = savedAt.substring(5, 7).toInt()
-            y == year && m == month
+            if (savedAt[4] == '-' || savedAt[4] == '/') {
+                // YYYY-MM
+                val y = savedAt.substring(0, 4).toInt()
+                val m = savedAt.substring(5, 7).toInt()
+                y == year && m == month
+            } else {
+                // DD-MM-YYYY
+                val m = savedAt.substring(3, 5).toInt()
+                val y = savedAt.substring(6, 10).toInt()
+                y == year && m == month
+            }
         } catch (e: Exception) { false }
     }
 }

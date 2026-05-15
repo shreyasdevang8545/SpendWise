@@ -2,6 +2,7 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="background_dark">#0F0F0F</color>
 
     <!-- SpendWise Design System Colors (Defaulting to Dark) -->
     <color name="primary_green">#6CDB94</color>
@@ -30,4 +31,5 @@
     <color name="guide_bg_green">#E8F5E9</color>
     <color name="guide_stroke_green">#C8E6C9</color>
     <color name="guide_text_green">#1B5E20</color>
+    <color name="guide_icon_green">#033226</color>
 </resources>

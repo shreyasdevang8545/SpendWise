@@ -32,6 +32,12 @@ class SettingsManager(private val context: Context) {
         // Budget Alerts
         val OVERALL_BUDGET_LIMIT = floatPreferencesKey("overall_budget_limit")
         val CATEGORY_BUDGET_LIMITS = stringPreferencesKey("category_budget_limits") // stored as JSON
+        
+        val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
+        val BALANCE_HIDDEN = booleanPreferencesKey("balance_hidden")
+        val IS_PRO_USER = booleanPreferencesKey("is_pro_user")
+        val PRO_PLAN_TYPE = stringPreferencesKey("pro_plan_type")
+        val PRO_EXPIRY_DATE = longPreferencesKey("pro_expiry_date")
     }
 
     val smsAutoScan: Flow<Boolean> = context.dataStore.data.map { it[SMS_AUTO_SCAN] ?: true }
@@ -50,6 +56,12 @@ class SettingsManager(private val context: Context) {
 
     val overallBudgetLimit: Flow<Float> = context.dataStore.data.map { it[OVERALL_BUDGET_LIMIT] ?: 0f }
     val categoryBudgetLimits: Flow<String> = context.dataStore.data.map { it[CATEGORY_BUDGET_LIMITS] ?: "{}" }
+    val onboardingCompleted: Flow<Boolean> = context.dataStore.data.map { it[ONBOARDING_COMPLETED] ?: false }
+    val balanceHidden: Flow<Boolean> = context.dataStore.data.map { it[BALANCE_HIDDEN] ?: false }
+    val currency: Flow<String> = context.dataStore.data.map { it[CURRENCY] ?: "₹" }
+    val isProUser: Flow<Boolean> = context.dataStore.data.map { it[IS_PRO_USER] ?: false }
+    val proPlanType: Flow<String> = context.dataStore.data.map { it[PRO_PLAN_TYPE] ?: "" }
+    val proExpiryDate: Flow<Long> = context.dataStore.data.map { it[PRO_EXPIRY_DATE] ?: 0L }
 
     suspend fun setBoolean(key: Preferences.Key<Boolean>, value: Boolean) {
         context.dataStore.edit { it[key] = value }
@@ -64,6 +76,10 @@ class SettingsManager(private val context: Context) {
     }
 
     suspend fun setInt(key: Preferences.Key<Int>, value: Int) {
+        context.dataStore.edit { it[key] = value }
+    }
+
+    suspend fun setLong(key: Preferences.Key<Long>, value: Long) {
         context.dataStore.edit { it[key] = value }
     }
 

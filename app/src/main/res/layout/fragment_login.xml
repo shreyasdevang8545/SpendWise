@@ -120,6 +120,18 @@
  
     </com.google.android.material.textfield.TextInputLayout>
 
+    <TextView
+        android:id="@+id/forgotPasswordText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:layout_marginTop="4dp"
+        android:text="Forgot Password?"
+        android:textColor="@color/primary_green"
+        android:textStyle="bold"
+        android:textSize="14sp"
+        android:padding="4dp" />
+
     <!-- Sign In Button -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/signInButton"

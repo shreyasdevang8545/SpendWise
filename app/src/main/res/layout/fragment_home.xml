@@ -31,16 +31,39 @@
                 android:backgroundTint="@color/dark_header_green"
                 android:padding="24dp">
 
-                <TextView
-                    android:id="@+id/appTitle"
+                <LinearLayout
+                    android:id="@+id/titleContainer"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="SpendWise"
-                    android:textColor="@color/white"
-                    android:textSize="24sp"
-                    android:textStyle="bold"
+                    android:gravity="center_vertical"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
+                    app:layout_constraintTop_toTopOf="parent">
+
+                    <TextView
+                        android:id="@+id/appTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="SpendWise"
+                        android:textColor="@color/white"
+                        android:textSize="24sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/proBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:background="@drawable/bg_badge"
+                        android:backgroundTint="@color/guide_bg_green"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="2dp"
+                        android:text="PRO"
+                        android:textColor="#121212"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        android:visibility="gone"
+                        tools:visibility="visible" />
+                </LinearLayout>
 
         <FrameLayout
             android:id="@+id/notificationContainer"
@@ -103,7 +126,7 @@
                     android:textSize="18sp"
                     android:textStyle="bold"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/appTitle"
+                    app:layout_constraintTop_toBottomOf="@id/titleContainer"
                     tools:text="Good Morning, Shreyas!"
                     tools:visibility="visible" />
 
@@ -135,17 +158,36 @@
                     app:layout_constraintTop_toBottomOf="@id/mainBalanceLabel"
                     tools:text="MARCH 2026" />
 
-                <TextView
-                    android:id="@+id/mainBalanceText"
+                <LinearLayout
+                    android:id="@+id/mainBalanceTextContainer"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:textColor="@color/white"
-                    android:textSize="44sp"
-                    android:textStyle="bold"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/headerMonthLabel"
-                    tools:text="₹84,320" />
+                    app:layout_constraintTop_toBottomOf="@id/headerMonthLabel">
+
+                    <TextView
+                        android:id="@+id/mainBalanceText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/white"
+                        android:textSize="44sp"
+                        android:textStyle="bold"
+                        tools:text="₹84,320" />
+
+                    <ImageView
+                        android:id="@+id/btnToggleBalanceVisibility"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:layout_marginStart="12dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:padding="4dp"
+                        android:src="@drawable/ic_visibility"
+                        app:tint="@color/white" />
+
+                </LinearLayout>
 
                     <HorizontalScrollView
                         android:id="@+id/badgeScrollView"
@@ -153,7 +195,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="14dp"
                         android:scrollbars="none"
-                        app:layout_constraintTop_toBottomOf="@id/mainBalanceText">
+                        app:layout_constraintTop_toBottomOf="@id/mainBalanceTextContainer">
 
                         <LinearLayout
                             android:id="@+id/badgeRow"

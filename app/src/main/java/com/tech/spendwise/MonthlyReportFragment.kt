@@ -146,21 +146,36 @@ class MonthlyReportFragment : Fragment() {
     private fun saveAndOpenHtmlReport(transactions: List<JsonObject>, month: String, year: Int) {
         try {
             val html = buildHtmlReport(transactions, month, year)
-            val dir = File(requireContext().filesDir, "reports")
-            if (!dir.exists()) dir.mkdirs()
-            val file = File(dir, "Report_${month}_${year}.html")
             
-            FileOutputStream(file).use { it.write(html.toByteArray()) }
+            binding.webView.settings.javaScriptEnabled = true
+            binding.webView.settings.domStorageEnabled = true
+            binding.webView.loadDataWithBaseURL(null, html, "text/html", "UTF-8", null)
             
-            val uri = FileProvider.getUriForFile(requireContext(), "${requireContext().packageName}.fileprovider", file)
-            val intent = Intent(Intent.ACTION_VIEW).apply {
-                setDataAndType(uri, "text/html")
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            binding.webView.visibility = View.VISIBLE
+            binding.fabExport.visibility = View.VISIBLE
+            
+            // Smooth scroll down to the report
+            binding.webView.postDelayed({
+                binding.nestedScrollView.smoothScrollTo(0, binding.webView.top)
+            }, 500)
+            
+            binding.fabExport.setOnClickListener {
+                exportToPdf(month, year)
             }
-            startActivity(Intent.createChooser(intent, getString(R.string.title_open_report)))
             
         } catch (e: Exception) {
             Toast.makeText(requireContext(), getString(R.string.error_updating_name, e.localizedMessage ?: getString(R.string.label_unknown)), Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun exportToPdf(month: String, year: Int) {
+        try {
+            val printManager = requireContext().getSystemService(android.content.Context.PRINT_SERVICE) as android.print.PrintManager
+            val jobName = "SpendWise_Report_${month}_${year}"
+            val printAdapter = binding.webView.createPrintDocumentAdapter(jobName)
+            printManager.print(jobName, printAdapter, android.print.PrintAttributes.Builder().build())
+        } catch (e: Exception) {
+            Toast.makeText(requireContext(), "Failed to export PDF", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -200,167 +215,369 @@ class MonthlyReportFragment : Fragment() {
         var totalIncome = 0.0
         var totalExpense = 0.0
         val categoryMap = mutableMapOf<String, Double>()
+        val dailyIncomeMap = mutableMapOf<Int, Double>()
+        val dailyExpenseMap = mutableMapOf<Int, Double>()
 
-        for (tx in transactions) {
-            val amount = tx["amount"]?.jsonPrimitive?.content?.toDoubleOrNull() ?: 0.0
-            val type = tx["type"]?.jsonPrimitive?.content ?: "Expense"
-            val category = tx["category"]?.jsonPrimitive?.content ?: getString(R.string.label_unknown)
-
-            if (type == "Income") {
-                totalIncome += amount
-            } else {
-                totalExpense += amount
-                categoryMap[category] = (categoryMap[category] ?: 0.0) + amount
-            }
-        }
-
-        val sortedCategories = categoryMap.entries.sortedByDescending { it.value }
-        val rows = StringBuilder()
         val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
         val displaySdf = SimpleDateFormat("dd MMM", Locale.getDefault())
-        
+        val cal = Calendar.getInstance()
+
+        val rows = StringBuilder()
+
         for (tx in transactions) {
+            val amountRaw = tx["amount"]?.jsonPrimitive?.content?.toDoubleOrNull() ?: 0.0
+            val amount = Math.abs(amountRaw)
+            val type = tx["type"]?.jsonPrimitive?.content ?: "DEBIT"
+            val isIncome = type.equals("Income", true) || type.equals("CREDIT", true)
+            val category = tx["category"]?.jsonPrimitive?.content ?: "Unknown"
+            
             val savedAtStr = tx["saved_at"]?.jsonPrimitive?.content ?: ""
             val date = try {
                 sdf.parse(savedAtStr) ?: Date(tx["saved_at"]?.jsonPrimitive?.long ?: 0L)
             } catch (e: Exception) {
                 Date(tx["saved_at"]?.jsonPrimitive?.long ?: 0L)
             }
+            
+            cal.time = date
+            val dayOfMonth = cal.get(Calendar.DAY_OF_MONTH)
+
+            if (isIncome) {
+                totalIncome += amount
+                dailyIncomeMap[dayOfMonth] = (dailyIncomeMap[dayOfMonth] ?: 0.0) + amount
+            } else {
+                totalExpense += amount
+                categoryMap[category] = (categoryMap[category] ?: 0.0) + amount
+                dailyExpenseMap[dayOfMonth] = (dailyExpenseMap[dayOfMonth] ?: 0.0) + amount
+            }
+
             val dateStr = displaySdf.format(date)
             val merchant = tx["merchant"]?.jsonPrimitive?.content ?: "-"
-            val amountRaw = tx["amount"]?.jsonPrimitive?.content?.toDoubleOrNull() ?: 0.0
-            val amount = Math.abs(amountRaw).toInt()
-            val type = tx["type"]?.jsonPrimitive?.content ?: "Expense"
-            val color = if (type == "Income") "#4CAF50" else "#F44336"
+            val color = if (isIncome) "#00E676" else "#FF5252"
             
             rows.append("""
                 <tr>
                     <td>$dateStr</td>
                     <td>$merchant</td>
-                    <td>${tx["category"]?.jsonPrimitive?.content ?: "-"}</td>
-                    <td style="color: $color; font-weight: bold;">${if (type == "Income") "+" else "-"}$amount</td>
+                    <td><span class="category-badge">$category</span></td>
+                    <td style="color: $color; font-weight: 700; text-align: right;">${if (isIncome) "+" else "-"}₹${amount.toInt()}</td>
                 </tr>
             """.trimIndent())
         }
 
-        val categoryRows = StringBuilder()
-        for (entry in sortedCategories) {
-            val percentage = if (totalExpense > 0) (entry.value / totalExpense * 100).toInt() else 0
-            categoryRows.append("""
-                <div style="margin-bottom: 8px;">
-                    <div style="display: flex; justify-content: space-between;">
-                        <span>${entry.key}</span>
-                        <span>₹${entry.value.toInt()} ($percentage%)</span>
-                    </div>
-                    <div style="width: 100%; height: 8px; background: #eee; border-radius: 4px; overflow: hidden; margin-top: 4px;">
-                        <div style="width: ${percentage}%; height: 100%; background: #2E7D32;"></div>
-                    </div>
-                </div>
-            """.trimIndent())
-        }
+        val sortedCategories = categoryMap.entries.sortedByDescending { it.value }
+        val categoryLabels = sortedCategories.map { "\"${it.key}\"" }.joinToString(",")
+        val categoryData = sortedCategories.map { it.value }.joinToString(",")
+        
+        // Colors for Donut Chart
+        val chartColors = listOf(
+            "'#6C63FF'", "'#FF6584'", "'#4CAF50'", "'#FFD700'", "'#00BCD4'", 
+            "'#FF9800'", "'#9C27B0'", "'#009688'", "'#E91E63'", "'#3F51B5'"
+        )
+        val categoryColors = sortedCategories.mapIndexed { index, _ -> chartColors[index % chartColors.size] }.joinToString(",")
+        
+        var maxDay = 31
+        try {
+            val monthIndex = SimpleDateFormat("MMMM", Locale.getDefault()).parse(month)?.month ?: 0
+            cal.set(Calendar.YEAR, year)
+            cal.set(Calendar.MONTH, monthIndex)
+            cal.set(Calendar.DAY_OF_MONTH, 1)
+            maxDay = cal.getActualMaximum(Calendar.DAY_OF_MONTH)
+        } catch (e: Exception) {}
 
-        // Convert logo to Base64 for external browser
-        val base64Logo = try {
-            val inputStream = resources.openRawResource(requireContext().resources.getIdentifier("app_logo", "drawable", requireContext().packageName))
-            val bytes = inputStream.readBytes()
-            android.util.Base64.encodeToString(bytes, android.util.Base64.NO_WRAP)
-        } catch (e: Exception) { "" }
+        val daysList = (1..maxDay).toList()
+        val dailyIncomeData = daysList.map { dailyIncomeMap[it] ?: 0.0 }.joinToString(",")
+        val dailyExpenseData = daysList.map { dailyExpenseMap[it] ?: 0.0 }.joinToString(",")
+        val daysLabels = daysList.map { "\"$it\"" }.joinToString(",")
 
         val savings = totalIncome - totalExpense
-        val savingsColor = if (savings >= 0) "#1565C0" else "#C62828"
+        val savingsColor = if (savings >= 0) "#00E676" else "#FF5252"
 
-        val labelExportPdf = getString(R.string.btn_export_pdf)
-        val labelReport = getString(R.string.title_report)
-        val labelSummary = getString(R.string.label_summary)
-        val labelTotalIncome = getString(R.string.label_total_income)
-        val labelTotalExpense = getString(R.string.label_total_expense)
-        val labelNetSavings = if (savings >= 0) getString(R.string.label_net_savings) else getString(R.string.label_deficit)
-        val labelCategoryBreakdown = getString(R.string.label_category_breakdown)
-        val labelTransactions = getString(R.string.label_transactions)
-        val labelDate = getString(R.string.label_date)
-        val labelMerchant = getString(R.string.label_merchant)
-        val labelCategory = getString(R.string.label_category)
-        val labelAmount = getString(R.string.label_amount)
         val msgGeneratedAt = getString(R.string.msg_generated_by_spendwise, SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault()).format(Date()))
 
         return """
-            <html>
+            <!DOCTYPE html>
+            <html lang="en">
             <head>
-                <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>SpendWise Report - $month $year</title>
+                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
                 <style>
-                    body { font-family: 'Nunito', sans-serif; color: #333; padding: 20px; line-height: 1.6; background-color: #fdfdfd; }
-                    .header { text-align: center; margin-bottom: 30px; }
-                    .logo { height: 80px; margin-bottom: 10px; }
-                    .summary-card { background: #fff; padding: 25px; border-radius: 16px; margin-bottom: 30px; display: flex; justify-content: space-around; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-                    .summary-item { text-align: center; }
-                    .summary-value { font-size: 24px; font-weight: bold; margin-top: 5px; }
-                    .income { color: #2E7D32; }
-                    .expense { color: #C62828; }
-                    .savings { color: $savingsColor; }
-                    table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.03); }
-                    th, td { text-align: left; padding: 15px; border-bottom: 1px solid #f0f0f0; }
-                    th { color: #888; font-size: 13px; text-transform: uppercase; background: #fafafa; }
-                    .section-title { font-size: 18px; font-weight: bold; margin: 30px 0 15px 0; border-left: 5px solid #2E7D32; padding-left: 12px; }
-                    .export-btn { 
-                        position: fixed; bottom: 30px; right: 30px; 
-                        background: #2E7D32; color: #fff; border: none; 
-                        padding: 15px 30px; border-radius: 50px; 
-                        font-weight: bold; cursor: pointer; 
-                        box-shadow: 0 10px 20px rgba(46,125,50,0.3);
-                        font-family: 'Nunito', sans-serif;
-                        font-size: 16px;
+                    * { box-sizing: border-box; }
+                    :root {
+                        --bg-color: #0F172A;
+                        --card-bg: #1E293B;
+                        --text-primary: #F8FAFC;
+                        --text-secondary: #94A3B8;
+                        --accent-green: #00E676;
+                        --accent-red: #FF5252;
+                        --border-color: #334155;
                     }
-                    @media print {
-                        .export-btn { display: none; }
-                        body { background: #fff; }
+                    body { 
+                        font-family: 'Inter', sans-serif; 
+                        background-color: var(--bg-color); 
+                        color: var(--text-primary); 
+                        margin: 0; 
+                        padding: 16px; 
+                        width: 100%;
+                    }
+                    .dashboard {
+                        max-width: 1200px;
+                        margin: 0 auto;
+                        display: flex;
+                        flex-direction: column;
+                        gap: 20px;
+                        width: 100%;
+                    }
+                    @media (min-width: 768px) {
+                        .dashboard { display: grid; grid-template-columns: repeat(2, 1fr); }
+                        .full-width { grid-column: 1 / -1; }
+                    }
+                    .header {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                    }
+                    .title h1 { margin: 0; font-size: 24px; font-weight: 700; color: #fff; }
+                    .title p { margin: 4px 0 0; color: var(--text-secondary); font-size: 14px; }
+                    .export-btn {
+                        background: linear-gradient(135deg, #6366F1, #8B5CF6);
+                        color: white;
+                        border: none;
+                        padding: 10px 20px;
+                        border-radius: 8px;
+                        font-weight: 600;
+                        font-family: 'Inter', sans-serif;
+                        cursor: pointer;
+                        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+                        transition: transform 0.2s;
+                    }
+                    .export-btn:active { transform: scale(0.95); }
+                    @media print { 
+                        .export-btn { display: none; } 
+                        * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } 
+                        body { padding: 0; margin: 0; width: 100%; }
+                        .dashboard { display: flex; flex-direction: column; width: 100%; gap: 16px; }
+                        .card { width: 100%; page-break-inside: avoid; break-inside: avoid; padding: 16px; }
+                        .chart-container { height: 250px; }
+                        table { font-size: 11px; }
+                        th, td { padding: 10px 4px; }
+                    }
+                    .card {
+                        background: var(--card-bg);
+                        border-radius: 16px;
+                        padding: 24px;
+                        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+                        border: 1px solid var(--border-color);
+                    }
+                    .summary-grid {
+                        display: grid;
+                        grid-template-columns: repeat(3, 1fr);
+                        gap: 16px;
+                    }
+                    .summary-item {
+                        text-align: center;
+                    }
+                    .summary-label {
+                        font-size: 12px;
+                        text-transform: uppercase;
+                        letter-spacing: 1px;
+                        color: var(--text-secondary);
+                        margin-bottom: 8px;
+                    }
+                    .summary-val {
+                        font-size: 24px;
+                        font-weight: 700;
+                    }
+                    .chart-container {
+                        position: relative;
+                        height: 300px;
+                        width: 100%;
+                    }
+                    .card-title {
+                        font-size: 16px;
+                        font-weight: 600;
+                        margin: 0 0 20px 0;
+                        color: var(--text-primary);
+                    }
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                    }
+                    th, td {
+                        padding: 16px 12px;
+                        text-align: left;
+                        border-bottom: 1px solid var(--border-color);
+                    }
+                    th {
+                        color: var(--text-secondary);
+                        font-size: 12px;
+                        text-transform: uppercase;
+                        letter-spacing: 0.5px;
+                    }
+                    tr:last-child td { border-bottom: none; }
+                    .category-badge {
+                        background: rgba(148, 163, 184, 0.1);
+                        color: var(--text-secondary);
+                        padding: 4px 10px;
+                        border-radius: 20px;
+                        font-size: 12px;
+                        font-weight: 500;
+                    }
+                    .footer {
+                        text-align: center;
+                        margin-top: 32px;
+                        color: var(--text-secondary);
+                        font-size: 12px;
                     }
                 </style>
             </head>
             <body>
-                <button class="export-btn" onclick="window.print()">$labelExportPdf</button>
+                <div class="dashboard">
+                    <div class="header full-width">
+                        <div class="title">
+                            <h1>SpendWise Report</h1>
+                            <p>$month $year Analytics Dashboard</p>
+                        </div>
+                    </div>
 
-                <div class="header">
-                    ${if (base64Logo.isNotEmpty()) "<img class='logo' src='data:image/png;base64,$base64Logo'>" else ""}
-                    <h1 style="margin: 0; color: #2E7D32; font-weight: 700;">$labelReport</h1>
-                    <p style="margin: 5px 0; color: #666;">$month $year $labelSummary</p>
+                    <div class="card full-width summary-grid">
+                        <div class="summary-item">
+                            <div class="summary-label">Total Income</div>
+                            <div class="summary-val" style="color: var(--accent-green);">₹${totalIncome.toInt()}</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-label">Total Expense</div>
+                            <div class="summary-val" style="color: var(--accent-red);">₹${totalExpense.toInt()}</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-label">Net Savings</div>
+                            <div class="summary-val" style="color: $savingsColor;">₹${Math.abs(savings).toInt()}</div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h2 class="card-title">Expense Breakdown</h2>
+                        <div class="chart-container">
+                            ${if (totalExpense > 0) "<canvas id='categoryChart'></canvas>" else "<div style='display:flex; height:100%; align-items:center; justify-content:center; color:var(--text-secondary);'>No expenses this month</div>"}
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h2 class="card-title">Daily Cash Flow</h2>
+                        <div class="chart-container">
+                            <canvas id="dailyChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="card full-width">
+                        <h2 class="card-title">Transaction History</h2>
+                        <div style="overflow-x: auto;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Merchant</th>
+                                        <th>Category</th>
+                                        <th style="text-align: right;">Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    $rows
+                                </tbody>
+                            </table>
+                            ${if (transactions.isEmpty()) "<div style='text-align:center; padding: 20px; color:var(--text-secondary);'>No transactions found.</div>" else ""}
+                        </div>
+                    </div>
                 </div>
-                
-                <div class="summary-card">
-                    <div class="summary-item">
-                        <div style="color: #666; font-size: 12px; letter-spacing: 1px;">$labelTotalIncome</div>
-                        <div class="summary-value income">₹${totalIncome.toInt()}</div>
-                    </div>
-                    <div class="summary-item">
-                        <div style="color: #666; font-size: 12px; letter-spacing: 1px;">$labelTotalExpense</div>
-                        <div class="summary-value expense">₹${totalExpense.toInt()}</div>
-                    </div>
-                    <div class="summary-item">
-                        <div style="color: #666; font-size: 12px; letter-spacing: 1px;">$labelNetSavings</div>
-                        <div class="summary-value savings">₹${Math.abs(savings).toInt()}</div>
-                    </div>
-                </div>
 
-                <div class="section-title">$labelCategoryBreakdown</div>
-                $categoryRows
-
-                <div class="section-title">$labelTransactions</div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>$labelDate</th>
-                            <th>$labelMerchant</th>
-                            <th>$labelCategory</th>
-                            <th>$labelAmount</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        $rows
-                    </tbody>
-                </table>
-                
-                <div style="margin-top: 50px; text-align: center; color: #aaa; font-size: 12px;">
+                <div class="footer">
                     $msgGeneratedAt
                 </div>
+
+                <script>
+                    Chart.defaults.color = '#94A3B8';
+                    Chart.defaults.font.family = "'Inter', sans-serif";
+
+                    // Category Donut Chart
+                    const categoryCtx = document.getElementById('categoryChart');
+                    if (categoryCtx) {
+                        new Chart(categoryCtx, {
+                            type: 'doughnut',
+                            data: {
+                                labels: [$categoryLabels],
+                                datasets: [{
+                                    data: [$categoryData],
+                                    backgroundColor: [$categoryColors],
+                                    borderWidth: 0,
+                                    hoverOffset: 4
+                                }]
+                            },
+                            options: {
+                                animation: false,
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                cutout: '75%',
+                                plugins: {
+                                    legend: { position: 'right', labels: { usePointStyle: true, padding: 20 } },
+                                    tooltip: {
+                                        callbacks: {
+                                            label: function(context) {
+                                                return ' ₹' + context.raw;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    }
+
+                    // Daily Bar Chart
+                    const dailyCtx = document.getElementById('dailyChart');
+                    if (dailyCtx) {
+                        new Chart(dailyCtx, {
+                            type: 'bar',
+                            data: {
+                                labels: [$daysLabels],
+                                datasets: [
+                                    {
+                                        label: 'Expense',
+                                        data: [$dailyExpenseData],
+                                        backgroundColor: '#FF5252',
+                                        borderRadius: 4
+                                    },
+                                    {
+                                        label: 'Income',
+                                        data: [$dailyIncomeData],
+                                        backgroundColor: '#00E676',
+                                        borderRadius: 4
+                                    }
+                                ]
+                            },
+                            options: {
+                                animation: false,
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                interaction: { mode: 'index', intersect: false },
+                                scales: {
+                                    x: { grid: { display: false, drawBorder: false } },
+                                    y: { grid: { color: '#334155', drawBorder: false }, beginAtZero: true }
+                                },
+                                plugins: {
+                                    legend: { position: 'top', labels: { usePointStyle: true } },
+                                    tooltip: {
+                                        callbacks: {
+                                            label: function(context) {
+                                                return context.dataset.label + ': ₹' + context.raw;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    }
+                </script>
             </body>
             </html>
         """.trimIndent()

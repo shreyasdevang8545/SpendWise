@@ -12,7 +12,7 @@ class SelectionBottomSheet(
 ) : BottomSheetDialogFragment() {
 
     enum class SelectionOption {
-        TRANSACTION, LEND, HISTORY, SPLITWISE //, CREDIT_CARD
+        TRANSACTION, LEND, SPLITWISE //, CREDIT_CARD
     }
 
 
@@ -41,10 +41,7 @@ class SelectionBottomSheet(
             dismiss()
         }
 
-        binding.optionLendHistory.setOnClickListener {
-            onOptionSelected(SelectionOption.HISTORY)
-            dismiss()
-        }
+
 
         binding.optionSplitExpense.setOnClickListener {
             onOptionSelected(SelectionOption.SPLITWISE)

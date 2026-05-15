@@ -9,6 +9,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.first
+import org.json.JSONObject
 import kotlin.text.toDoubleOrNull
 
 class ReminderReceiver : BroadcastReceiver() {
@@ -46,36 +47,64 @@ class ReminderReceiver : BroadcastReceiver() {
                     return@launch
                 }
 
+                val isRecurring = intent.getBooleanExtra("is_recurring", false)
+                if (isRecurring) {
+                    val merchant = intent.getStringExtra("merchant") ?: "Transaction"
+                    val amount = intent.getDoubleExtra("amount", 0.0)
+                    val category = intent.getStringExtra("category") ?: "Expense"
+                    
+                    showRecurringNotification(context, merchant, amount, category)
+                    
+                    // Reschedule for next month
+                    val originalJson = intent.getStringExtra("transaction_json")
+                    if (originalJson != null) {
+                        ReminderManager.scheduleRecurringTransaction(context, originalJson)
+                    }
+                    return@launch
+                }
+
                 if (lendId == null) return@launch
+
+                val lendName = intent.getStringExtra("lend_name") ?: "Lend"
+                val lendAmount = intent.getDoubleExtra("lend_amount", 0.0)
 
                 Log.d("ReminderReceiver", "Fetching lend data for ID: $lendId")
                 val lend = repository.getLendById(lendId)
-                if (lend != null) {
-                    Log.d("ReminderReceiver", "Lend found: ${lend.name}, isReturned: ${lend.isReturned}")
-                    if (!lend.isReturned) {
-                        withContext(Dispatchers.Main) {
-                            Log.d("ReminderReceiver", "Showing notification for: ${lend.name}")
-                            showNotification(context, lend)
-                        }
-                        
-                        // Reschedule for 24 hours later (persistent daily reminder)
-                        val cal = java.util.Calendar.getInstance()
-                        cal.timeInMillis = System.currentTimeMillis()
-                        cal.add(java.util.Calendar.DAY_OF_YEAR, 1)
-                        
-                        ReminderManager.scheduleReminder(
-                            context,
-                            lend.id!!,
-                            lend.name,
-                            lend.amount,
-                            cal.timeInMillis
-                        )
-                    } else {
-                        Log.d("ReminderReceiver", "Lend already returned. Stopping reminders.")
-                        ReminderManager.cancelReminder(context, lendId)
+                
+                val shouldShow = lend == null || !lend.isReturned
+
+                if (shouldShow) {
+                    val displayLend = lend ?: com.tech.spendwise.models.LendTransaction(
+                        id = lendId,
+                        name = lendName,
+                        amount = lendAmount,
+                        paymentMode = "Unknown",
+                        returnDate = 0L,
+                        isReturned = false,
+                        phoneNumber = null,
+                        note = null
+                    )
+
+                    withContext(Dispatchers.Main) {
+                        Log.d("ReminderReceiver", "Showing notification for: ${displayLend.name}")
+                        showNotification(context, displayLend)
                     }
+                    
+                    // Reschedule for 24 hours later (persistent daily reminder)
+                    val cal = java.util.Calendar.getInstance()
+                    cal.timeInMillis = System.currentTimeMillis()
+                    cal.add(java.util.Calendar.DAY_OF_YEAR, 1)
+                    
+                    ReminderManager.scheduleReminder(
+                        context,
+                        displayLend.id!!,
+                        displayLend.name,
+                        displayLend.amount,
+                        cal.timeInMillis
+                    )
                 } else {
-                    Log.e("ReminderReceiver", "Lend NOT found in repository for ID: $lendId")
+                    Log.d("ReminderReceiver", "Lend already returned. Stopping reminders.")
+                    ReminderManager.cancelReminder(context, lendId)
                 }
             } catch (e: Exception) {
                 Log.e("ReminderReceiver", "Error processing reminder: ${e.message}")
@@ -113,11 +142,14 @@ class ReminderReceiver : BroadcastReceiver() {
             context, lend.id.hashCode() + 2, tomorrowIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
+        val soundUri = android.net.Uri.parse(android.content.ContentResolver.SCHEME_ANDROID_RESOURCE + "://" + context.packageName + "/" + R.raw.google_notification)
+
         val notification = NotificationCompat.Builder(context, LEND_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_account_balance)
             .setContentTitle(context.getString(R.string.title_money_return_reminder))
             .setContentText(context.getString(R.string.msg_money_return_content, lend.name, lend.amount.toString()))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setSound(soundUri)
             .setAutoCancel(true)
             .setContentIntent(mainPendingIntent)
             .addAction(android.R.drawable.ic_menu_edit, context.getString(R.string.action_mark_returned), returnPendingIntent)
@@ -148,11 +180,14 @@ class ReminderReceiver : BroadcastReceiver() {
             context, DAILY_REMINDER_ID + 1, snoozeIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
+        val soundUri = android.net.Uri.parse(android.content.ContentResolver.SCHEME_ANDROID_RESOURCE + "://" + context.packageName + "/" + R.raw.google_notification)
+
         val notification = NotificationCompat.Builder(context, DAILY_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_account_balance)
             .setContentTitle(context.getString(R.string.title_add_your_expenses))
             .setContentText(context.getString(R.string.msg_log_spending_today))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setSound(soundUri)
             .setAutoCancel(true)
             .setContentIntent(mainPendingIntent)
             .addAction(R.drawable.ic_timer, context.getString(R.string.action_snooze), snoozePendingIntent)
@@ -169,9 +204,35 @@ class ReminderReceiver : BroadcastReceiver() {
         }
     }
 
+    private fun showRecurringNotification(context: Context, merchant: String, amount: Double, category: String) {
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        
+        val mainIntent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        val mainPendingIntent = PendingIntent.getActivity(
+            context, merchant.hashCode(), mainIntent, PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val soundUri = android.net.Uri.parse(android.content.ContentResolver.SCHEME_ANDROID_RESOURCE + "://" + context.packageName + "/" + R.raw.google_notification)
+
+        val notification = NotificationCompat.Builder(context, RECURRING_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_history)
+            .setContentTitle(context.getString(R.string.title_recurring_reminder))
+            .setContentText(context.getString(R.string.msg_recurring_content, merchant, "₹$amount"))
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setSound(soundUri)
+            .setAutoCancel(true)
+            .setContentIntent(mainPendingIntent)
+            .build()
+
+        notificationManager.notify(merchant.hashCode(), notification)
+    }
+
     companion object {
-        const val LEND_CHANNEL_ID = "lend_reminders"
-        const val DAILY_CHANNEL_ID = "daily_reminders"
+        const val LEND_CHANNEL_ID = "lend_reminders_v2"
+        const val DAILY_CHANNEL_ID = "daily_reminders_v2"
+        const val RECURRING_CHANNEL_ID = "recurring_reminders_v2"
         private const val DAILY_REMINDER_ID = 1001
         const val ACTION_SNOOZE_DAILY = "com.tech.spendwise.ACTION_SNOOZE_DAILY"
     }

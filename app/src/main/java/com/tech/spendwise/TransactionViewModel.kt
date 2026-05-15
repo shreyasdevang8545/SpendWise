@@ -110,10 +110,12 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
             }
             
             val uid = SupabaseInstance.currentUserId()
+            
             if (uid != null) {
                 try {
                     supabaseRepository.saveTransaction(json)
                     Log.d("TransactionVM", "Transaction synced successfully")
+                    fetchFromFirestore(forceRefresh = true)
                 } catch (e: Exception) {
                     Log.e("TransactionVM", "Sync failed: ${e.message}")
                     if (retryCount < 3) {
@@ -165,6 +167,7 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
             try {
                 val transactions = supabaseRepository.fetchRecentTransactions()
                 _firestoreTransactions.postValue(transactions)
+                ReminderManager.rescheduleAllRecurringTransactions(getApplication(), transactions)
                 
                 val lends = supabaseRepository.fetchLends()
                 _lends.postValue(lends)
@@ -186,14 +189,14 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
     fun deleteTransaction(id: String) {
         viewModelScope.launch {
             supabaseRepository.deleteTransaction(id)
-            fetchFromFirestore()
+            fetchFromFirestore(forceRefresh = true)
         }
     }
 
     fun deleteTransactionsBatch(ids: List<String>) {
         viewModelScope.launch {
             supabaseRepository.deleteTransactionsBatch(ids)
-            fetchFromFirestore()
+            fetchFromFirestore(forceRefresh = true)
         }
     }
 
@@ -209,7 +212,7 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
                 try {
                     supabaseRepository.saveLend(lend)
                     Log.d("TransactionVM", "Lend synced successfully ${lend.id}")
-                    fetchFromFirestore()
+                    fetchFromFirestore(forceRefresh = true)
                 } catch (e: Exception) {
                     Log.e("TransactionVM", "Lend Sync failed: ${e.message}")
                     // Fallback to local
@@ -259,7 +262,7 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
             try {
                 supabaseRepository.updateTransaction(id, json)
             } finally {
-                fetchFromFirestore()
+                fetchFromFirestore(forceRefresh = true)
             }
         }
     }
@@ -267,12 +270,18 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
     fun saveCreditCard(card: com.tech.spendwise.models.CreditCard) {
         viewModelScope.launch {
             _isLoading.postValue(true)
-            try {
-                supabaseRepository.saveCreditCard(card)
-                fetchFromFirestore()
-            } finally {
+            val uid = SupabaseInstance.currentUserId()
+            if (uid != null) {
+                try {
+                    supabaseRepository.saveCreditCard(card)
+                    fetchFromFirestore(forceRefresh = true)
+                } finally {
+                    _isLoading.postValue(false)
+                    updateWidgetSummary()
+                }
+            } else {
+                // Free users only save locally or we can just ignore for now if no local card storage exists
                 _isLoading.postValue(false)
-                updateWidgetSummary()
             }
         }
     }
@@ -280,7 +289,7 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
     fun deleteCreditCard(id: String) {
         viewModelScope.launch {
             supabaseRepository.deleteCreditCard(id)
-            fetchFromFirestore()
+            fetchFromFirestore(forceRefresh = true)
         }
     }
 

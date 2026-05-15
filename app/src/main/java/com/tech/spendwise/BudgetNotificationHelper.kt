@@ -12,7 +12,7 @@ import org.json.JSONObject
 
 object BudgetNotificationHelper {
 
-    private const val CHANNEL_ID = "budget_alerts_channel"
+    private const val CHANNEL_ID = "budget_alerts_channel_v2"
     private const val NOTIFICATION_ID_BASE = 5000
 
     suspend fun checkBudgetsAndNotify(context: Context, newTransactionJson: String) {
@@ -101,14 +101,22 @@ object BudgetNotificationHelper {
 
     private fun sendNotification(context: Context, title: String, message: String, notificationId: Int) {
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        
+        val soundUri = android.net.Uri.parse(android.content.ContentResolver.SCHEME_ANDROID_RESOURCE + "://" + context.packageName + "/" + R.raw.google_notification)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val audioAttributes = android.media.AudioAttributes.Builder()
+                .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .setUsage(android.media.AudioAttributes.USAGE_NOTIFICATION)
+                .build()
+                
             val channel = NotificationChannel(
                 CHANNEL_ID,
                 "Budget Alerts",
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "Notifications when you exceed your set budget limits."
+                setSound(soundUri, audioAttributes)
             }
             notificationManager.createNotificationChannel(channel)
         }
@@ -128,6 +136,7 @@ object BudgetNotificationHelper {
             .setContentText(message)
             .setStyle(NotificationCompat.BigTextStyle().bigText(message))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setSound(soundUri)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
             .build()

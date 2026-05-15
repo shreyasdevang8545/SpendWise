@@ -13,12 +13,12 @@ plugins {
 
 android {
     namespace = "com.tech.spendwise"
-    compileSdk = 36
+    compileSdk = 35
     defaultConfig {
         applicationId = "com.tech.spendwise"
         minSdk = 26
         targetSdk = 35
-        versionCode = 4
+        versionCode = 6
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -145,4 +145,10 @@ dependencies {
     // UI & Charts
     implementation(libs.lottie)
     implementation(libs.mpandroidchart)
+
+    // Billing
+    implementation(libs.billing.ktx)
+
+    // Play Core - In-App Updates
+    implementation("com.google.android.play:app-update-ktx:2.1.0")
 }

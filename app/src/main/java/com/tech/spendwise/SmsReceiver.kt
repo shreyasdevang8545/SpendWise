@@ -234,11 +234,14 @@ class SmsReceiver : BroadcastReceiver() {
             android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
         )
 
+        val soundUri = android.net.Uri.parse(android.content.ContentResolver.SCHEME_ANDROID_RESOURCE + "://" + context.packageName + "/" + R.raw.google_notification)
+
         val notification = androidx.core.app.NotificationCompat.Builder(context, MainActivity.TRANSACTION_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_account_balance)
             .setContentTitle(context.getString(R.string.msg_new_transaction_detected))
             .setContentText(contentText)
             .setPriority(androidx.core.app.NotificationCompat.PRIORITY_HIGH)
+            .setSound(soundUri)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
             .addAction(android.R.drawable.ic_menu_close_clear_cancel, context.getString(R.string.btn_ignore), ignorePendingIntent)

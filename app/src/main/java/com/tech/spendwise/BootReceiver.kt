@@ -56,6 +56,9 @@ class BootReceiver : BroadcastReceiver() {
                                 )
                             }
                         }
+                        // 5. Reschedule Recurring Transactions
+                        val transactions = repository.fetchRecentTransactions()
+                        ReminderManager.rescheduleAllRecurringTransactions(context, transactions)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()

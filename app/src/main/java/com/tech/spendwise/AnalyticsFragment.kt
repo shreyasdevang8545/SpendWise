@@ -14,6 +14,10 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
+import androidx.lifecycle.lifecycleScope
+import com.tech.spendwise.SettingsManager
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.github.mikephil.charting.components.XAxis
@@ -45,6 +49,27 @@ class AnalyticsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Hide UI initially to prevent flickering before gate
+        binding.root.visibility = View.INVISIBLE
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            val settingsManager = SettingsManager(requireContext())
+            settingsManager.isProUser.collect { isPro ->
+                if (!isPro) {
+                    val navOptions = androidx.navigation.NavOptions.Builder()
+                        .setPopUpTo(R.id.analyticsFragment, true)
+                        .build()
+                    findNavController().navigate(R.id.premiumFragment, null, navOptions)
+                } else {
+                    // Only initialize and show UI if Pro
+                    binding.root.visibility = View.VISIBLE
+                    initializeFeatures()
+                }
+            }
+        }
+    }
+
+    private fun initializeFeatures() {
         observeData()
         setupCharts()
 
@@ -129,9 +154,19 @@ class AnalyticsFragment : Fragment() {
         return spannable
     }
 
+    private var currencySymbol = "₹"
+
     private fun observeData() {
         transactionViewModel.allTransactions.observe(viewLifecycleOwner) { list ->
             viewModel.updateTransactions(list)
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            val sm = SettingsManager(requireContext())
+            sm.currency.collect { symbol ->
+                currencySymbol = symbol
+                updateStats()
+            }
         }
 
         viewModel.transactions.observe(viewLifecycleOwner) { transactions ->
@@ -176,18 +211,26 @@ class AnalyticsFragment : Fragment() {
         val income = viewModel.getMonthlyIncome()
         val avg = viewModel.getDailyAverage()
 
-        binding.tvTotalSpent.text = "₹${spent.toInt()}"
-        if (spent > 10000) { // Example budget
-            binding.tvTotalSpent.setTextColor(Color.RED)
+        binding.tvTotalSpent.text = "$currencySymbol${spent.toInt()}"
+        
+        // Dynamic budget coloring (e.g., alert if spent > 80% of income)
+        if (income > 0 && spent > income * 0.8) {
+            binding.tvTotalSpent.setTextColor(Color.parseColor("#FB7185")) // spent_indicator red
         } else {
             binding.tvTotalSpent.setTextColor(Color.WHITE)
         }
 
-        val rate = if (income > 0) ((income - spent) / income * 100).toInt() else 0
+        val rate = if (income > 0) {
+            (((income - spent) / income) * 100).toInt()
+        } else if (spent > 0) {
+            -100 // Indicate negative savings when there's spending but no income
+        } else {
+            0
+        }
         binding.tvSavingsRate.text = "$rate%"
-        binding.tvSavingsRate.setTextColor(if (rate > 20) Color.GREEN else if (rate > 0) Color.YELLOW else Color.RED)
+        binding.tvSavingsRate.setTextColor(if (rate > 30) Color.parseColor("#4ADE80") else if (rate > 10) Color.YELLOW else Color.parseColor("#FB7185"))
 
-        binding.tvDailyAverage.text = "₹${avg.toInt()}"
+        binding.tvDailyAverage.text = "$currencySymbol${avg.toInt()}"
 
         val cal = Calendar.getInstance()
         val currentMonth = cal.get(Calendar.MONTH)
@@ -204,7 +247,7 @@ class AnalyticsFragment : Fragment() {
             spent
         }
 
-        binding.tvForecasted.text = "₹${forecasted.toInt()}"
+        binding.tvForecasted.text = "$currencySymbol${forecasted.toInt()}"
     }
 
     private fun setupCharts() {
@@ -356,23 +399,50 @@ class AnalyticsFragment : Fragment() {
         // 9. WEEKDAY PATTERN (Bar Chart)
         val weekdayPattern = viewModel.getWeekdayPattern()
         val weekdayLabels = listOf("", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
+        
+        // Find max day for observation text
+        val maxDayEntry = weekdayPattern.maxByOrNull { it.value }
+        if (maxDayEntry != null && maxDayEntry.value > 0) {
+            val dayName = when(maxDayEntry.key) {
+                1 -> "Sunday"
+                2 -> "Monday"
+                3 -> "Tuesday"
+                4 -> "Wednesday"
+                5 -> "Thursday"
+                6 -> "Friday"
+                7 -> "Saturday"
+                else -> "N/A"
+            }
+            binding.tvWeekdayObservation.text = "You spend most on $dayName"
+        } else {
+            binding.tvWeekdayObservation.text = "Not enough data to determine a pattern"
+        }
+
         val weekdayEntries = (1..7).map { dow ->
             com.github.mikephil.charting.data.BarEntry(
                 dow.toFloat(),
-                weekdayPattern[dow]?.toFloat() ?: 0f,
-                weekdayLabels[dow]
+                weekdayPattern[dow]?.toFloat() ?: 0f
             )
         }
-        val weekdayDataSet = BarDataSet(weekdayEntries, "Avg Spending").apply {
+        val weekdayDataSet = BarDataSet(weekdayEntries, "Spending Pattern").apply {
             colors = (1..7).map { Color.parseColor("#43A047") }
             valueTextColor = Color.WHITE
+            setDrawValues(false)
         }
         binding.weekdayBarChart.apply {
             data = com.github.mikephil.charting.data.BarData(weekdayDataSet)
-            xAxis.valueFormatter =
-                com.github.mikephil.charting.formatter.IndexAxisValueFormatter(weekdayLabels)
-            xAxis.textColor = Color.WHITE
+            xAxis.apply {
+                valueFormatter = com.github.mikephil.charting.formatter.IndexAxisValueFormatter(weekdayLabels)
+                textColor = Color.WHITE
+                position = com.github.mikephil.charting.components.XAxis.XAxisPosition.BOTTOM
+                setDrawGridLines(false)
+                granularity = 1f
+                labelCount = 7
+            }
             axisLeft.textColor = Color.WHITE
+            axisRight.isEnabled = false
+            description.isEnabled = false
+            legend.isEnabled = false
             this.marker = marker
             invalidate()
         }

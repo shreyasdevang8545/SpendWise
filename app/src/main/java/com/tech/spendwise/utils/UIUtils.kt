@@ -8,20 +8,15 @@ import com.tech.spendwise.R
 object UIUtils {
 
     fun showSuccessSnackbar(view: View, message: String) {
-        Snackbar.make(view, message, Snackbar.LENGTH_SHORT)
-            .setBackgroundTint(ContextCompat.getColor(view.context, R.color.primary_green))
-            .show()
+        showStyledSnackbar(view, message, Snackbar.LENGTH_SHORT)
     }
 
     fun showErrorSnackbar(view: View, message: String) {
-        Snackbar.make(view, message, Snackbar.LENGTH_LONG)
-            .setBackgroundTint(ContextCompat.getColor(view.context, android.R.color.holo_red_dark))
-            .show()
+        showStyledSnackbar(view, message, Snackbar.LENGTH_LONG)
     }
 
     fun showInfoSnackbar(view: View, message: String) {
-        Snackbar.make(view, message, Snackbar.LENGTH_SHORT)
-            .show()
+        showStyledSnackbar(view, message, Snackbar.LENGTH_SHORT)
     }
 
     fun showActionSnackbar(
@@ -32,7 +27,18 @@ object UIUtils {
         onActionClick: () -> Unit
     ) {
         Snackbar.make(view, message, duration)
+            .setBackgroundTint(ContextCompat.getColor(view.context, R.color.chip_background))
+            .setTextColor(ContextCompat.getColor(view.context, R.color.text_primary))
+            .setActionTextColor(ContextCompat.getColor(view.context, R.color.primary_green))
             .setAction(actionText) { onActionClick() }
+            .show()
+    }
+
+    private fun showStyledSnackbar(view: View, message: String, duration: Int) {
+        Snackbar.make(view, message, duration)
+            .setBackgroundTint(ContextCompat.getColor(view.context, R.color.chip_background))
+            .setTextColor(ContextCompat.getColor(view.context, R.color.text_primary))
+            .setActionTextColor(ContextCompat.getColor(view.context, R.color.primary_green))
             .show()
     }
 

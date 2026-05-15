@@ -48,8 +48,8 @@
     <string name="reminder_scheduled_at">Reminder set for %1$02d:%2$02d</string>
 
     <!-- Data & Privacy Section -->
-    <string name="title_backup_restore">Backup &amp; restore</string>
-    <string name="subtitle_backup_restore">Export to CSV or Google Drive</string>
+    <string name="title_backup_restore">Export to Excel</string>
+    <string name="subtitle_backup_restore">Export transaction history to Excel (CSV)</string>
     <string name="title_security_lock">Security &amp; lock</string>
     <string name="subtitle_security_lock">PIN, fingerprint, app lock</string>
     <string name="title_data_on_device">Data stays on device</string>
@@ -136,6 +136,9 @@
     <string name="msg_name_updated">Name updated successfully</string>
     <string name="msg_cloud_sync_active">Cloud Sync is active</string>
     <string name="msg_support_coming_soon">Support coming soon!</string>
+    <string name="msg_coming_soon">Coming soon!</string>
+    <string name="title_recurring_reminder">Recurring Transaction Reminder</string>
+    <string name="msg_recurring_content">Don\'t forget about your recurring %1$s for %2$s!</string>
     <string name="msg_lend_saved_for">Lend saved for %1$s</string>
     <string name="msg_saved_details">Saved: ₹%1$s as %2$s at %3$s</string>
     <string name="msg_contacts_permission_needed">Contacts permission needed to pick a person</string>
@@ -344,6 +347,8 @@
     <string name="label_specify_other_method">Specify Other Method</string>
     <string name="label_is_lend_loan">Is this a Lend / Loan?</string>
     <string name="label_who_did_you_lend">Who did you lend to?</string>
+    <string name="label_recurring_transaction">Recurring Transaction</string>
+    <string name="desc_recurring_transaction">Remind me every month, one day prior</string>
 
     <!-- Descriptions / Subtitles Part 2 -->
     <string name="desc_add_transaction">Log your daily expenses manually</string>
@@ -436,4 +441,16 @@
     <string name="msg_no_internet">Please check your network settings and try again. The app requires an active connection for real-time updates.</string>
     <string name="btn_retry">Retry</string>
 
+    <string name="msg_reset_email_sent">Password reset email sent! Please check your inbox.</string>
+    <string name="error_enter_email_reset">Enter email to reset password</string>
+
+    <!-- Biometric -->
+    <string name="biometric_unhide_title">Unlock Balance</string>
+    <string name="biometric_unhide_subtitle">Authenticate to show your total spending amount</string>
+    <string name="auth_required_title">Security Lock Required</string>
+    <string name="auth_required_msg">To use the balance hiding feature, you must have a security lock (Biometric, PIN, or Pattern) set up on your device.</string>
+
+    <!-- App Updates -->
+    <string name="msg_update_downloaded">An update has just been downloaded.</string>
+    <string name="btn_restart">RESTART</string>
 </resources>

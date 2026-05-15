@@ -32,6 +32,11 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SpendWise">
 
+        <activity
+            android:name=".OnboardingActivity"
+            android:exported="false"
+            android:theme="@style/Theme.SpendWise" />
+
         <!-- ── AuthActivity (launcher — shows login/OTP before main app) ──── -->
         <activity
             android:name=".AuthActivity"
@@ -42,6 +47,15 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            
+            <!-- ── Deep Link: spendwise://auth for password reset redirects ── -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="spendwise" android:host="auth" />
+            </intent-filter>
+
             <nav-graph android:value="@navigation/auth_nav_graph" />
         </activity>
 

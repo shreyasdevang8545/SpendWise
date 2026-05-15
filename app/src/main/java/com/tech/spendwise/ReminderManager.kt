@@ -6,6 +6,10 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.util.Log
+import org.json.JSONObject
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
 object ReminderManager {
     private const val TAG = "ReminderManager"
@@ -238,6 +242,84 @@ object ReminderManager {
         )
         if (pendingIntent != null) {
             alarmManager.cancel(pendingIntent)
+        }
+    }
+
+    fun scheduleRecurringTransaction(context: Context, transactionJson: String) {
+        try {
+            val obj = JSONObject(transactionJson)
+            if (!obj.optBoolean("is_recurring", false)) return
+            
+            val savedAt = obj.optString("saved_at")
+            val amount = obj.optDouble("amount")
+            val merchant = obj.optString("merchant")
+            val category = obj.optString("category")
+            
+            // Format: 2026-05-14T10:27:09
+            val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
+            val date = sdf.parse(savedAt) ?: return
+            
+            val cal = Calendar.getInstance()
+            cal.time = date
+            val dayOfMonth = cal.get(Calendar.DAY_OF_MONTH)
+            
+            // Notification one day prior
+            val reminderDay = if (dayOfMonth > 1) dayOfMonth - 1 else 28 
+            
+            val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            val intent = Intent(context, ReminderReceiver::class.java).apply {
+                putExtra("is_recurring", true)
+                putExtra("merchant", merchant)
+                putExtra("amount", amount)
+                putExtra("category", category)
+                putExtra("transaction_json", transactionJson)
+            }
+            
+            val requestCode = (merchant + savedAt).hashCode()
+            val pendingIntent = PendingIntent.getBroadcast(
+                context,
+                requestCode,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            
+            val reminderCalendar = Calendar.getInstance().apply {
+                timeInMillis = System.currentTimeMillis()
+                set(Calendar.DAY_OF_MONTH, reminderDay)
+                set(Calendar.HOUR_OF_DAY, 10) // Default to 10 AM
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                
+                // If it's already passed this month, schedule for next month
+                if (timeInMillis <= System.currentTimeMillis()) {
+                    add(Calendar.MONTH, 1)
+                }
+            }
+            
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                if (alarmManager.canScheduleExactAlarms()) {
+                    alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, reminderCalendar.timeInMillis, pendingIntent)
+                } else {
+                    alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, reminderCalendar.timeInMillis, pendingIntent)
+                }
+            } else {
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, reminderCalendar.timeInMillis, pendingIntent)
+            }
+            
+            Log.d(TAG, "Recurring transaction reminder scheduled for $merchant on day $reminderDay")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error scheduling recurring transaction: ${e.message}")
+        }
+    }
+
+    fun rescheduleAllRecurringTransactions(context: Context, transactions: List<String>) {
+        transactions.forEach { json ->
+            try {
+                val obj = JSONObject(json)
+                if (obj.optBoolean("is_recurring", false)) {
+                    scheduleRecurringTransaction(context, json)
+                }
+            } catch (e: Exception) {}
         }
     }
 }

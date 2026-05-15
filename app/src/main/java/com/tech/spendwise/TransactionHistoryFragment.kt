@@ -12,6 +12,10 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.chip.Chip
 import com.tech.spendwise.utils.UIUtils
 import com.tech.spendwise.databinding.FragmentTransactionHistoryBinding
+import com.tech.spendwise.models.LendTransaction
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
+import android.util.Log
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -22,12 +26,20 @@ class TransactionHistoryFragment : Fragment() {
 
     private val viewModel: TransactionViewModel by activityViewModels()
     private val adapter = TransactionListAdapter()
+    private val lendAdapter = LendListAdapter()
+    private val supabaseRepository = SupabaseRepository()
 
     private var selectedMonth: Int = -1
     private var selectedYear: Int = -1
     private var allTransactions: List<String> = emptyList()
+    private var currentViewType = HistoryFilterBottomSheet.HistoryType.TRANSACTIONS
 
     private var selectionActionMode: Boolean = false
+ 
+    enum class FilterType {
+        TODAY, THIS_MONTH, LAST_MONTH, THIS_YEAR, ALL, SPECIFIC_MONTH
+    }
+    private var currentFilterType = FilterType.THIS_MONTH
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -41,18 +53,111 @@ class TransactionHistoryFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        val startWithLends = arguments?.getBoolean("startWithLends", false) ?: false
+        if (startWithLends) {
+            currentViewType = HistoryFilterBottomSheet.HistoryType.LENDS
+        }
+
         setupToolbar()
         setupRecyclerView()
         setupObservers()
+        setupFilterListeners()
         setupAdapterCallbacks()
+        
+        updateViewType()
 
         // Fetch a larger set of transactions for history
         viewModel.fetchFromFirestore()
     }
 
+    private fun setupFilterListeners() {
+        binding.filterChipGroup.setOnCheckedStateChangeListener { _, checkedIds ->
+            currentFilterType = when (checkedIds.firstOrNull()) {
+                R.id.chipToday -> FilterType.TODAY
+                R.id.chipThisMonth -> FilterType.THIS_MONTH
+                R.id.chipLastMonth -> FilterType.LAST_MONTH
+                R.id.chipThisYear -> FilterType.THIS_YEAR
+                R.id.chipAll -> FilterType.ALL
+                else -> FilterType.THIS_MONTH
+            }
+            
+            // Hide specific month scroll if a relative filter is active (except ALL)
+            binding.monthChipScroll.visibility = if (currentFilterType == FilterType.ALL) View.VISIBLE else View.GONE
+            
+            applyFilter()
+        }
+    }
+
     private fun setupToolbar() {
+        binding.toolbar.inflateMenu(R.menu.menu_transaction_history)
+        binding.toolbar.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                R.id.action_filter -> {
+                    HistoryFilterBottomSheet { type ->
+                        if (currentViewType != type) {
+                            currentViewType = type
+                            updateViewType()
+                        }
+                    }.show(childFragmentManager, HistoryFilterBottomSheet.TAG)
+                    true
+                }
+                else -> false
+            }
+        }
         binding.toolbar.setNavigationOnClickListener {
             findNavController().navigateUp()
+        }
+    }
+
+    private fun updateViewType() {
+        if (currentViewType == HistoryFilterBottomSheet.HistoryType.TRANSACTIONS) {
+            binding.toolbar.title = getString(R.string.title_transaction_history)
+            binding.transactionHistoryList.adapter = adapter
+            binding.filterChipGroup.visibility = View.VISIBLE
+            binding.monthChipScroll.visibility = if (currentFilterType == FilterType.ALL) View.VISIBLE else View.GONE
+            binding.textEmptyTitle.text = "No Transactions"
+            binding.textEmptyDesc.text = "You haven't tracked any transactions for this month. Your history will appear here once you do."
+            applyFilter()
+        } else {
+            binding.toolbar.title = getString(R.string.title_lend_history)
+            binding.transactionHistoryList.adapter = lendAdapter
+            binding.filterChipGroup.visibility = View.GONE
+            binding.monthChipScroll.visibility = View.GONE
+            binding.textEmptyTitle.text = "No Lend History"
+            binding.textEmptyDesc.text = "You haven't recorded any lend transactions. Start tracking money given to others!"
+            fetchLends()
+        }
+    }
+
+    private fun fetchLends() {
+        binding.historyShimmer.visibility = View.VISIBLE
+        binding.historyShimmer.startShimmer()
+        binding.transactionHistoryList.visibility = View.GONE
+        binding.emptyHistoryState.visibility = View.GONE
+
+        lifecycleScope.launch {
+            try {
+                val lends = supabaseRepository.fetchLends()
+                _binding?.let { binding ->
+                    binding.historyShimmer.stopShimmer()
+                    binding.historyShimmer.visibility = View.GONE
+                    binding.transactionHistoryList.visibility = View.VISIBLE
+                    
+                    if (lends.isEmpty()) {
+                        binding.emptyHistoryState.visibility = View.VISIBLE
+                    } else {
+                        binding.emptyHistoryState.visibility = View.GONE
+                        lendAdapter.submitList(lends)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("TransactionHistory", "Error fetching lends: ${e.message}")
+                _binding?.let { binding ->
+                    binding.historyShimmer.stopShimmer()
+                    binding.historyShimmer.visibility = View.GONE
+                    binding.emptyHistoryState.visibility = View.VISIBLE
+                }
+            }
         }
     }
 
@@ -156,6 +261,7 @@ class TransactionHistoryFragment : Fragment() {
             if (checked) {
                 selectedMonth = month + 1
                 selectedYear = year
+                currentFilterType = FilterType.SPECIFIC_MONTH
                 applyFilter()
             }
         }
@@ -163,16 +269,47 @@ class TransactionHistoryFragment : Fragment() {
     }
 
     private fun applyFilter() {
-        if (selectedMonth == -1) return
-
+        val now = Calendar.getInstance()
         val filtered = allTransactions.filter { json ->
             val data = parseSimpleJson(json)
             val savedAt = data["saved_at"] ?: ""
-            isSameMonth(savedAt, selectedYear, selectedMonth)
+            val transactionDate = try {
+                SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()).parse(savedAt)
+            } catch (_: Exception) { null } ?: return@filter false
+            
+            val cal = Calendar.getInstance().apply { time = transactionDate }
+            
+            when (currentFilterType) {
+                FilterType.TODAY -> isSameDay(cal, now)
+                FilterType.THIS_MONTH -> isSameMonth(cal, now)
+                FilterType.LAST_MONTH -> isLastMonth(cal, now)
+                FilterType.THIS_YEAR -> cal.get(Calendar.YEAR) == now.get(Calendar.YEAR)
+                FilterType.SPECIFIC_MONTH -> cal.get(Calendar.YEAR) == selectedYear && cal.get(Calendar.MONTH) + 1 == selectedMonth
+                FilterType.ALL -> true
+            }
         }
-
+ 
         adapter.submitList(filtered)
         binding.emptyHistoryState.visibility = if (filtered.isEmpty()) View.VISIBLE else View.GONE
+    }
+
+    private fun isSameDay(c1: Calendar, c2: Calendar): Boolean {
+        return c1.get(Calendar.YEAR) == c2.get(Calendar.YEAR) &&
+               c1.get(Calendar.DAY_OF_YEAR) == c2.get(Calendar.DAY_OF_YEAR)
+    }
+
+    private fun isSameMonth(c1: Calendar, c2: Calendar): Boolean {
+        return c1.get(Calendar.YEAR) == c2.get(Calendar.YEAR) &&
+               c1.get(Calendar.MONTH) == c2.get(Calendar.MONTH)
+    }
+
+    private fun isLastMonth(c1: Calendar, c2: Calendar): Boolean {
+        val lastMonth = Calendar.getInstance().apply {
+            time = c2.time
+            add(Calendar.MONTH, -1)
+        }
+        return c1.get(Calendar.YEAR) == lastMonth.get(Calendar.YEAR) &&
+               c1.get(Calendar.MONTH) == lastMonth.get(Calendar.MONTH)
     }
 
     private fun setupAdapterCallbacks() {
@@ -251,10 +388,15 @@ class TransactionHistoryFragment : Fragment() {
         val editMerchant = dialogView.findViewById<android.widget.EditText>(R.id.editMerchant)
         val editAmount = dialogView.findViewById<android.widget.EditText>(R.id.editAmount)
         val editCategory = dialogView.findViewById<android.widget.AutoCompleteTextView>(R.id.editCategory)
+        val chipIncome = dialogView.findViewById<com.google.android.material.chip.Chip>(R.id.chipIncome)
+        val chipExpense = dialogView.findViewById<com.google.android.material.chip.Chip>(R.id.chipExpense)
         
         editMerchant.setText(data["merchant"])
         editAmount.setText(data["amount"])
         editCategory.setText(data["category"])
+        
+        val currentType = data["type"] ?: "DEBIT"
+        if (currentType == "CREDIT") chipIncome.isChecked = true else chipExpense.isChecked = true
         
         // Setup category dropdown (simulated for now)
         val categories = arrayOf(
@@ -276,11 +418,13 @@ class TransactionHistoryFragment : Fragment() {
                 val newMerchant = editMerchant.text.toString()
                 val newAmount = editAmount.text.toString().toDoubleOrNull() ?: 0.0
                 val newCategory = editCategory.text.toString()
+                val newType = if (chipIncome.isChecked) "CREDIT" else "DEBIT"
                 
                 val updatedData = data.toMutableMap()
                 updatedData["merchant"] = newMerchant
                 updatedData["amount"] = newAmount.toString()
                 updatedData["category"] = newCategory
+                updatedData["type"] = newType
                 
                 viewModel.updateTransaction(id, buildJsonString(updatedData))
             }
@@ -323,16 +467,6 @@ class TransactionHistoryFragment : Fragment() {
         }
     }
 
-    private fun isSameMonth(savedAt: String, year: Int, month: Int): Boolean {
-        return try {
-            val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
-            val date = sdf.parse(savedAt) ?: return false
-            val cal = Calendar.getInstance().apply { time = date }
-            cal.get(Calendar.YEAR) == year && cal.get(Calendar.MONTH) + 1 == month
-        } catch (_: Exception) {
-            false
-        }
-    }
 
     private fun parseSimpleJson(json: String): Map<String, String> {
         val result = mutableMapOf<String, String>()

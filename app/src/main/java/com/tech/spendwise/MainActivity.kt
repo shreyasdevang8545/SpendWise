@@ -47,12 +47,19 @@ import android.net.Uri
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import com.google.android.play.core.appupdate.AppUpdateManager
+import com.google.android.play.core.appupdate.AppUpdateManagerFactory
+import com.google.android.play.core.install.InstallStateUpdatedListener
+import com.google.android.play.core.install.model.AppUpdateType
+import com.google.android.play.core.install.model.InstallStatus
+import com.google.android.play.core.install.model.UpdateAvailability
+import com.google.android.material.snackbar.Snackbar
 
 class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "MainActivity"
-        const val TRANSACTION_CHANNEL_ID = "transaction_alerts"
+        const val TRANSACTION_CHANNEL_ID = "transaction_alerts_v2"
         const val NEW_TRANSACTION_ACTION = "com.tech.spendwise.NEW_TRANSACTION"
         
         init {
@@ -63,19 +70,8 @@ class MainActivity : AppCompatActivity() {
     private val smsReceiver = SmsReceiver()
     private val viewModel: TransactionViewModel by viewModels()
 
-    private val requestNotificationPermissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-            if (isGranted) {
-                Log.i(TAG, "Notification permission granted")
-            } else {
-                Log.w(TAG, "Notification permission denied")
-                if (!shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)) {
-                    // Permanently denied
-                    showPermanentDenialDialog(getString(R.string.title_notifications), getString(R.string.reason_reminders_alerts))
-                }
-            }
-        }
-    
+    private lateinit var appUpdateManager: AppUpdateManager
+    private val UPDATE_REQUEST_CODE = 100    
     /**
      * Receiver for transaction data sent from SmsReceiver when app is in foreground.
      */
@@ -148,7 +144,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         requestSmsPermissions()
-        requestNotificationPermission()
         registerSmsReceiver()
         createNotificationChannel()
         initFcm()
@@ -172,10 +167,9 @@ class MainActivity : AppCompatActivity() {
                             navController.navigate(R.id.addTransactionFragment)
                         SelectionBottomSheet.SelectionOption.LEND -> 
                             navController.navigate(R.id.addLendFragment)
-                        SelectionBottomSheet.SelectionOption.HISTORY -> 
-                            navController.navigate(R.id.lendHistoryFragment)
+
                         SelectionBottomSheet.SelectionOption.SPLITWISE ->
-                            navController.navigate(R.id.splitGroupsFragment)
+                            Toast.makeText(this, getString(R.string.msg_coming_soon), Toast.LENGTH_SHORT).show()
                         /* Commented for Release
                         SelectionBottomSheet.SelectionOption.CREDIT_CARD ->
                             navController.navigate(R.id.addCreditCardFragment)
@@ -197,10 +191,49 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
+        // Hide BottomNav on internal screens
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            when (destination.id) {
+                R.id.homeFragment,
+                R.id.budgetDashboardFragment,
+                R.id.analyticsFragment,
+                R.id.transactionHistoryFragment -> {
+                    bottomNav.visibility = View.VISIBLE
+                }
+                else -> {
+                    bottomNav.visibility = View.GONE
+                }
+            }
+        }
+
         // Handle intent if app was opened via notification
         handleIntent(intent)
 
         setupNetworkMonitoring()
+        checkForAppUpdates()
+    }
+
+    private fun checkForAppUpdates() {
+        appUpdateManager = AppUpdateManagerFactory.create(this)
+        
+        val appUpdateInfoTask = appUpdateManager.appUpdateInfo
+
+        appUpdateInfoTask.addOnSuccessListener { appUpdateInfo ->
+            if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE
+                && appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)
+            ) {
+                try {
+                    appUpdateManager.startUpdateFlowForResult(
+                        appUpdateInfo,
+                        AppUpdateType.IMMEDIATE,
+                        this,
+                        UPDATE_REQUEST_CODE
+                    )
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to start update flow: ${e.message}")
+                }
+            }
+        }
     }
 
     private fun setupNetworkMonitoring() {
@@ -291,11 +324,18 @@ class MainActivity : AppCompatActivity() {
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val soundUri = Uri.parse(android.content.ContentResolver.SCHEME_ANDROID_RESOURCE + "://" + packageName + "/" + R.raw.google_notification)
+            val audioAttributes = android.media.AudioAttributes.Builder()
+                .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .setUsage(android.media.AudioAttributes.USAGE_NOTIFICATION)
+                .build()
+
             val name = getString(R.string.channel_transaction_alerts_name)
             val descriptionText = getString(R.string.channel_transaction_alerts_desc)
             val importance = NotificationManager.IMPORTANCE_HIGH
             val channel = NotificationChannel(TRANSACTION_CHANNEL_ID, name, importance).apply {
                 description = descriptionText
+                setSound(soundUri, audioAttributes)
             }
             val notificationManager: NotificationManager =
                 getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -303,32 +343,46 @@ class MainActivity : AppCompatActivity() {
 
             // Create Lend Remainder channel
             val lendChannel = NotificationChannel(
-                "lend_reminders",
+                "lend_reminders_v2",
                 getString(R.string.channel_lend_reminders_name),
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = getString(R.string.channel_lend_reminders_desc)
+                setSound(soundUri, audioAttributes)
             }
             notificationManager.createNotificationChannel(lendChannel)
 
             // Create Daily Reminder channel
             val dailyChannel = NotificationChannel(
-                "daily_reminders",
+                "daily_reminders_v2",
                 getString(R.string.channel_daily_reminders_name),
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = getString(R.string.channel_daily_reminders_desc)
+                setSound(soundUri, audioAttributes)
             }
             notificationManager.createNotificationChannel(dailyChannel)
             // 4. Budget Alerts channel
             val budgetChannel = NotificationChannel(
-                "budget_alerts_channel",
+                "budget_alerts_channel_v2",
                 getString(R.string.channel_budget_alerts_name),
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = getString(R.string.channel_budget_alerts_desc)
+                setSound(soundUri, audioAttributes)
             }
             notificationManager.createNotificationChannel(budgetChannel)
+
+            // 5. Recurring Reminders channel
+            val recurringChannel = NotificationChannel(
+                "recurring_reminders_v2",
+                "Recurring Reminders",
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = "Reminders for your recurring transactions"
+                setSound(soundUri, audioAttributes)
+            }
+            notificationManager.createNotificationChannel(recurringChannel)
         }
     }
 
@@ -352,26 +406,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun requestNotificationPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            val permission = Manifest.permission.POST_NOTIFICATIONS
-            when {
-                ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED -> {
-                    // Already granted
-                }
-                shouldShowRequestPermissionRationale(permission) -> {
-                    showPermissionRationaleDialog(
-                        title = getString(R.string.dialog_notifications_permission_title),
-                        message = getString(R.string.dialog_notifications_permission_msg),
-                        onConfirm = { requestNotificationPermissionLauncher.launch(permission) }
-                    )
-                }
-                else -> {
-                    requestNotificationPermissionLauncher.launch(permission)
-                }
-            }
-        }
-    }
 
     override fun onResume() {
         super.onResume()
@@ -382,6 +416,24 @@ class MainActivity : AppCompatActivity() {
             ContextCompat.registerReceiver(this, transactionBroadcastReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED)
         } else {
             registerReceiver(transactionBroadcastReceiver, filter)
+        }
+
+        // Resume Immediate update if in progress
+        if (::appUpdateManager.isInitialized) {
+            appUpdateManager.appUpdateInfo.addOnSuccessListener { appUpdateInfo ->
+                if (appUpdateInfo.updateAvailability() == UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS) {
+                    try {
+                        appUpdateManager.startUpdateFlowForResult(
+                            appUpdateInfo,
+                            AppUpdateType.IMMEDIATE,
+                            this,
+                            UPDATE_REQUEST_CODE
+                        )
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Failed to resume update flow: ${e.message}")
+                    }
+                }
+            }
         }
 
         // Check app lock

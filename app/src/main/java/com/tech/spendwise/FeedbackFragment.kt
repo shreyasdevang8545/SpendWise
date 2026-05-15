@@ -103,8 +103,12 @@ class FeedbackFragment : Fragment() {
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             val item = items[position]
             val message = item["message"]?.jsonPrimitive?.content ?: ""
-            val reply = item["reply"]?.jsonPrimitive?.contentOrNull
+            val replyObj = item["reply"]
+            val reply = if (replyObj is kotlinx.serialization.json.JsonNull) null else replyObj?.jsonPrimitive?.contentOrNull
             val status = item["status"]?.jsonPrimitive?.content ?: "pending"
+            
+            val isReplied = status.equals("replied", ignoreCase = true) || !reply.isNullOrBlank()
+
             val rawDate = item["created_at"]?.jsonPrimitive?.content ?: ""
             val createdAt = rawDate.toLongOrNull() ?: try {
                 SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()).parse(rawDate.take(19))?.time ?: 0L
@@ -113,12 +117,13 @@ class FeedbackFragment : Fragment() {
             holder.binding.tvMessage.text = message
             holder.binding.tvDate.text = SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault()).format(Date(createdAt))
             
-            holder.binding.tvStatus.text = if (status == "replied") getString(R.string.label_status_replied) else getString(R.string.label_status_pending)
-            if (status == "replied") {
+            holder.binding.tvStatus.text = if (isReplied) getString(R.string.label_status_replied) else getString(R.string.label_status_pending)
+            
+            if (isReplied) {
                 holder.binding.tvStatus.setTextColor(0xFF2E7D32.toInt())
                 holder.binding.tvStatus.backgroundTintList = android.content.res.ColorStateList.valueOf(0x332E7D32.toInt())
                 
-                if (!reply.isNullOrEmpty()) {
+                if (!reply.isNullOrBlank()) {
                     holder.binding.layoutReply.visibility = View.VISIBLE
                     holder.binding.tvReply.text = reply
                 } else {

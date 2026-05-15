@@ -30,11 +30,14 @@ class CreditCardReminderReceiver : BroadcastReceiver() {
         }
         val pendingIntent = PendingIntent.getActivity(context, cardId.hashCode(), intent, PendingIntent.FLAG_IMMUTABLE)
 
-        val notification = NotificationCompat.Builder(context, "daily_reminders") // Re-use daily_reminders or create new
+        val soundUri = android.net.Uri.parse(android.content.ContentResolver.SCHEME_ANDROID_RESOURCE + "://" + context.packageName + "/" + R.raw.google_notification)
+
+        val notification = NotificationCompat.Builder(context, "daily_reminders_v2") // Re-use daily_reminders_v2
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle("Credit Card Payment Reminder")
             .setContentText("It's time to pay the bill for your $cardName card.")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setSound(soundUri)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
             .build()

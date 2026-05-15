@@ -3,6 +3,7 @@ package com.tech.spendwise
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.Auth
+import io.github.jan.supabase.auth.handleDeeplinks
 import io.github.jan.supabase.auth.status.SessionStatus
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.Postgrest
@@ -29,7 +30,10 @@ object SupabaseInstance {
         supabaseUrl = SUPABASE_URL,
         supabaseKey = SUPABASE_KEY
     ) {
-        install(Auth)
+        install(Auth) {
+            scheme = "spendwise"
+            host = "auth"
+        }
         install(Postgrest)
     }
 
@@ -107,6 +111,17 @@ object SupabaseInstance {
      */
     suspend fun signOut() {
         client.auth.signOut()
+    }
+
+    /**
+     * Handles auth redirects (e.g. from password reset emails).
+     */
+    suspend fun handleIntent(intent: android.content.Intent) {
+        try {
+            client.handleDeeplinks(intent)
+        } catch (e: Exception) {
+            Log.e("SupabaseInstance", "handleIntent: Error handling deeplinks", e)
+        }
     }
 
     /**

@@ -41,6 +41,8 @@
         <item name="fontFamily">@font/nunito_sans</item>
     </style>
 
+    <style name="Widget.SpendWise.Button.Primary" parent="Widget.SpendWise.Button" />
+
     <style name="ShapeAppearance.SpendWise.Button" parent="">
         <item name="cornerSize">12dp</item>
     </style>
@@ -180,7 +182,7 @@
     <!-- Splash Screen Theme -->
     <style name="Theme.SpendWise.Splash" parent="Theme.Material3.Light.NoActionBar">
         <item name="android:windowBackground">@drawable/splash_background</item>
-        <item name="android:statusBarColor">@color/background_light</item>
+        <item name="android:statusBarColor">@color/guide_text_green</item>
         <item name="android:windowLightStatusBar">true</item>
     </style>
 </resources>

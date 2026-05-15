@@ -10,6 +10,20 @@
         app:destination="@id/groupDetailFragment"
         app:launchSingleTop="true" />
 
+    <action
+        android:id="@+id/action_global_premium"
+        app:destination="@id/premiumFragment"
+        app:enterAnim="@anim/nav_default_enter_anim"
+        app:exitAnim="@anim/nav_default_exit_anim"
+        app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+        app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+    <fragment
+        android:id="@+id/premiumFragment"
+        android:name="com.tech.spendwise.PremiumFragment"
+        android:label="SpendWise Pro"
+        tools:layout="@layout/fragment_premium" />
+
     <fragment
         android:id="@+id/homeFragment"
         android:name="com.tech.spendwise.HomeFragment"
@@ -45,11 +59,15 @@
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
         <action
             android:id="@+id/action_home_to_lendHistory"
-            app:destination="@id/lendHistoryFragment"
+            app:destination="@id/transactionHistoryFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+            app:popExitAnim="@anim/nav_default_pop_exit_anim">
+            <argument
+                android:name="startWithLends"
+                android:defaultValue="true" />
+        </action>
         <action
             android:id="@+id/action_home_to_settings"
             app:destination="@id/settingsFragment"
@@ -87,7 +105,12 @@
         android:id="@+id/transactionHistoryFragment"
         android:name="com.tech.spendwise.TransactionHistoryFragment"
         android:label="Transaction History"
-        tools:layout="@layout/fragment_transaction_history" />
+        tools:layout="@layout/fragment_transaction_history">
+        <argument
+            android:name="startWithLends"
+            app:argType="boolean"
+            android:defaultValue="false" />
+    </fragment>
 
     <fragment
         android:id="@+id/addLendFragment"
@@ -258,11 +281,15 @@
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
         <action
             android:id="@+id/action_profile_to_lendHistory"
-            app:destination="@id/lendHistoryFragment"
+            app:destination="@id/transactionHistoryFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+            app:popExitAnim="@anim/nav_default_pop_exit_anim">
+            <argument
+                android:name="startWithLends"
+                android:defaultValue="true" />
+        </action>
     </fragment>
 
     <!-- ── Splitwise ────────────────────────────────────────────────────── -->

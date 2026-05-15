@@ -54,6 +54,13 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
 
+                    <!-- Premium -->
+                    <include
+                        android:id="@+id/itemPremium"
+                        layout="@layout/layout_settings_row" />
+
+                    <View style="@style/SettingsDivider" />
+
                     <!-- Profile & account -->
                     <include
                         android:id="@+id/itemProfile"
@@ -183,12 +190,6 @@
 
                     <include
                         android:id="@+id/itemSecurityLock"
-                        layout="@layout/layout_settings_row" />
-
-                    <View style="@style/SettingsDivider" />
-
-                    <include
-                        android:id="@+id/itemDataOnDevice"
                         layout="@layout/layout_settings_row" />
 
                     <View style="@style/SettingsDivider" />

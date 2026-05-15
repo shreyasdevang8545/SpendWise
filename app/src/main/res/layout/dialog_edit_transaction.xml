@@ -27,6 +27,35 @@
             android:inputType="numberDecimal" />
     </com.google.android.material.textfield.TextInputLayout>
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="8dp"
+        android:text="Transaction Type"
+        android:textAppearance="?attr/textAppearanceLabelMedium" />
+
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/editTypeGroup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:singleSelection="true"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipIncome"
+            style="@style/Widget.Material3.Chip.Filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/chip_income" />
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipExpense"
+            style="@style/Widget.Material3.Chip.Filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/chip_expense" />
+    </com.google.android.material.chip.ChipGroup>
+
+
     <com.google.android.material.textfield.TextInputLayout
         style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
         android:layout_width="match_parent"
@@ -41,3 +70,4 @@
     </com.google.android.material.textfield.TextInputLayout>
 
 </LinearLayout>
+

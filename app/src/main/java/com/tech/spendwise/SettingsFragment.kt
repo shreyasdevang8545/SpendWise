@@ -8,7 +8,7 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.lifecycle.lifecycleScope
 import com.tech.spendwise.databinding.FragmentSettingsBinding
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import com.tech.spendwise.R
 import java.util.Locale
@@ -18,6 +18,12 @@ import androidx.fragment.app.activityViewModels
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.tech.spendwise.utils.UIUtils
 import android.content.DialogInterface
+import kotlinx.coroutines.flow.first
+import android.widget.Toast
+import com.tech.spendwise.TransactionViewModel
+import org.json.JSONObject
+
+import androidx.activity.result.contract.ActivityResultContracts
 
 class SettingsFragment : Fragment() {
 
@@ -25,6 +31,10 @@ class SettingsFragment : Fragment() {
     private val binding get() = _binding!!
     private lateinit var settingsManager: SettingsManager
     private val viewModel: TransactionViewModel by activityViewModels()
+
+    private val exportLauncher = registerForActivityResult(ActivityResultContracts.CreateDocument("text/csv")) { uri ->
+        uri?.let { saveCsvToUri(it) }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -39,6 +49,7 @@ class SettingsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         
+        populatePremiumSection()
         populateGeneralSection()
         populateSmsSection()
         populateNotificationsSection()
@@ -46,6 +57,38 @@ class SettingsFragment : Fragment() {
         populateDataPrivacySection()
         populateSupportSection()
         setupClickListeners()
+    }
+
+    private fun populatePremiumSection() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            combine(
+                settingsManager.isProUser,
+                settingsManager.proPlanType,
+                settingsManager.proExpiryDate
+            ) { isPro, planType, expiryDate ->
+                Triple(isPro, planType, expiryDate)
+            }.collect { (isPro, planType, expiryDate) ->
+                _binding?.itemPremium?.apply {
+                    if (isPro) {
+                        rowTitle.text = "SpendWise Pro ($planType)"
+                        val daysLeft = ((expiryDate - System.currentTimeMillis()) / (24 * 60 * 60 * 1000)).coerceAtLeast(0)
+                        rowSubtitle.text = "Active • $daysLeft days left"
+                    } else {
+                        rowTitle.text = "Upgrade to Pro"
+                        rowSubtitle.text = "Unlock all premium features"
+                    }
+                    rowIcon.setImageResource(R.drawable.ic_star)
+                    rowIcon.imageTintList = android.content.res.ColorStateList.valueOf(0xFFFFD700.toInt()) // Gold
+                    rowBadge.visibility = if (isPro) View.VISIBLE else View.GONE
+                    rowBadge.text = "PRO"
+                    rowBadge.setTextColor(android.graphics.Color.parseColor("#121212"))
+                    rowBadge.backgroundTintList = android.content.res.ColorStateList.valueOf(
+                        androidx.core.content.ContextCompat.getColor(requireContext(), R.color.primary_green)
+                    )
+                    root.setOnClickListener { findNavController().navigate(R.id.premiumFragment) }
+                }
+            }
+        }
     }
 
 
@@ -110,7 +153,24 @@ class SettingsFragment : Fragment() {
             rowTitle.text = getString(R.string.title_monthly_report)
             rowSubtitle.text = getString(R.string.subtitle_monthly_report)
             rowIcon.setImageResource(R.drawable.ic_history)
-            root.setOnClickListener { findNavController().navigate(R.id.action_settings_to_monthlyReport) }
+            
+            rowBadge.visibility = View.VISIBLE
+            rowBadge.text = "PRO"
+            rowBadge.backgroundTintList = android.content.res.ColorStateList.valueOf(
+                androidx.core.content.ContextCompat.getColor(requireContext(), R.color.primary_green)
+            )
+
+            root.setOnClickListener { 
+                viewLifecycleOwner.lifecycleScope.launch {
+                    val isPro = settingsManager.isProUser.first()
+                    if (isPro) {
+                        findNavController().navigate(R.id.action_settings_to_monthlyReport)
+                    } else {
+                        Toast.makeText(requireContext(), "Pro version required for Monthly Reports", Toast.LENGTH_SHORT).show()
+                        findNavController().navigate(R.id.premiumFragment)
+                    }
+                }
+            }
         }
     }
 
@@ -211,9 +271,21 @@ class SettingsFragment : Fragment() {
             rowSubtitle.text = getString(R.string.subtitle_backup_restore)
             rowIcon.setImageResource(R.drawable.ic_cloud_upload)
             rowBadge.visibility = View.VISIBLE
-            rowBadge.text = getString(R.string.badge_never)
-            rowBadge.backgroundTintList = android.content.res.ColorStateList.valueOf(0x33FF9800.toInt())
-            root.setOnClickListener { findNavController().navigate(R.id.action_settings_to_backupRestore) }
+            rowBadge.text = "PRO"
+            rowBadge.backgroundTintList = android.content.res.ColorStateList.valueOf(
+                androidx.core.content.ContextCompat.getColor(requireContext(), R.color.primary_green)
+            )
+            root.setOnClickListener {
+                viewLifecycleOwner.lifecycleScope.launch {
+                    val isPro = settingsManager.isProUser.first()
+                    if (isPro) {
+                        exportLauncher.launch("SpendWise_Transactions_${System.currentTimeMillis()}.csv")
+                    } else {
+                        Toast.makeText(requireContext(), "Pro version required for export", Toast.LENGTH_SHORT).show()
+                        findNavController().navigate(R.id.premiumFragment)
+                    }
+                }
+            }
         }
         binding.itemSecurityLock.apply {
             rowTitle.text = getString(R.string.title_security_lock)
@@ -231,13 +303,6 @@ class SettingsFragment : Fragment() {
                 }
             }
             root.setOnClickListener { findNavController().navigate(R.id.action_settings_to_securityLock) }
-        }
-        binding.itemDataOnDevice.apply {
-            rowTitle.text = getString(R.string.title_data_on_device)
-            rowSubtitle.text = getString(R.string.subtitle_data_on_device)
-            rowIcon.setImageResource(R.drawable.ic_security)
-            rowBadge.visibility = View.VISIBLE
-            rowBadge.text = getString(R.string.badge_active)
         }
         binding.itemClearAllData.apply {
             rowTitle.text = getString(R.string.title_clear_all_data)
@@ -304,5 +369,42 @@ class SettingsFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    private fun saveCsvToUri(uri: android.net.Uri) {
+        lifecycleScope.launch {
+            val transactionsJson = viewModel.allTransactions.value ?: emptyList()
+            if (transactionsJson.isEmpty()) {
+                Toast.makeText(requireContext(), "No transactions to export", Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+
+            val csvHeader = "Date,Amount,Currency,Type,Category,Merchant,Note\n"
+            val csvRows = transactionsJson.mapNotNull { json ->
+                try {
+                    val obj = org.json.JSONObject(json)
+                    val date = obj.optString("saved_at", "").replace(",", "")
+                    val amount = obj.optDouble("amount", 0.0)
+                    val currency = obj.optString("currency", "INR")
+                    val type = obj.optString("type", "DEBIT")
+                    val category = obj.optString("category", "Others").replace(",", " ")
+                    val merchant = obj.optString("merchant", "UNKNOWN").replace(",", " ")
+                    val note = obj.optString("raw_sms", "").replace(",", " ").replace("\n", " ")
+                    
+                    "$date,$amount,$currency,$type,$category,$merchant,$note"
+                } catch (e: Exception) { null }
+            }.joinToString("\n")
+
+            val csvContent = csvHeader + csvRows
+
+            try {
+                requireContext().contentResolver.openOutputStream(uri)?.use { outputStream ->
+                    outputStream.write(csvContent.toByteArray())
+                }
+                Toast.makeText(requireContext(), "Transactions exported successfully", Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                Toast.makeText(requireContext(), "Export failed: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 }

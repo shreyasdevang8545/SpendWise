@@ -93,18 +93,6 @@ class ProfileFragment : Fragment() {
             optionIcon.setImageResource(R.drawable.ic_lend)
             optionTitle.text = getString(R.string.title_lend_history)
         }
-
-        // Sync Settings
-        binding.itemSync.apply {
-            optionIcon.setImageResource(R.drawable.ic_sync)
-            optionTitle.text = getString(R.string.title_cloud_sync)
-        }
-
-        // Support
-        binding.itemSupport.apply {
-            optionIcon.setImageResource(R.drawable.ic_help)
-            optionTitle.text = getString(R.string.title_help_support)
-        }
     }
 
     private fun setupClickListeners() {
@@ -114,14 +102,6 @@ class ProfileFragment : Fragment() {
 
         binding.itemLendHistory.root.setOnClickListener {
             findNavController().navigate(R.id.action_profile_to_lendHistory)
-        }
-
-        binding.itemSync.root.setOnClickListener {
-            Toast.makeText(requireContext(), getString(R.string.msg_cloud_sync_active), Toast.LENGTH_SHORT).show()
-        }
-
-        binding.itemSupport.root.setOnClickListener {
-            Toast.makeText(requireContext(), getString(R.string.msg_support_coming_soon), Toast.LENGTH_SHORT).show()
         }
 
         binding.logoutButton.setOnClickListener {

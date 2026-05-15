@@ -14,6 +14,7 @@ import android.view.View
 import android.util.Log
 import android.widget.Toast
 import com.tech.spendwise.databinding.ActivityAuthBinding
+import kotlinx.coroutines.flow.first
 
 /**
  * Entry-point activity for phone-number authentication.
@@ -32,9 +33,18 @@ class AuthActivity : AppCompatActivity() {
         // Alternatively, set a splash theme in manifest
         
         lifecycleScope.launch {
+            val onboardingCompleted = SettingsManager(this@AuthActivity).onboardingCompleted.first()
+            if (!onboardingCompleted) {
+                startActivity(Intent(this@AuthActivity, OnboardingActivity::class.java))
+                finish()
+                return@launch
+            }
+
+            intent?.let { SupabaseInstance.handleIntent(it) }
             SupabaseInstance.restoreSession(this@AuthActivity)
 
             if (SupabaseInstance.isLoggedIn()) {
+                // If still not logged in, redirect
                 startMainActivity()
                 finish()
             } else {
@@ -42,6 +52,18 @@ class AuthActivity : AppCompatActivity() {
                 binding = ActivityAuthBinding.inflate(layoutInflater)
                 setContentView(binding.root)
                 setupNetworkMonitoring()
+            }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        lifecycleScope.launch {
+            SupabaseInstance.handleIntent(intent)
+            if (SupabaseInstance.isLoggedIn()) {
+                startMainActivity()
+                finish()
             }
         }
     }

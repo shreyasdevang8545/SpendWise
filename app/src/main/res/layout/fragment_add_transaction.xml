@@ -66,9 +66,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/amount"
-                app:startIconDrawable="@drawable/ic_camera"
-                app:startIconTint="@color/primary_green"
-                app:startIconContentDescription="@string/cd_capture_bill"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -176,7 +173,6 @@
                     android:checkable="true"
                     android:checked="true" />
 
-                <!--
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipCredit"
                     style="@style/Widget.SpendWise.Chip"
@@ -184,7 +180,6 @@
                     android:layout_height="wrap_content"
                     android:text="Credit Card"
                     android:checkable="true" />
-                -->
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipDebit"
@@ -211,7 +206,6 @@
                     android:checkable="true" />
             </com.google.android.material.chip.ChipGroup>
 
-            <!-- Credit Card Sub-selection Commented Out for Release
             <LinearLayout
                 android:id="@+id/layoutCreditCardSelection"
                 android:layout_width="match_parent"
@@ -242,7 +236,6 @@
                     </com.google.android.material.chip.ChipGroup>
                 </HorizontalScrollView>
             </LinearLayout>
-            -->
 
 
             <!-- Date & Time -->
@@ -262,6 +255,53 @@
                     android:inputType="none"
                     android:textColor="@color/text_primary" />
             </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Recurring Transaction -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                app:cardBackgroundColor="#0DFFFFFF"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeColor="#1AFFFFFF"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="16dp">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/label_recurring_transaction"
+                            android:textColor="@color/text_primary"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/desc_recurring_transaction"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/switchRecurring"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
             <!-- Save button -->
             <com.google.android.material.button.MaterialButton

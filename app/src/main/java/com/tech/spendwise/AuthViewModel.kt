@@ -17,6 +17,7 @@ sealed class AuthState {
     object Idle           : AuthState()
     object Loading        : AuthState()
     object Success        : AuthState()
+    object ResetSent      : AuthState()
     data class Error(val message: String) : AuthState()
 }
 
@@ -81,6 +82,21 @@ class AuthViewModel : ViewModel() {
                 _authState.value = AuthState.Success
             } catch (e: Exception) {
                 _authState.value = AuthState.Error(e.message ?: "Google Sign-In failed")
+            }
+        }
+    }
+
+    /**
+     * Sends a password reset email to the specified address.
+     */
+    fun resetPassword(email: String) {
+        _authState.value = AuthState.Loading
+        viewModelScope.launch {
+            try {
+                SupabaseInstance.auth.resetPasswordForEmail(email)
+                _authState.value = AuthState.ResetSent
+            } catch (e: Exception) {
+                _authState.value = AuthState.Error(e.message ?: "Password reset failed")
             }
         }
     }

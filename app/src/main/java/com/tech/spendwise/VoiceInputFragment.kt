@@ -16,9 +16,13 @@ import android.view.animation.AccelerateDecelerateInterpolator
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import com.tech.spendwise.SettingsManager
 import com.tech.spendwise.databinding.FragmentVoiceInputBinding
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import java.util.Locale
 
 /**
@@ -53,9 +57,28 @@ class VoiceInputFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        binding.root.visibility = View.INVISIBLE
+
         binding.toolbar.setNavigationOnClickListener { findNavController().popBackStack() }
         binding.btnCancel.setOnClickListener { findNavController().popBackStack() }
 
+        viewLifecycleOwner.lifecycleScope.launch {
+            val settingsManager = SettingsManager(requireContext())
+            settingsManager.isProUser.collect { isPro ->
+                if (!isPro) {
+                    val navOptions = androidx.navigation.NavOptions.Builder()
+                        .setPopUpTo(R.id.voiceInputFragment, true)
+                        .build()
+                    findNavController().navigate(R.id.premiumFragment, null, navOptions)
+                } else {
+                    binding.root.visibility = View.VISIBLE
+                    initializeVoiceFeatures()
+                }
+            }
+        }
+    }
+
+    private fun initializeVoiceFeatures() {
         binding.btnMic.setOnClickListener {
             if (isListening) stopListening() else checkPermissionAndListen()
         }

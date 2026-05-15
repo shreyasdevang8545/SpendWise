@@ -36,7 +36,7 @@ class SupabaseRepository {
             val encryptedMap = TransactionCrypto.encryptTransaction(jsonStr, uid)
             val allowedColumns = setOf(
                 "amount", "type", "merchant", "category", "payment_mode", "currency", "saved_at",
-                "is_lend", "lend_name", "phone_number", "note", "return_date", "is_returned", "created_at", "credit_card_id"
+                "is_lend", "lend_name", "phone_number", "note", "return_date", "is_returned", "created_at", "credit_card_id", "is_recurring"
             )
             val json = buildJsonObject {
                 put("uid", uid)
@@ -103,36 +103,35 @@ class SupabaseRepository {
     // ── Lends (Unified) ───────────────────────────────────────────────────
 
     suspend fun saveLend(lend: LendTransaction) = withContext(Dispatchers.IO) {
-        val uid = SupabaseInstance.currentUserId() ?: return@withContext
-        try {
-            // In unified approach, we save a single transaction record with is_lend = true
-            val unifiedJson = buildJsonObject {
-                put("id", lend.id ?: "")
-                put("amount", lend.amount.toString())
-                put("type", "Expense") // Lend is an outflow
-                put("merchant", "Lend: ${lend.name}")
-                put("category", "Lend")
-                put("payment_mode", lend.paymentMode)
-                put("currency", "INR")
-                put("saved_at", formatTimestamp(System.currentTimeMillis()))
-                put("is_lend", true)
-                put("lend_name", lend.name)
-                put("phone_number", lend.phoneNumber ?: "")
-                put("note", lend.note ?: "")
-                put("return_date", if (lend.returnDate > 0) formatTimestamp(lend.returnDate) else "null")
-                put("is_returned", lend.isReturned)
-                put("created_at", formatTimestamp(if (lend.createdAt > 0) lend.createdAt else System.currentTimeMillis()))
-            }.toString()
-            
-            val transactionId = saveTransaction(unifiedJson)
-            
-            // Still save to public_lends for sharing functionality
-            if (transactionId != null) {
-                savePublicLend(lend.copy(id = transactionId))
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error saving lend", e)
+        val uid = SupabaseInstance.currentUserId() ?: throw Exception("Not logged in")
+        
+        // In unified approach, we save a single transaction record with is_lend = true
+        val unifiedJson = buildJsonObject {
+            put("id", lend.id ?: "")
+            put("amount", lend.amount.toString())
+            put("type", "Expense") // Lend is an outflow
+            put("merchant", "Lend: ${lend.name}")
+            put("category", "Lend")
+            put("payment_mode", lend.paymentMode)
+            put("currency", "INR")
+            put("saved_at", formatTimestamp(System.currentTimeMillis()))
+            put("is_lend", true)
+            put("lend_name", lend.name)
+            put("phone_number", lend.phoneNumber ?: "")
+            put("note", lend.note ?: "")
+            put("return_date", if (lend.returnDate > 0) formatTimestamp(lend.returnDate) else "null")
+            put("is_returned", lend.isReturned)
+            put("created_at", formatTimestamp(if (lend.createdAt > 0) lend.createdAt else System.currentTimeMillis()))
+        }.toString()
+        
+        val transactionId = saveTransaction(unifiedJson)
+        
+        if (transactionId == null) {
+            throw Exception("Failed to save transaction to database")
         }
+        
+        // Still save to public_lends for sharing functionality
+        savePublicLend(lend.copy(id = transactionId))
     }
 
     private suspend fun savePublicLend(lend: LendTransaction) {
@@ -286,7 +285,7 @@ class SupabaseRepository {
         val uid = SupabaseInstance.currentUserId() ?: return@withContext
         try {
             val encryptedMap = TransactionCrypto.encryptTransaction(jsonStr, uid)
-            val allowedColumns = setOf("amount", "type", "merchant", "category", "payment_mode", "currency", "saved_at")
+            val allowedColumns = setOf("amount", "type", "merchant", "category", "payment_mode", "currency", "saved_at", "is_recurring")
             val json = buildJsonObject {
                 encryptedMap.forEach { (k, v) ->
                     if (allowedColumns.contains(k)) {

@@ -4,6 +4,7 @@
     "namespace": "android_app",
     "package_name": "com.tech.spendwise",
     "sha256_cert_fingerprints": [
+      "CA:24:7B:C1:51:94:CA:C5:94:11:31:65:CD:01:A3:2F:35:4F:D8:F3:51:F1:07:45:05:0C:78:44:B3:16:1F:7B",
       "C7:04:75:09:60:32:D0:D0:9E:43:BA:58:FE:FE:EF:E1:39:38:53:77:CB:3A:A3:9A:C0:E3:83:9F:99:4D:8C:7B"
     ]
   }

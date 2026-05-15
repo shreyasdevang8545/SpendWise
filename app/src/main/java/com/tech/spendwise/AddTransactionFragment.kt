@@ -10,13 +10,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Toast
-import android.content.Intent
-import android.graphics.Bitmap
-import android.provider.MediaStore
-import androidx.activity.result.contract.ActivityResultContracts
-import com.google.mlkit.vision.common.InputImage
-import com.google.mlkit.vision.text.TextRecognition
-import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import com.tech.spendwise.utils.UIUtils
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -68,21 +61,6 @@ class AddTransactionFragment : Fragment() {
 
         binding.toolbar.setNavigationOnClickListener { findNavController().popBackStack() }
 
-        // Camera Launcher for Bill Capture
-        val takePictureLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == android.app.Activity.RESULT_OK) {
-                val imageBitmap = result.data?.extras?.get("data") as? Bitmap
-                if (imageBitmap != null) {
-                    processBillImage(imageBitmap)
-                }
-            }
-        }
-
-        binding.amountLayout.setStartIconOnClickListener {
-            val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-            takePictureLauncher.launch(intent)
-        }
-
         // Category dropdown
         val categoryAdapter = ArrayAdapter(
             requireContext(),
@@ -101,14 +79,11 @@ class AddTransactionFragment : Fragment() {
         binding.actvCategory.addTextChangedListener(simpleWatcher { validate() })
         binding.typeChipGroup.setOnCheckedStateChangeListener { _, _ -> validate() }
         binding.paymentChipGroup.setOnCheckedStateChangeListener { _, checkedIds -> 
-            /* Commented for Release
             val isCreditSelected = checkedIds.contains(binding.chipCredit.id)
             binding.layoutCreditCardSelection.visibility = if (isCreditSelected) View.VISIBLE else View.GONE
-            */
             validate() 
         }
 
-        /* Commented for Release
         // Observe Credit Cards
         viewModel.creditCards.observe(viewLifecycleOwner) { cards ->
             binding.creditCardChipGroup.removeAllViews()
@@ -123,7 +98,6 @@ class AddTransactionFragment : Fragment() {
                 binding.creditCardChipGroup.addView(chip)
             }
         }
-        */
 
         validate()
 
@@ -197,12 +171,9 @@ class AddTransactionFragment : Fragment() {
         val categoryOk = binding.actvCategory.text?.toString()?.let { it in categories } == true
         val typeOk = binding.typeChipGroup.checkedChipId != View.NO_ID
         val paymentOk = binding.paymentChipGroup.checkedChipId != View.NO_ID
-        /* Commented for Release
         val creditCardOk = if (binding.chipCredit.isChecked) {
             binding.creditCardChipGroup.checkedChipId != View.NO_ID
         } else true
-        */
-        val creditCardOk = true
         
         binding.btnSave.isEnabled = amountOk && categoryOk && typeOk && paymentOk && creditCardOk
     }
@@ -219,15 +190,16 @@ class AddTransactionFragment : Fragment() {
         }
         val paymentMode = paymentChip?.text?.toString() ?: getString(R.string.label_upi)
         
-        // Handle Credit Card ID (Commented for Release)
+        // Handle Credit Card ID
         var creditCardIdStr = ""
-        /*
         if (binding.chipCredit.isChecked) {
             val selectedChipId = binding.creditCardChipGroup.checkedChipId
             val selectedChip = binding.creditCardChipGroup.findViewById<com.google.android.material.chip.Chip>(selectedChipId)
             creditCardIdStr = selectedChip?.tag?.toString() ?: ""
         }
-        */
+
+        // Recurring transaction status
+        val isRecurring = binding.switchRecurring.isChecked
 
         // Build standard JSON for storage and sync
         val timestamp = storageFormat.format(calendar.time)
@@ -244,13 +216,18 @@ class AddTransactionFragment : Fragment() {
             }
             append("\"currency\": \"INR\", ")
             append("\"saved_at\": \"$timestamp\", ")
-            append("\"source\": \"manual\"")
+            append("\"source\": \"manual\", ")
+            append("\"is_recurring\": $isRecurring")
             append("}")
         }
 
 
         // addConfirmedTransaction handles both local save and encrypted Firestore sync
         viewModel.addConfirmedTransaction(json)
+
+        if (isRecurring) {
+            ReminderManager.scheduleRecurringTransaction(requireContext(), json)
+        }
 
         Toast.makeText(
             requireContext(),
@@ -260,80 +237,6 @@ class AddTransactionFragment : Fragment() {
 
         findNavController().popBackStack()
     }
-
-    private fun processBillImage(bitmap: Bitmap) {
-        val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
-        val image = InputImage.fromBitmap(bitmap, 0)
-
-        // Show progress indicator
-        binding.progressIndicator.visibility = View.VISIBLE
-        binding.amountLayout.isEnabled = false
-        
-        recognizer.process(image)
-            .addOnSuccessListener { visionText ->
-                binding.progressIndicator.visibility = View.GONE
-                binding.amountLayout.isEnabled = true
-                
-                if (visionText.text.isBlank()) {
-                    showError(getString(R.string.error_no_text_in_bill))
-                } else {
-                    extractDetailsFromText(visionText.text)
-                }
-            }
-            .addOnFailureListener { e ->
-                binding.progressIndicator.visibility = View.GONE
-                binding.amountLayout.isEnabled = true
-                UIUtils.showErrorSnackbar(binding.root, getString(R.string.error_analysis_failed, e.localizedMessage ?: getString(R.string.label_unknown)))
-            }
-    }
-
-    private fun showError(message: String) {
-        UIUtils.showErrorSnackbar(binding.root, message)
-    }
-
-    private fun extractDetailsFromText(text: String) {
-        // ... previous extraction logic ...
-        val amountRegex = Regex("""(?i)(?:INR|Rs\.?|₹)\s*([\d,]+(?:\.\d{2})?)""")
-        val matches = amountRegex.findAll(text)
-        
-        val amounts = matches.mapNotNull { it.groupValues[1].replace(",", "").toDoubleOrNull() }.toList()
-        val finalAmount = if (amounts.isNotEmpty()) amounts.maxOrNull() else {
-            val simpleAmountRegex = Regex("""\b\d+[\.,]\d{2}\b""")
-            val fallbackMatches = simpleAmountRegex.findAll(text)
-            fallbackMatches.mapNotNull { it.value.replace(",", ".").toDoubleOrNull() }.maxOrNull()
-        }
-
-        val lines = text.lines().filter { it.isNotBlank() }
-        val merchant = lines.firstOrNull { line ->
-            !line.contains(Regex("""\d""")) && line.length > 3
-        } ?: lines.firstOrNull()?.take(20)
-
-        if (finalAmount == null && merchant == null) {
-            showError(getString(R.string.error_extract_failed))
-            return
-        }
-
-        // 3. Update UI
-        if (finalAmount != null && finalAmount > 0) {
-            binding.etAmount.setText("%.2f".format(finalAmount))
-        }
-        
-        binding.etMerchant.setText(merchant?.trim() ?: "")
-        
-        val lowerMerchant = (merchant ?: "Others").lowercase()
-        val category = when {
-            lowerMerchant.contains("coffee") || lowerMerchant.contains("starbucks") -> getString(R.string.category_food)
-            lowerMerchant.contains("taxi") || lowerMerchant.contains("uber") || lowerMerchant.contains("ola") -> getString(R.string.category_transport)
-            lowerMerchant.contains("mart") || lowerMerchant.contains("store") -> getString(R.string.category_groceries)
-            else -> getString(R.string.category_others)
-        }
-        binding.actvCategory.setText(category, false)
-        binding.chipExpense.isChecked = true
-
-        validate()
-        UIUtils.showSuccessSnackbar(binding.root, getString(R.string.msg_bill_extracted))
-    }
-
 
     private fun simpleWatcher(after: () -> Unit) = object : TextWatcher {
         override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
