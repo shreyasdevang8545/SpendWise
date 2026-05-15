@@ -381,7 +381,14 @@ class SettingsFragment : Fragment() {
             rowSubtitle.text = getString(R.string.subtitle_about)
             rowIcon.setImageResource(R.drawable.ic_info)
             rowBadge.visibility = View.VISIBLE
-            rowBadge.text = "v1.0.0"
+            
+            try {
+                val pInfo = requireContext().packageManager.getPackageInfo(requireContext().packageName, 0)
+                rowBadge.text = "v${pInfo.versionName}"
+            } catch (e: Exception) {
+                rowBadge.text = "v1.0.0"
+            }
+            
             root.setOnClickListener { findNavController().navigate(R.id.action_settings_to_about) }
         }
         binding.itemFeedback.apply {

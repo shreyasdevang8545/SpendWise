@@ -33,7 +33,13 @@ class AboutFragment : Fragment() {
         try {
             val pInfo = requireContext().packageManager.getPackageInfo(requireContext().packageName, 0)
             val version = pInfo.versionName
-            binding.tvVersion.text = getString(R.string.label_version_format, version)
+            val versionCode = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+                pInfo.longVersionCode
+            } else {
+                @Suppress("DEPRECATION")
+                pInfo.versionCode.toLong()
+            }
+            binding.tvVersion.text = getString(R.string.label_version_format, "$version ($versionCode)")
         } catch (e: PackageManager.NameNotFoundException) {
             e.printStackTrace()
         }
