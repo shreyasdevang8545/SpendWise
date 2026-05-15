@@ -15,6 +15,9 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.tech.spendwise.databinding.FragmentAddTransactionBinding
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -71,7 +74,15 @@ class AddTransactionFragment : Fragment() {
 
         // Voice Input Button
         binding.btnVoiceStart.setOnClickListener {
-            showVoiceBottomSheet()
+            viewLifecycleOwner.lifecycleScope.launch {
+                val settingsManager = SettingsManager(requireContext())
+                if (settingsManager.isProUser.first()) {
+                    showVoiceBottomSheet()
+                } else {
+                    findNavController().navigate(R.id.premiumFragment)
+                    Toast.makeText(requireContext(), "Voice Input is a Pro feature", Toast.LENGTH_SHORT).show()
+                }
+            }
         }
 
         // Validate on any change
