@@ -259,7 +259,6 @@ class HomeFragment : Fragment() {
         }
 
         showGreeting()
-        checkAndRequestNotificationPermission()
     }
 
     private fun checkAndRequestNotificationPermission() {

@@ -17,6 +17,8 @@ import androidx.navigation.fragment.findNavController
 import com.google.android.material.chip.Chip
 import androidx.lifecycle.lifecycleScope
 import com.tech.spendwise.SupabaseInstance
+import com.tech.spendwise.SettingsManager
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import com.tech.spendwise.databinding.FragmentAddLendBinding
 import com.tech.spendwise.models.LendTransaction
@@ -116,6 +118,19 @@ class AddLendFragment : Fragment() {
         binding.etReturnDate.setOnClickListener     { showDatePicker() }
         binding.btnSave.setOnClickListener          { saveLend(lendId) }
         binding.btnPickContact.setOnClickListener   { checkContactsPermissionAndPick() }
+
+        binding.switchSendSms.setOnCheckedChangeListener { buttonView, isChecked ->
+            if (isChecked) {
+                viewLifecycleOwner.lifecycleScope.launch {
+                    val settingsManager = SettingsManager(requireContext())
+                    if (!settingsManager.isProUser.first()) {
+                        buttonView.isChecked = false
+                        Toast.makeText(requireContext(), "WhatsApp sharing is a Pro feature", Toast.LENGTH_SHORT).show()
+                        findNavController().navigate(R.id.premiumFragment)
+                    }
+                }
+            }
+        }
     }
 
     override fun onDestroyView() {
@@ -341,30 +356,44 @@ class AddLendFragment : Fragment() {
         viewModel.saveLend(lend)
 
         // ── Schedule return date reminder notification ──
-        ReminderManager.scheduleReminder(
-            requireContext(), lendId, name, amount, selectedReturnDate
-        )
+        if (UIUtils.isNotificationPermissionGranted(requireContext()) && UIUtils.areNotificationsEnabled(requireContext())) {
+            ReminderManager.scheduleReminder(
+                requireContext(), lendId, name, amount, selectedReturnDate
+            )
+        } else {
+            Log.w("AddLendFragment", "Notifications are disabled. Reminder will not be shown.")
+            // We still proceed with saving, but the notification won't trigger.
+        }
 
         val successMsg = if (existingId != null) getString(R.string.msg_lend_updated) else getString(R.string.msg_lend_saved_for, name)
 
         // ── Send WhatsApp reminder if requested ──
         if (wantsWhatsApp && contactPhoneNumber != null) {
             val formattedAmount = "%.0f".format(amount)
-            val dateText        = binding.etReturnDate.text.toString()
+            val dateText = binding.etReturnDate.text.toString()
 
-            UIUtils.showSuccessSnackbar(binding.root, getString(R.string.msg_preparing_link, successMsg))
+            UIUtils.showSuccessSnackbar(
+                binding.root,
+                getString(R.string.msg_preparing_link, successMsg)
+            )
 
             // Shorten URL on background thread, then open WhatsApp
-            val longUrl = buildLendPageUrl(lendId, contactPhoneNumber!!, name, formattedAmount, dateText)
+            val longUrl = buildLendPageUrl(
+                lendId,
+                contactPhoneNumber!!,
+                name,
+                formattedAmount,
+                dateText
+            )
 
             Thread {
                 val shortUrl = shortenUrl(longUrl)
                 activity?.runOnUiThread {
                     openWhatsApp(
-                        phone  = contactPhoneNumber!!,
-                        name   = name,
+                        phone = contactPhoneNumber!!,
+                        name = name,
                         amount = formattedAmount,
-                        date   = dateText,
+                        date = dateText,
                         lendPageUrl = shortUrl
                     )
                     findNavController().popBackStack()

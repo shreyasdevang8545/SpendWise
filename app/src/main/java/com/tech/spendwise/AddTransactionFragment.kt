@@ -5,6 +5,7 @@ import android.app.TimePickerDialog
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -237,7 +238,12 @@ class AddTransactionFragment : Fragment() {
         viewModel.addConfirmedTransaction(json)
 
         if (isRecurring) {
-            ReminderManager.scheduleRecurringTransaction(requireContext(), json)
+            if (UIUtils.isNotificationPermissionGranted(requireContext()) && UIUtils.areNotificationsEnabled(requireContext())) {
+                ReminderManager.scheduleRecurringTransaction(requireContext(), json)
+            } else {
+                Log.w("AddTransactionFragment", "Notifications are disabled. Recurring reminder will not be shown.")
+                UIUtils.showInfoSnackbar(binding.root, "Note: Notifications are disabled. You won't receive reminders for this recurring transaction.")
+            }
         }
 
         Toast.makeText(

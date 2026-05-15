@@ -73,4 +73,19 @@ object UIUtils {
             .setItems(items) { _, which -> onItemClick(which) }
             .show()
     }
+    fun isNotificationPermissionGranted(context: android.content.Context): Boolean {
+        return if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            androidx.core.content.ContextCompat.checkSelfPermission(
+                context,
+                android.Manifest.permission.POST_NOTIFICATIONS
+            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        } else {
+            true
+        }
+    }
+
+    fun areNotificationsEnabled(context: android.content.Context): Boolean {
+        val manager = context.getSystemService(android.content.Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+        return manager.areNotificationsEnabled()
+    }
 }

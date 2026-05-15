@@ -100,18 +100,34 @@ class MainActivity : AppCompatActivity() {
 
      /* Requests RECEIVE_SMS permission.
      */
-    private val requestSmsPermissionsLauncher =
+    private val requestPermissionsLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
-            val allGranted = permissions.all { it.value }
-            if (allGranted) {
-                Log.i(TAG, "All SMS permissions granted!")
+            val smsGranted = permissions[Manifest.permission.RECEIVE_SMS] == true
+            val notificationGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                permissions[Manifest.permission.POST_NOTIFICATIONS] == true
+            } else true
+
+            if (smsGranted) {
+                Log.i(TAG, "SMS permission granted!")
             } else {
-                Log.w(TAG, "Some permissions were denied")
-                val deniedAnyPermanently = permissions.any { (perm, granted) ->
-                    !granted && !shouldShowRequestPermissionRationale(perm)
-                }
-                if (deniedAnyPermanently) {
+                Log.w(TAG, "SMS permission denied")
+                if (!shouldShowRequestPermissionRationale(Manifest.permission.RECEIVE_SMS)) {
                     showPermanentDenialDialog(getString(R.string.title_sms), getString(R.string.reason_detected_bank_sms))
+                }
+            }
+
+            if (notificationGranted) {
+                Log.i(TAG, "Notification permission granted!")
+            } else {
+                Log.w(TAG, "Notification permission denied")
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    if (!shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)) {
+                        UIUtils.showActionSnackbar(
+                            findViewById(android.R.id.content),
+                            "Notifications are blocked. Please enable them in settings to receive alerts.",
+                            "Settings"
+                        ) { openAppSettings() }
+                    }
                 }
             }
         }
@@ -143,7 +159,7 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-        requestSmsPermissions()
+        requestPermissions()
         registerSmsReceiver()
         createNotificationChannel()
         initFcm()
@@ -505,8 +521,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun requestSmsPermissions() {
-        val permissions = arrayOf(Manifest.permission.RECEIVE_SMS)
+    private fun requestPermissions() {
+        val permissions = mutableListOf(Manifest.permission.RECEIVE_SMS)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissions.add(Manifest.permission.POST_NOTIFICATIONS)
+        }
+
         val missingPermissions = permissions.filter {
             ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
         }
@@ -515,12 +535,12 @@ class MainActivity : AppCompatActivity() {
             val shouldShowRationale = missingPermissions.any { shouldShowRequestPermissionRationale(it) }
             if (shouldShowRationale) {
                 showPermissionRationaleDialog(
-                    title = getString(R.string.dialog_sms_access_title),
-                    message = getString(R.string.dialog_sms_access_msg),
-                    onConfirm = { requestSmsPermissionsLauncher.launch(missingPermissions.toTypedArray()) }
+                    title = "Permissions Required",
+                    message = "SpendWise needs SMS access to track expenses and Notification access to send you alerts and reminders.",
+                    onConfirm = { requestPermissionsLauncher.launch(missingPermissions.toTypedArray()) }
                 )
             } else {
-                requestSmsPermissionsLauncher.launch(missingPermissions.toTypedArray())
+                requestPermissionsLauncher.launch(missingPermissions.toTypedArray())
             }
         }
     }

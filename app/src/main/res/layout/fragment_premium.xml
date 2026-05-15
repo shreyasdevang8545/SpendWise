@@ -318,7 +318,7 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
-            <!-- Feature 6: Multi-device -->
+            <!-- Feature 6: WhatsApp -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -328,14 +328,14 @@
                 <ImageView
                     android:layout_width="24dp"
                     android:layout_height="24dp"
-                    android:src="@drawable/ic_star"
+                    android:src="@drawable/ic_phonelink_ring"
                     app:tint="@color/primary_green" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
-                    android:text="Priority Support &amp; Updates"
+                    android:text="WhatsApp Lend Reminders"
                     android:textColor="@color/white"
                     android:textSize="16sp"
                     android:textStyle="bold" />

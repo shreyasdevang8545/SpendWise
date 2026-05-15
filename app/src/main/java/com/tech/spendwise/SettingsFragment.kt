@@ -36,6 +36,16 @@ class SettingsFragment : Fragment() {
         uri?.let { saveCsvToUri(it) }
     }
 
+    private val requestNotificationPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+            if (!isGranted) {
+                binding.itemDailyReminder.rowSwitch.isChecked = false
+                binding.itemTransactionAlerts.rowSwitch.isChecked = false
+                binding.itemMonthlySummary.rowSwitch.isChecked = false
+                UIUtils.showErrorSnackbar(binding.root, "Notification permission is required for this feature.")
+            }
+        }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -183,6 +193,21 @@ class SettingsFragment : Fragment() {
                 rowIcon.setImageResource(R.drawable.ic_notifications)
                 rowSwitch.isChecked = settingsManager.transactionAlerts.first()
                 rowSwitch.setOnCheckedChangeListener { _, isChecked ->
+                    if (isChecked && !UIUtils.isNotificationPermissionGranted(requireContext())) {
+                        rowSwitch.isChecked = false
+                        requestNotificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                        return@setOnCheckedChangeListener
+                    }
+                    if (isChecked && !UIUtils.areNotificationsEnabled(requireContext())) {
+                        rowSwitch.isChecked = false
+                        UIUtils.showActionSnackbar(binding.root, "Notifications are disabled in system settings.", "Settings") {
+                            val intent = android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                data = android.net.Uri.fromParts("package", requireContext().packageName, null)
+                            }
+                            startActivity(intent)
+                        }
+                        return@setOnCheckedChangeListener
+                    }
                     lifecycleScope.launch { settingsManager.setBoolean(SettingsManager.TRANSACTION_ALERTS, isChecked) }
                 }
                 root.setOnClickListener { rowSwitch.toggle() }
@@ -195,6 +220,11 @@ class SettingsFragment : Fragment() {
                 rowIcon.setImageResource(R.drawable.ic_calendar_today)
                 rowSwitch.isChecked = settingsManager.monthlySummary.first()
                 rowSwitch.setOnCheckedChangeListener { _, isChecked ->
+                    if (isChecked && !UIUtils.isNotificationPermissionGranted(requireContext())) {
+                        rowSwitch.isChecked = false
+                        requestNotificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                        return@setOnCheckedChangeListener
+                    }
                     lifecycleScope.launch { settingsManager.setBoolean(SettingsManager.MONTHLY_SUMMARY, isChecked) }
                 }
                 root.setOnClickListener { rowSwitch.toggle() }
@@ -218,7 +248,20 @@ class SettingsFragment : Fragment() {
 
                 rowSwitch.setOnCheckedChangeListener { _, isChecked ->
                     if (isChecked) {
-                        showTimePicker()
+                        if (!UIUtils.isNotificationPermissionGranted(requireContext())) {
+                            rowSwitch.isChecked = false
+                            requestNotificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                        } else if (!UIUtils.areNotificationsEnabled(requireContext())) {
+                            rowSwitch.isChecked = false
+                            UIUtils.showActionSnackbar(binding.root, "Notifications are disabled in system settings.", "Settings") {
+                                val intent = android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                    data = android.net.Uri.fromParts("package", requireContext().packageName, null)
+                                }
+                                startActivity(intent)
+                            }
+                        } else {
+                            showTimePicker()
+                        }
                     } else {
                         lifecycleScope.launch {
                             settingsManager.setBoolean(SettingsManager.DAILY_REMINDER, false)
