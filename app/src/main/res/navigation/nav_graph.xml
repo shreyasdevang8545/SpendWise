@@ -110,6 +110,13 @@
             android:name="startWithLends"
             app:argType="boolean"
             android:defaultValue="false" />
+        <action
+            android:id="@+id/action_history_to_groupDetails"
+            app:destination="@id/groupDetails"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     </fragment>
 
     <fragment
@@ -142,6 +149,19 @@
         android:name="com.tech.spendwise.ReviewTransactionFragment"
         android:label="Review Transaction"
         tools:layout="@layout/fragment_review_transaction" />
+
+    <fragment
+        android:id="@+id/groupDetails"
+        android:name="com.tech.spendwise.GroupDetailsFragment"
+        android:label="Group Details"
+        tools:layout="@layout/fragment_group_details">
+        <argument
+            android:name="groupId"
+            app:argType="string" />
+        <argument
+            android:name="groupName"
+            app:argType="string" />
+    </fragment>
 
     <!-- ── Voice Input ──────────────────────────────────────────────────── -->
     <fragment

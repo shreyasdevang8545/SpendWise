@@ -25,7 +25,9 @@ class LendHistoryFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val supabaseRepository = SupabaseRepository()
-    private val adapter = LendListAdapter()
+    private val adapter = LendListAdapter { lend, position ->
+        showActionMenu(lend, position)
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentLendHistoryBinding.inflate(inflater, container, false)
@@ -93,6 +95,9 @@ class LendHistoryFragment : Fragment() {
                     // Action Menu
                     showActionMenu(lend, position)
                 }
+                
+                // Immediately reset the swipe visually
+                adapter.notifyItemChanged(position)
             }
         }
         val itemTouchHelper = ItemTouchHelper(swipeHandler)
@@ -116,7 +121,6 @@ class LendHistoryFragment : Fragment() {
                     findNavController().navigate(R.id.action_history_to_addLend, bundle)
                 }
             }
-            adapter.notifyItemChanged(position)
         }
     }
 

@@ -33,9 +33,13 @@ class AddTransactionFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val viewModel: TransactionViewModel by activityViewModels()
+    private val supabaseRepository = SupabaseRepository()
     private val calendar = Calendar.getInstance()
     private val displayFormat = SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault())
     private val storageFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
+    
+    private var groupsList = listOf<com.tech.spendwise.models.TransactionGroup>()
+    private var selectedGroupId: String? = null
 
     private val categories by lazy {
         listOf(
@@ -72,6 +76,8 @@ class AddTransactionFragment : Fragment() {
             categories
         )
         binding.actvCategory.setAdapter(categoryAdapter)
+        
+        fetchGroups()
 
         // Voice Input Button
         binding.btnVoiceStart.setOnClickListener {
@@ -149,6 +155,70 @@ class AddTransactionFragment : Fragment() {
             calendar.get(Calendar.MONTH),
             calendar.get(Calendar.DAY_OF_MONTH)
         ).show()
+    }
+
+    private fun fetchGroups() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            groupsList = supabaseRepository.fetchGroups()
+            val groupNames = groupsList.map { it.name }.toMutableList()
+            groupNames.add("+ Create New Group")
+            
+            val groupAdapter = ArrayAdapter(
+                requireContext(),
+                android.R.layout.simple_dropdown_item_1line,
+                groupNames
+            )
+            binding.actvGroup.setAdapter(groupAdapter)
+            
+            binding.actvGroup.setOnItemClickListener { _, _, position, _ ->
+                if (position == groupNames.size - 1) {
+                    // Create new group
+                    binding.actvGroup.setText("", false)
+                    selectedGroupId = null
+                    showCreateGroupDialog()
+                } else {
+                    selectedGroupId = groupsList[position].id
+                }
+            }
+        }
+    }
+
+    private fun showCreateGroupDialog() {
+        val input = android.widget.EditText(requireContext())
+        input.hint = "Group Name (e.g. Mangalore Trip)"
+        
+        val margin = (20 * resources.displayMetrics.density).toInt()
+        val container = android.widget.FrameLayout(requireContext())
+        val params = android.widget.FrameLayout.LayoutParams(
+            android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
+            android.widget.FrameLayout.LayoutParams.WRAP_CONTENT
+        ).apply {
+            setMargins(margin, margin, margin, margin)
+        }
+        input.layoutParams = params
+        container.addView(input)
+
+        android.app.AlertDialog.Builder(requireContext())
+            .setTitle("Create New Group")
+            .setView(container)
+            .setPositiveButton("Create") { _, _ ->
+                val name = input.text.toString().trim()
+                if (name.isNotEmpty()) {
+                    viewLifecycleOwner.lifecycleScope.launch {
+                        val id = supabaseRepository.createGroup(name)
+                        if (id != null) {
+                            Toast.makeText(requireContext(), "Group Created", Toast.LENGTH_SHORT).show()
+                            selectedGroupId = id
+                            binding.actvGroup.setText(name, false)
+                            fetchGroups() // Refresh list
+                        } else {
+                            Toast.makeText(requireContext(), "Failed to create group", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     private fun showVoiceBottomSheet() {
@@ -229,6 +299,9 @@ class AddTransactionFragment : Fragment() {
             append("\"currency\": \"INR\", ")
             append("\"saved_at\": \"$timestamp\", ")
             append("\"source\": \"manual\", ")
+            if (selectedGroupId != null) {
+                append("\"group_id\": \"$selectedGroupId\", ")
+            }
             append("\"is_recurring\": $isRecurring")
             append("}")
         }

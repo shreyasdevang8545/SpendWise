@@ -48,6 +48,16 @@ class AuthActivity : AppCompatActivity() {
                 startMainActivity()
                 finish()
             } else {
+                // Check Maintenance Mode for unauthenticated users
+                val (isMaintenanceMode, message) = SupabaseRepository().checkAppConfig()
+                if (isMaintenanceMode) {
+                    val intent = Intent(this@AuthActivity, MaintenanceActivity::class.java)
+                    intent.putExtra("maintenance_message", message)
+                    startActivity(intent)
+                    finish()
+                    return@launch
+                }
+
                 // If not logged in, THEN inflate and show the login UI
                 binding = ActivityAuthBinding.inflate(layoutInflater)
                 setContentView(binding.root)

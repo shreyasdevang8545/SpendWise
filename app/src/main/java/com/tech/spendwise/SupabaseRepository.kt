@@ -36,7 +36,7 @@ class SupabaseRepository {
             val encryptedMap = TransactionCrypto.encryptTransaction(jsonStr, uid)
             val allowedColumns = setOf(
                 "amount", "type", "merchant", "category", "payment_mode", "currency", "saved_at",
-                "is_lend", "lend_name", "phone_number", "note", "return_date", "is_returned", "created_at", "credit_card_id", "is_recurring"
+                "is_lend", "lend_name", "phone_number", "note", "return_date", "is_returned", "created_at", "credit_card_id", "is_recurring", "group_id"
             )
             val json = buildJsonObject {
                 put("uid", uid)
@@ -96,6 +96,29 @@ class SupabaseRepository {
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error fetching transactions", e)
+            emptyList()
+        }
+    }
+
+    suspend fun fetchTransactionsByGroupId(groupId: String): List<String> = withContext(Dispatchers.IO) {
+        val uid = SupabaseInstance.currentUserId() ?: return@withContext emptyList()
+        try {
+            val result = postgrest.from("transactions")
+                .select() {
+                    filter {
+                        eq("uid", uid)
+                        eq("group_id", groupId)
+                    }
+                    order("saved_at", Order.DESCENDING)
+                }
+            
+            val list = result.decodeList<JsonObject>()
+            list.mapNotNull { obj ->
+                val map = obj.mapValues { it.value.jsonPrimitive.contentOrNull }
+                TransactionCrypto.decryptTransaction(map, uid)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error fetching transactions by group", e)
             emptyList()
         }
     }
@@ -285,7 +308,7 @@ class SupabaseRepository {
         val uid = SupabaseInstance.currentUserId() ?: return@withContext
         try {
             val encryptedMap = TransactionCrypto.encryptTransaction(jsonStr, uid)
-            val allowedColumns = setOf("amount", "type", "merchant", "category", "payment_mode", "currency", "saved_at", "is_recurring")
+            val allowedColumns = setOf("amount", "type", "merchant", "category", "payment_mode", "currency", "saved_at", "is_recurring", "group_id")
             val json = buildJsonObject {
                 encryptedMap.forEach { (k, v) ->
                     if (allowedColumns.contains(k)) {
@@ -377,6 +400,54 @@ class SupabaseRepository {
         }
     }
 
+    // ── Groups ────────────────────────────────────────────────────────────
+
+    suspend fun createGroup(name: String, description: String? = null): String? = withContext(Dispatchers.IO) {
+        val uid = SupabaseInstance.currentUserId() ?: return@withContext null
+        try {
+            val json = buildJsonObject {
+                put("uid", uid)
+                put("name", name)
+                if (!description.isNullOrEmpty()) {
+                    put("description", description)
+                }
+            }
+            val response = postgrest.from("transaction_groups").insert(json) {
+                select()
+            }.decodeSingle<JsonObject>()
+            
+            response["id"]?.jsonPrimitive?.content
+        } catch (e: Exception) {
+            Log.e(TAG, "Error saving group", e)
+            null
+        }
+    }
+
+    suspend fun fetchGroups(): List<com.tech.spendwise.models.TransactionGroup> = withContext(Dispatchers.IO) {
+        val uid = SupabaseInstance.currentUserId() ?: return@withContext emptyList()
+        try {
+            val result = postgrest.from("transaction_groups")
+                .select {
+                    filter { eq("uid", uid) }
+                    order("created_at", Order.DESCENDING)
+                }.decodeList<JsonObject>()
+            
+            result.mapNotNull { obj ->
+                try {
+                    com.tech.spendwise.models.TransactionGroup(
+                        id = obj["id"]?.jsonPrimitive?.content ?: "",
+                        name = obj["name"]?.jsonPrimitive?.content ?: "",
+                        description = obj["description"]?.jsonPrimitive?.contentOrNull,
+                        createdAt = parseIsoDateToLong(obj["created_at"]?.jsonPrimitive?.content)
+                    )
+                } catch (e: Exception) { null }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error fetching groups", e)
+            emptyList()
+        }
+    }
+
     // ── Feedbacks ─────────────────────────────────────────────────────────
 
     suspend fun saveFeedback(message: String) = withContext(Dispatchers.IO) {
@@ -419,4 +490,37 @@ class SupabaseRepository {
             java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.getDefault()).parse(raw.take(19))?.time ?: 0L
         } catch (e: Exception) { 0L }
     }
+
+    // ── App Config & Pro Status ──────────────────────────────────────────
+
+    suspend fun checkAppConfig(): Pair<Boolean, String> = withContext(Dispatchers.IO) {
+        try {
+            val response = postgrest.from("app_config").select {
+                filter { eq("id", 1) }
+            }.decodeSingleOrNull<JsonObject>()
+
+            if (response != null) {
+                val isMaintenanceMode = response["is_maintenance_mode"]?.jsonPrimitive?.booleanOrNull ?: false
+                val message = response["maintenance_message"]?.jsonPrimitive?.content ?: "App is under maintenance."
+                return@withContext Pair(isMaintenanceMode, message)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error checking app config", e)
+        }
+        return@withContext Pair(false, "")
+    }
+
+    suspend fun checkIfUserIsPro(uid: String): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val response = postgrest.from("pro_users").select {
+                filter { eq("uid", uid) }
+            }.decodeSingleOrNull<JsonObject>()
+            
+            return@withContext response != null
+        } catch (e: Exception) {
+            Log.e(TAG, "Error checking if user is pro", e)
+            return@withContext false
+        }
+    }
 }
+

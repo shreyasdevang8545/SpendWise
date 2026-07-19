@@ -18,5 +18,6 @@ data class Transaction(
     val createdAt: Long = System.currentTimeMillis(),
     val isLend: Boolean = false,
     val note: String? = null,
-    val creditCardId: String? = null
+    val creditCardId: String? = null,
+    val groupId: String? = null
 ) : Parcelable

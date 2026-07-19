@@ -26,8 +26,17 @@ class TransactionHistoryFragment : Fragment() {
 
     private val viewModel: TransactionViewModel by activityViewModels()
     private val adapter = TransactionListAdapter()
-    private val lendAdapter = LendListAdapter()
+    private val lendAdapter = LendListAdapter { lend, position -> 
+        showLendActionMenu(lend, position)
+    }
     private val supabaseRepository = SupabaseRepository()
+    private val groupsAdapter = GroupsAdapter { group ->
+        val bundle = Bundle().apply {
+            putString("groupId", group.id)
+            putString("groupName", group.name)
+        }
+        findNavController().navigate(R.id.action_history_to_groupDetails, bundle)
+    }
 
     private var selectedMonth: Int = -1
     private var selectedYear: Int = -1
@@ -60,9 +69,12 @@ class TransactionHistoryFragment : Fragment() {
 
         setupToolbar()
         setupRecyclerView()
+        setupGroupsRecyclerView()
+        setupLendSwipeActions()
         setupObservers()
         setupFilterListeners()
         setupAdapterCallbacks()
+        setupTabLayout()
         
         updateViewType()
 
@@ -109,7 +121,39 @@ class TransactionHistoryFragment : Fragment() {
         }
     }
 
+    private fun setupGroupsRecyclerView() {
+        binding.groupsRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+        binding.groupsRecyclerView.adapter = groupsAdapter
+    }
+
+    private fun setupTabLayout() {
+        binding.tabLayout.addOnTabSelectedListener(object : com.google.android.material.tabs.TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: com.google.android.material.tabs.TabLayout.Tab) {
+                if (tab.position == 0) {
+                    binding.transactionsContainer.visibility = View.VISIBLE
+                    binding.groupsContainer.visibility = View.GONE
+                } else {
+                    binding.transactionsContainer.visibility = View.GONE
+                    binding.groupsContainer.visibility = View.VISIBLE
+                    fetchGroups()
+                }
+            }
+            override fun onTabUnselected(tab: com.google.android.material.tabs.TabLayout.Tab) {}
+            override fun onTabReselected(tab: com.google.android.material.tabs.TabLayout.Tab) {}
+        })
+    }
+
+    private fun fetchGroups() {
+        binding.groupsProgress.visibility = View.VISIBLE
+        lifecycleScope.launch {
+            val groups = supabaseRepository.fetchGroups()
+            binding.groupsProgress.visibility = View.GONE
+            groupsAdapter.submitList(groups)
+        }
+    }
+
     private fun updateViewType() {
+        // ... (Keep existing implementation for Lends vs Transactions)
         if (currentViewType == HistoryFilterBottomSheet.HistoryType.TRANSACTIONS) {
             binding.toolbar.title = getString(R.string.title_transaction_history)
             binding.transactionHistoryList.adapter = adapter
@@ -117,6 +161,7 @@ class TransactionHistoryFragment : Fragment() {
             binding.monthChipScroll.visibility = if (currentFilterType == FilterType.ALL) View.VISIBLE else View.GONE
             binding.textEmptyTitle.text = "No Transactions"
             binding.textEmptyDesc.text = "You haven't tracked any transactions for this month. Your history will appear here once you do."
+            binding.tabLayout.visibility = View.VISIBLE
             applyFilter()
         } else {
             binding.toolbar.title = getString(R.string.title_lend_history)
@@ -125,6 +170,9 @@ class TransactionHistoryFragment : Fragment() {
             binding.monthChipScroll.visibility = View.GONE
             binding.textEmptyTitle.text = "No Lend History"
             binding.textEmptyDesc.text = "You haven't recorded any lend transactions. Start tracking money given to others!"
+            binding.tabLayout.visibility = View.GONE
+            binding.transactionsContainer.visibility = View.VISIBLE
+            binding.groupsContainer.visibility = View.GONE
             fetchLends()
         }
     }
@@ -477,6 +525,90 @@ class TransactionHistoryFragment : Fragment() {
             result[key] = value
         }
         return result
+    }
+
+    private fun setupLendSwipeActions() {
+        val swipeHandler = object : androidx.recyclerview.widget.ItemTouchHelper.SimpleCallback(0, androidx.recyclerview.widget.ItemTouchHelper.LEFT or androidx.recyclerview.widget.ItemTouchHelper.RIGHT) {
+            override fun onMove(rv: androidx.recyclerview.widget.RecyclerView, vh: androidx.recyclerview.widget.RecyclerView.ViewHolder, t: androidx.recyclerview.widget.RecyclerView.ViewHolder) = false
+
+            override fun onSwiped(viewHolder: androidx.recyclerview.widget.RecyclerView.ViewHolder, direction: Int) {
+                if (currentViewType != HistoryFilterBottomSheet.HistoryType.LENDS) {
+                    adapter.notifyItemChanged(viewHolder.adapterPosition)
+                    return
+                }
+
+                val position = viewHolder.adapterPosition
+                if (position < 0 || position >= lendAdapter.currentList.size) return
+                val lend = lendAdapter.currentList[position]
+
+                if (direction == androidx.recyclerview.widget.ItemTouchHelper.LEFT) {
+                    // Delete
+                    showLendDeleteConfirmation(lend, position)
+                } else if (direction == androidx.recyclerview.widget.ItemTouchHelper.RIGHT) {
+                    // Action Menu
+                    showLendActionMenu(lend, position)
+                }
+                
+                // Immediately reset the swipe visually
+                lendAdapter.notifyItemChanged(position)
+            }
+        }
+        val itemTouchHelper = androidx.recyclerview.widget.ItemTouchHelper(swipeHandler)
+        itemTouchHelper.attachToRecyclerView(binding.transactionHistoryList)
+    }
+
+    private fun showLendActionMenu(lend: LendTransaction, position: Int) {
+        val options = if (lend.isReturned) {
+            arrayOf(getString(R.string.btn_edit_detail))
+        } else {
+            arrayOf(getString(R.string.btn_mark_returned), getString(R.string.btn_edit_detail))
+        }
+
+        UIUtils.showListDialog(requireContext(), getString(R.string.title_action_for, lend.name), options) { which ->
+            when (options[which]) {
+                getString(R.string.btn_mark_returned) -> markLendAsReturned(lend)
+                getString(R.string.btn_edit_detail) -> {
+                    val bundle = Bundle().apply {
+                        putString("lendId", lend.id)
+                    }
+                    findNavController().navigate(R.id.action_history_to_addLend, bundle)
+                }
+            }
+        }
+    }
+
+    private fun markLendAsReturned(lend: LendTransaction) {
+        val uid = SupabaseInstance.currentUserId() ?: return
+        lifecycleScope.launch {
+            supabaseRepository.updateLendStatus(lend.id!!, true)
+            _binding?.let {
+                lend.id?.let { id ->
+                    ReminderManager.cancelReminder(requireContext(), id)
+                }
+                fetchLends() // Refresh
+            }
+        }
+    }
+
+    private fun showLendDeleteConfirmation(lend: LendTransaction, position: Int) {
+        UIUtils.showAlertDialog(
+            requireContext(),
+            getString(R.string.title_delete_record),
+            getString(R.string.msg_delete_lend_confirm, lend.name),
+            getString(R.string.btn_delete),
+            getString(R.string.btn_cancel)
+        ) {
+            val uid = SupabaseInstance.currentUserId() ?: return@showAlertDialog
+            lifecycleScope.launch {
+                supabaseRepository.deleteLend(lend.id!!)
+                _binding?.let {
+                    lend.id?.let { id ->
+                        ReminderManager.cancelReminder(requireContext(), id)
+                    }
+                    fetchLends() // Refresh list
+                }
+            }
+        }
     }
 
     override fun onDestroyView() {

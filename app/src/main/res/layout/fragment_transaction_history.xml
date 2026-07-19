@@ -18,8 +18,34 @@
             android:layout_height="?attr/actionBarSize"
             style="@style/Widget.SpendWise.Toolbar"
             app:navigationIcon="@drawable/ic_back"
-            app:title="Transaction History" />
+            app:title="History" />
+
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tabLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/background_light"
+            app:tabIndicatorColor="@color/primary_green"
+            app:tabSelectedTextColor="@color/primary_green"
+            app:tabTextColor="@color/text_secondary">
+
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="All Transactions" />
+
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Groups" />
+        </com.google.android.material.tabs.TabLayout>
     </com.google.android.material.appbar.AppBarLayout>
+
+    <LinearLayout
+        android:id="@+id/transactionsContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
     <HorizontalScrollView
         android:layout_width="match_parent"
@@ -145,6 +171,31 @@
                 <include layout="@layout/item_shimmer_transaction" />
             </LinearLayout>
         </com.facebook.shimmer.ShimmerFrameLayout>
+    </FrameLayout>
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/groupsContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/groupsRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:padding="16dp" />
+            
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:id="@+id/groupsProgress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:indeterminate="true"
+            android:visibility="gone"
+            app:indicatorColor="@color/primary_green" />
+
     </FrameLayout>
 
 </LinearLayout>

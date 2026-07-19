@@ -145,6 +145,8 @@ class MainActivity : AppCompatActivity() {
                 // If still not logged in, redirect
                 startActivity(Intent(this@MainActivity, AuthActivity::class.java))
                 finish()
+            } else {
+                checkAppStatusAndPro()
             }
         }
 
@@ -585,6 +587,36 @@ class MainActivity : AppCompatActivity() {
                 ReminderManager.scheduleDailyReminder(this@MainActivity, hour, minute)
             } else {
                 Log.d(TAG, "Daily reminder is disabled in settings.")
+            }
+        }
+    }
+
+    private fun checkAppStatusAndPro() {
+        val settingsManager = SettingsManager(this)
+        val uid = SupabaseInstance.currentUserId() ?: return
+        
+        lifecycleScope.launch {
+            val repo = SupabaseRepository()
+            
+            // 1. Check Maintenance Mode
+            val (isMaintenanceMode, message) = repo.checkAppConfig()
+            if (isMaintenanceMode) {
+                val intent = Intent(this@MainActivity, MaintenanceActivity::class.java)
+                intent.putExtra("maintenance_message", message)
+                startActivity(intent)
+                finish() // Prevent going back to MainActivity
+                return@launch
+            }
+
+            // 2. Check Pro Status
+            val isProInDb = repo.checkIfUserIsPro(uid)
+            if (isProInDb) {
+                settingsManager.setBoolean(SettingsManager.IS_PRO_USER, true)
+                settingsManager.setString(SettingsManager.PRO_PLAN_TYPE, "Lifetime")
+            } else {
+                // Do not auto-revoke if they purchased via Google Play locally, 
+                // but if backend is the absolute source of truth, you could set to false here.
+                // Keeping it as is to allow local/Play Store pro users to coexist.
             }
         }
     }

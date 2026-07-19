@@ -11,21 +11,30 @@ import com.tech.spendwise.models.LendTransaction
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-class LendListAdapter : ListAdapter<LendTransaction, LendListAdapter.LendViewHolder>(DiffCallback()) {
+class LendListAdapter(
+    private val onItemClicked: (LendTransaction, Int) -> Unit
+) : ListAdapter<LendTransaction, LendListAdapter.LendViewHolder>(DiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): LendViewHolder {
         val binding = ItemLendBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return LendViewHolder(binding)
+        return LendViewHolder(binding, onItemClicked)
     }
 
     override fun onBindViewHolder(holder: LendViewHolder, position: Int) {
         holder.bind(getItem(position))
     }
 
-    class LendViewHolder(private val binding: ItemLendBinding) : RecyclerView.ViewHolder(binding.root) {
+    class LendViewHolder(
+        private val binding: ItemLendBinding,
+        private val onItemClicked: (LendTransaction, Int) -> Unit
+    ) : RecyclerView.ViewHolder(binding.root) {
         private val dateFormatter = SimpleDateFormat("dd MMM", Locale.getDefault())
 
         fun bind(lend: LendTransaction) {
+            binding.root.setOnClickListener {
+                onItemClicked(lend, adapterPosition)
+            }
+
             val context = binding.root.context
             binding.textName.text = lend.name
             binding.textAmount.text = "₹${lend.amount}"
